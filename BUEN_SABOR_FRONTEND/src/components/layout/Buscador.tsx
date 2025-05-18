@@ -1,4 +1,4 @@
-import '../styles/buscador.css';
+import '../../styles/buscador.css';
 function Buscador() {
   return (
     <div className="search-bar">

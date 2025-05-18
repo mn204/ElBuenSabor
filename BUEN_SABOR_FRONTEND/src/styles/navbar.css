@@ -9,11 +9,16 @@ nav{
     left: 0;
     z-index: 1000;
     padding: 10px 0;
+    height: 50px;
 }
-
 .logoEmpresa{
     width: 50px;
     height: auto;
+}
+
+.homeNav:hover{
+    cursor: pointer;
+    color: #fff;
 }
 
 nav .navButtons{
@@ -33,9 +38,81 @@ nav a{
 }
 
 .btnLogin{
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    background-color: #fff;
-    color: #000;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background-color: #fff;
+  color: #000;
+  padding: 5px 10px;
+  border: 10px solid #fff;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.carrito{
+  cursor: pointer;
+}
+
+.menu svg{
+  height: 50px;
+}
+
+.menu {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  padding: 0;
+  width: 50px;
+  height: 50px;
+}
+.line {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 6;
+  transition: stroke-dasharray 600ms cubic-bezier(0.4, 0, 0.2, 1),
+    stroke-dashoffset 600ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.line1 {
+  stroke-dasharray: 60 207;
+  stroke-width: 6;
+}
+.line2 {
+  stroke-dasharray: 60 60;
+  stroke-width: 6;
+}
+.line3 {
+  stroke-dasharray: 60 207;
+  stroke-width: 6;
+}
+.opened .line1 {
+  stroke-dasharray: 90 207;
+  stroke-dashoffset: -134;
+  stroke-width: 6;
+}
+.opened .line2 {
+  stroke-dasharray: 1 60;
+  stroke-dashoffset: -30;
+  stroke-width: 6;
+}
+.opened .line3 {
+  stroke-dasharray: 90 207;
+  stroke-dashoffset: -134;
+  stroke-width: 6;
+}
+
+@media screen and (max-width: 768px) {
+    nav{
+        align-items: center;
+        gap: 10px;
+    }
+    .menu{
+        display: block;
+    }
+    .btnLogin, .carrito, .homeNav span {
+        display: none;
+    }
+    .menu svg{
+      width: 40px;
+    }
 }
