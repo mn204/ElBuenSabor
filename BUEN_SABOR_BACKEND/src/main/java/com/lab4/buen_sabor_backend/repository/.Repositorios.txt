@@ -1,1 +1,2 @@
-Falta agregar en los repositories correctos mas detalles. Por ejemplo FILTROS o ESTADISTICAS
+17/05/2025 ---> Falta agregar en los repositories correctos mas detalles. Por ejemplo FILTROS o ESTADISTICAS
+18/05/2025 ---> AUDITORIAS. Falta terminar las ultimas 3 historias de Usuario que son las Estadisticas.

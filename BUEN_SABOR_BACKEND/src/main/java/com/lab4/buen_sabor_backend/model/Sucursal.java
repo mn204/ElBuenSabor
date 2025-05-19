@@ -16,7 +16,7 @@ import java.util.*;
 @Builder
 public class Sucursal extends Master {
 
-
+    private String nombre;
     private LocalTime horarioApertura;
     private LocalTime horarioCierre;
     private Boolean casaMatriz;
