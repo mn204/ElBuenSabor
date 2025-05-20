@@ -3,11 +3,11 @@ package com.lab4.buen_sabor_backend.repository;
 import com.lab4.buen_sabor_backend.model.Master;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.*;
 import org.springframework.data.repository.query.Param;
 
-import java.awt.print.Pageable;
 import java.io.Serializable;
 import java.util.*;
 
