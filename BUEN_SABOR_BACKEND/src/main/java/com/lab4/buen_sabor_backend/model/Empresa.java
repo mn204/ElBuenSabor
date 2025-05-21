@@ -4,14 +4,13 @@ import jakarta.persistence.*;
 import lombok.*;
 import com.fasterxml.jackson.annotation.*;
 
-import java.util.List;
+import java.util.Set;
 
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class Empresa extends Master {
 
     private String nombre;
@@ -20,5 +19,5 @@ public class Empresa extends Master {
 
     @OneToMany(mappedBy = "empresa", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
-    private List<Sucursal> sucursales;
+    private Set<Sucursal> sucursales;
 }

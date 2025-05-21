@@ -9,7 +9,6 @@ import com.fasterxml.jackson.annotation.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class ArticuloInsumo extends Articulo {
 
     private Double precioCompra;

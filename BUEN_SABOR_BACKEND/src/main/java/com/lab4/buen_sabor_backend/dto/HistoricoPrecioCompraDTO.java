@@ -4,9 +4,7 @@ import java.time.LocalDate;
 import lombok.Data;
 
 @Data
-public class HistorialPrecioCompraDTO extends MasterDTO{
-
+public class HistoricoPrecioCompraDTO extends MasterDTO{
     private LocalDate fecha;
     private Double precio;
-    private String insumo;
 }

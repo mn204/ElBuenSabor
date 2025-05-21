@@ -11,6 +11,6 @@ import lombok.*;
 @Builder
 public class UsuarioEmpleado extends Master{
 
-    private String auth0Id;
     private String username;
+    private String password;
 }
