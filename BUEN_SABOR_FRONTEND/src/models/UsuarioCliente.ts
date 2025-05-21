@@ -1,6 +1,6 @@
 export default class UsuarioCliente {
-    id?: number = 0;
+    id?: number;
     auth0Id: string = "";
     username: string = "";
-    eliminado?: boolean;
+    eliminado!: boolean;
 }

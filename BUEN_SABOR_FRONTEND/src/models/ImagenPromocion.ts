@@ -1,4 +1,4 @@
-export default class ImagenEmpleado {
+export default class ImagenPromocion {
     id?: number;
     denominacion: string = "";
 }

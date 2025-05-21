@@ -1,5 +1,8 @@
+import Articulo from "./Articulo";
+
 export default class ImagenArticulo {
-    id?: number = 0;
+    id?: number;
     denominacion: string = "";
-    articuloId?: number;
+    articulo!: Articulo;
+    eliminado!: boolean;
 }

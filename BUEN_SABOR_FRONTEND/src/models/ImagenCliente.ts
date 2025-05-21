@@ -1,4 +1,4 @@
 export default class ImagenCliente {
-    id?: number = 0;
+    id?: number;
     denominacion: string = "";
 }

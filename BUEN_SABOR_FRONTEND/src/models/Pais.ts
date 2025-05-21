@@ -1,5 +1,5 @@
 export default class Pais {
-    id?: number = 0;
+    id?: number;
     nombre: string = "";
-    eliminado?: boolean;
+    eliminado!: boolean;
 }

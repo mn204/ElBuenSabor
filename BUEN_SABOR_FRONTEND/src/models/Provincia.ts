@@ -1,8 +1,8 @@
 import Pais from "./Pais";
 
 export default class Provincia {
-    id?: number = 0;
+    id?: number;
     nombre: string = "";
-    pais?: Pais;
-    eliminado?: boolean;
+    pais!: Pais;
+    eliminado!: boolean;
 }

@@ -1,5 +1,8 @@
+import type ArticuloManufacturado from "./ArticuloManufacturado";
+
 export default class ImagenArticuloManufacturado {
-    id?: number = 0;
+    id?: number;
     denominacion: string = "";
-    articuloManufacturadoId?: number;
+    articuloManufacturado!: ArticuloManufacturado;
+    eliminado!: boolean;
 }

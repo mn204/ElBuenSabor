@@ -1,8 +1,8 @@
 import ArticuloInsumo from "./ArticuloInsumo";
 
 export default class DetalleArticuloManufacturado {
-    id?: number = 0;
+    id?: number;
     cantidad: number = 0;
     articuloInsumo?: ArticuloInsumo;
-    eliminado?: boolean;
+    eliminado!: boolean;
 }

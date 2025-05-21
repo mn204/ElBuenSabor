@@ -1,5 +1,7 @@
 export default class Existencia {
-    id?: number = 0;
+    id?: number;
+    fechaCompra: Date = new Date();
+    fechaVencimiento?: Date = new Date();
     cantidad: number = 0;
-    eliminado?: boolean;
+    eliminado!: boolean;
 }

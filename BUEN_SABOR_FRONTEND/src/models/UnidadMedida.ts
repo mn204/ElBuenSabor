@@ -1,4 +1,5 @@
 export default class UnidadMedida {
-    id?: number = 0;
+    id?: number;
     denominacion: string = "";
+    eliminado!: boolean;
 }
