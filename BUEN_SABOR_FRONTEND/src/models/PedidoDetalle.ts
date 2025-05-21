@@ -1,9 +1,9 @@
 import Articulo from "./Articulo";
 
-export default class HistoricoPrecioCompra {
+export default class DetallePedido {
     id?: number = 0;
-    precio: number = 0;
-    fecha: Date = new Date();
+    cantidad: number = 0;
+    subTotal: number = 0;
     articulo?: Articulo;
     eliminado?: boolean;
 }

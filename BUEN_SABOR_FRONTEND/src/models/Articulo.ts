@@ -1,12 +1,13 @@
-import type HistoricoPrecioCompra from "./HistoricoPrecioCompra";
-import HistoricoPrecioVenta from "./HistoricoPrecioVenta";
-import Imagen from "./ImagenArticulo";
+import ImagenArticulo from "./ImagenArticulo";
+import UnidadMedida from "./UnidadMedida";
+import Categoria from "./Categoria";
 
-export default class Articulo {
-    id: number = 0;
-    descripcion: string = "";
-    precioVenta: HistoricoPrecioVenta[] = [];
-    precioCompra: HistoricoPrecioCompra[] = [];
-    imagenes: Imagen[] = [];
-    unidadMedida: string = "";
+export default abstract class Articulo {
+    id?: number = 0;
+    denominacion: string = "";
+    precioVenta: number = 0;
+    imagenes: ImagenArticulo[] = [];
+    unidadMedida?: UnidadMedida;
+    categoria?: Categoria;
+    eliminado?: boolean;
 }
