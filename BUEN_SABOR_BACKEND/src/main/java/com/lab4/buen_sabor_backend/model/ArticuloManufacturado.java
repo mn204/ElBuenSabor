@@ -11,7 +11,6 @@ import java.util.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class ArticuloManufacturado extends Articulo {
 
     private String descripcion;
@@ -22,6 +21,6 @@ public class ArticuloManufacturado extends Articulo {
     private Set<DetalleArticuloManufacturado> detalles = new HashSet<>();
 
     @OneToMany(mappedBy = "articuloManufacturado", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<ImagenArticuloManufacturado> imagenes = new HashSet<>();
+    private Set<ImagenArticuloManufacturado> imagenesArticuloManufacturado = new HashSet<>();
 }
 

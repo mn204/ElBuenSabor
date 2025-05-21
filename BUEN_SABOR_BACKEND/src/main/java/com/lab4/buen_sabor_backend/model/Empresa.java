@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import com.fasterxml.jackson.annotation.*;
 
-import java.util.List;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -20,5 +20,5 @@ public class Empresa extends Master {
 
     @OneToMany(mappedBy = "empresa", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
-    private List<Sucursal> sucursales;
+    private Set<Sucursal> sucursales;
 }

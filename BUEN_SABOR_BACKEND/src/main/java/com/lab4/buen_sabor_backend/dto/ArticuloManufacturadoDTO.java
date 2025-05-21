@@ -1,19 +1,16 @@
 package com.lab4.buen_sabor_backend.dto;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 
-import java.util.List;
+import java.util.*;
 
 @Data
-public class ArticuloManufacturadoDTO extends MasterDTO {
-
-    private String denominacion;
+@NoArgsConstructor
+@AllArgsConstructor
+public class ArticuloManufacturadoDTO extends ArticuloDTO {
     private String descripcion;
     private Integer tiempoEstimadoMinutos;
     private String preparacion;
-    private Double precioVenta;
-    private String categoria;
-    private List<DetalleArticuloManufacturadoDTO> detalles;
-    private List<String> imagenes;
+    private Set<DetalleArticuloManufacturadoDTO> detalles = new HashSet<>();
+    private Set<ImagenArticuloManufacturadoDTO> imagenesArticuloManufacturado = new HashSet<>();
 }

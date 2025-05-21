@@ -1,11 +1,11 @@
 package com.lab4.buen_sabor_backend.dto;
 
-import lombok.Data;
+import lombok.*;
 
 @Data
-public class DetalleArticuloManufacturadoDTO extends MasterDTO{
-
-    private String insumoNombre;
+@NoArgsConstructor
+@AllArgsConstructor
+public class DetalleArticuloManufacturadoDTO extends MasterDTO {
     private Double cantidad;
-    private String unidadMedida;
+    private ArticuloInsumoDTO articuloInsumo;
 }
