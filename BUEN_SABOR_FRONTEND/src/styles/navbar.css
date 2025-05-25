@@ -9,7 +9,7 @@ nav{
     left: 0;
     z-index: 1000;
     padding: 10px 0;
-    height: 50px;
+    height: 70px;
 }
 .logoEmpresa{
     width: 50px;
@@ -102,18 +102,40 @@ nav a{
   stroke-width: 6;
 }
 
+.navButtonsRes{
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: absolute;
+  top: 50px;
+  right: 0;
+  background-color: #F28500;
+  padding: 10px;
+  border-radius: 10px;
+}
+
 @media screen and (max-width: 768px) {
     nav{
         align-items: center;
+        gap: 1px;
+        justify-content: space-evenly;
+    }
+    nav .navButtons{
         gap: 10px;
+    }
+    .btnLogin{
+        padding: 0px;
     }
     .menu{
         display: block;
     }
-    .btnLogin, .carrito, .homeNav span {
+    .homeNav span {
         display: none;
     }
     .menu svg{
       width: 40px;
+    }
+    .btnLogin span{
+      display: none;
     }
 }
