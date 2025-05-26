@@ -37,12 +37,12 @@
     height: auto;
 }
 
-.flechaIzquierda{
+.flechaIzquierda, .flechaDerecha{
     background-color: transparent;
     border: none;
 }
 
-.flechaIzquierda:hover{
+.flechaIzquierda:hover, .flechaDerecha:hover{
     cursor: pointer;
 }
 
