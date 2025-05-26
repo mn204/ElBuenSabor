@@ -12,7 +12,7 @@ import java.util.Optional;
 
 @Repository
 public interface HistoricoPrecioCompraRepository extends MasterRepository<HistoricoPrecioCompra, Long> {
-
+/*
     // Buscar compras por ingrediente
     List<HistoricoPrecioCompra> findByArticulo(ArticuloInsumo articulo);
 
@@ -31,4 +31,6 @@ public interface HistoricoPrecioCompraRepository extends MasterRepository<Histor
         List<HistoricoPrecioCompra> resultados = findUltimaCompra(articulo);
         return resultados.isEmpty() ? Optional.empty() : Optional.of(resultados.get(0));
     }
+
+ */
 }

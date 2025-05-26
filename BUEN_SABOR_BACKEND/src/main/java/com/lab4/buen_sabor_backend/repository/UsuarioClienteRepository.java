@@ -10,6 +10,7 @@ import java.util.Optional;
 @Repository
 public interface UsuarioClienteRepository extends MasterRepository<UsuarioCliente, Long> {
 
+    /*
     // Buscar por email (para evitar duplicados)
     Optional<UsuarioCliente> findByEmailAndEliminadoFalse(String email);
 
@@ -18,4 +19,5 @@ public interface UsuarioClienteRepository extends MasterRepository<UsuarioClient
 
     // Alternativa si se quiere saber si el email ya existe (sin traer el objeto completo)
     boolean existsByEmailAndEliminadoFalse(String email);
+    */
 }

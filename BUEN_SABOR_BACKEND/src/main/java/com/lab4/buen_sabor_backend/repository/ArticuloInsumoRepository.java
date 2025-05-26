@@ -25,9 +25,9 @@ public interface ArticuloInsumoRepository extends MasterRepository<ArticuloInsum
     // Buscar ingredientes por rubro (categoría)
     List<ArticuloInsumo> findByCategoria(Categoria categoria);
 
-    // Obtener todos los ingredientes dados de alta (no eliminados y activos)
-    @Query("SELECT a FROM ArticuloInsumo a WHERE a.eliminado = false AND a.alta = true")
-    List<ArticuloInsumo> findAllActivos();
+    // Obtener todos los ingredientes que son ParaElaborar (no eliminados y son para Elaborar)
+    @Query("SELECT a FROM ArticuloInsumo a WHERE a.eliminado = false AND a.esParaElaborar = true")
+    List<ArticuloInsumo> findAllEsParaElaborar();
 
     // Consultar y controlar el stock actual (sumando existencias por insumo)
     //TODO HAY QUE VER SI ESTA BIEN ESTE TODO

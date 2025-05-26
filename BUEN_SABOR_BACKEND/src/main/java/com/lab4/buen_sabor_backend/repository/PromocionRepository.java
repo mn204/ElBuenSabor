@@ -12,6 +12,7 @@ import java.util.List;
 @Repository
 public interface PromocionRepository extends MasterRepository<Promocion, Long> {
 
+    /*
     List<Promocion> findByNombreContainingIgnoreCase(String nombre);
 
     // Buscar promociones activas (fecha actual entre fechaInicio y fechaFin)
@@ -20,4 +21,6 @@ public interface PromocionRepository extends MasterRepository<Promocion, Long> {
 
     @Query("SELECT new com.lab4.buen_sabor_backend.dto.PromocionDTO(p.id, p.nombre, p.descripcion, p.fechaInicio, p.fechaFin) FROM Promocion p")
     List<PromocionDTO> findAllDTO();
+
+     */
 }

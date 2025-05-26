@@ -12,7 +12,7 @@ import java.util.Optional;
 
 @Repository
 public interface ClienteRepository extends MasterRepository<Cliente, Long> {
-
+/*
     // Buscar cliente por email, haciendo join con UsuarioCliente
     @Query("SELECT c FROM Cliente c WHERE c.usuarioCliente.email = :email AND c.eliminado = false")
     Optional<Cliente> findByUsuarioClienteEmail(@Param("email") String email);
@@ -26,4 +26,6 @@ public interface ClienteRepository extends MasterRepository<Cliente, Long> {
 
     // Paginación de clientes dados de alta
     Page<Cliente> findAllByEliminadoFalse(Pageable pageable);
+
+ */
 }

@@ -1,0 +1,9 @@
+En esta carpeta se arman 2 tipos de servicios. Los servicios como interfaz, y luego las clases abstractas de las mismas
+sirve para ahorrarse codigo en los controladores.
+Es una capa mas para trabajar sin errores las DTOs y las Entidades.
+
+
+FALTAN HACER LOS SERVICES DE:
+-Email (para mandar un mail) ----> EmailService y EmailServiceImpl
+-ExcelReport (para el excel de los reportes de los pedidos) ----> ExcelReportService y ExcelReportServiceImpl
+-En FacturaService y FacturaServiceImpl ----> Crear para armar PDF / Generación de PDF.

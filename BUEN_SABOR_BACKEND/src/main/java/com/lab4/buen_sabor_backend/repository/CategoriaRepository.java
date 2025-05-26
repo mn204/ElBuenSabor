@@ -8,7 +8,7 @@ import java.util.List;
 
 @Repository
 public interface CategoriaRepository extends MasterRepository<Categoria, Long> {
-
+/*
     // Buscar rubro por nombre exacto (para evitar duplicados)
     boolean existsByDenominacionIgnoreCaseAndEliminadoFalse(String denominacion);
 
@@ -20,4 +20,6 @@ public interface CategoriaRepository extends MasterRepository<Categoria, Long> {
 
     // Obtener rubros activos ordenados (para barra de navegación)
     List<Categoria> findAllByAltaTrueAndEliminadoFalseOrderByDenominacionAsc();
+
+ */
 }

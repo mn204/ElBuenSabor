@@ -13,7 +13,7 @@ import java.util.Optional;
 @Repository
 public interface EmpleadoRepository extends MasterRepository<Empleado, Long> {
 
-
+/*
     // Buscar por username haciendo join con UsuarioEmpleado
     @Query("SELECT e FROM Empleado e WHERE e.usuarioEmpleado.username = :username AND e.eliminado = false")
     Optional<Empleado> findByUsuarioEmpleadoUsername(@Param("username") String username);
@@ -27,4 +27,6 @@ public interface EmpleadoRepository extends MasterRepository<Empleado, Long> {
 
     // Paginación empleados activos
     Page<Empleado> findAllByEliminadoFalse(Pageable pageable);
+
+ */
 }
