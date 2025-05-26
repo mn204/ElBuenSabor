@@ -1,4 +1,4 @@
-package com.lab4.buen_sabor_backend.WebConfig;
+package com.lab4.buen_sabor_backend.security;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
