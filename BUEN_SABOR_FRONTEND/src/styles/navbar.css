@@ -27,7 +27,7 @@ nav .navButtons{
   gap: 30px;
 }
 
-nav a{
+nav .homeNav{
     text-decoration: none;
     color: #fff;
     font-size: 20px;
