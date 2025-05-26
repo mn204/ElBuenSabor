@@ -1,0 +1,77 @@
+Aca van todos los controladores que exportan a las apis (/clientes)
+
+
+
+Hay que crear:
+-ReportController -----> para crear los reportes de Excel (de los pedidos).
+-FacturaController -----> Todos los envios y la generacion de los PDF de las Facturas.
+-AuthController -----> (para las autenticaciones de el registro/login/etc).
+
+-MercadoPagoController ---->
+
+public class MercadoPagoController {
+
+    public PreferenceMP getPreferenciaIdMercadoPago(Pedido pedido) {
+        try {
+
+            MercadoPagoConfig.setAccessToken("TEST-2078179301936383-052017-d23928c65f2c1286d70003dae124e291-196703545");
+
+            PreferenceItemRequest itemRequest = PreferenceItemRequest.builder()
+                    .id(String.valueOf(pedido.getId()))
+                    .title("Articulos")
+                    .description("Pedido realizado desde el carrito de compras")
+                    .pictureUrl("https://img-global.cpcdn.com/recipes/0709fbb52d87d2d7/1200x630cq70/photo.jpg")
+                    .quantity(1)
+                    .currencyId("ARG")
+                    .unitPrice(BigDecimal.valueOf(pedido.getTotal()))
+                    .build();
+
+            List<PreferenceItemRequest> items = new ArrayList<>();
+            items.add(itemRequest);
+
+            PreferenceBackUrlsRequest backURL = PreferenceBackUrlsRequest.builder()
+                    .success("http://localhost:5173")
+                    .pending("http://localhost:5173")
+                    .failure("http://localhost:5173")
+                    .build();
+
+            PreferenceRequest preferenceRequest = PreferenceRequest.builder()
+                    .items(items)
+                    .backUrls(backURL)
+                    .build();
+
+            PreferenceClient client = new PreferenceClient();
+
+            Preference preference = client.create(preferenceRequest);
+
+            System.out.println(preference.getResponse());
+
+            PreferenceMP mpPreference = new PreferenceMP();
+            mpPreference.setStatusCode(preference.getResponse().getStatusCode());
+            mpPreference.setId(preference.getId());
+
+            return mpPreference;
+
+        } catch (MPApiException e) {
+            var apiResponse = e.getApiResponse();
+            var content = apiResponse.getContent();
+            System.out.println(content);
+            return null;
+        } catch (MPException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+}
+
+
+
+-PreferenceMP ---->
+
+public class PreferenceMP {
+
+    private String id;
+    private int statusCode;
+
+}

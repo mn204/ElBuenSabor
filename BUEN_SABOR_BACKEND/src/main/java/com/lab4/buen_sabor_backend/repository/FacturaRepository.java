@@ -14,7 +14,7 @@ import java.util.Optional;
 
 @Repository
 public interface FacturaRepository extends MasterRepository<Factura, Long> {
-
+/*
     // Buscar factura por ID de pedido
     Optional<Factura> findByPedidoId(Long pedidoId);
 
@@ -39,4 +39,7 @@ public interface FacturaRepository extends MasterRepository<Factura, Long> {
     //TODO HAY QUE AVERIGUAR QUE SE PONE EN NOTA_CREDITO
     @Query("SELECT f FROM Factura f WHERE f.mpPaymentType = 'nota_credito' AND f.fechaFacturacion BETWEEN :desde AND :hasta")
     List<Factura> findNotasCreditoByFechaFacturacionBetween(@Param("desde") LocalDate desde, @Param("hasta") LocalDate hasta);
+
+
+ */
 }

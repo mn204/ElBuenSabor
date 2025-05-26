@@ -1,0 +1,4 @@
+Es una carpeta para manejar excepciones personalizadas, dentro del service y del controller.
+Es para no tener que estar reescribiendo codigo permanentemente.
+
+Tengo que aprender a como usar poco a poco esta carpeta con las distintas excepciones.

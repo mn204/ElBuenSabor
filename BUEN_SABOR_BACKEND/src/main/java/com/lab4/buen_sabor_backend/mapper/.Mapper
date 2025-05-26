@@ -1,2 +1,5 @@
 aca van los mapeadores entre DTOs y entidades.
 Los vamos a hacer con Mapstruct para ahorrarnos codigo. Es super sencillo hacerlos.
+
+
+Esta Carpeta ya se puede auditar, Tal vez faltan los List<> pero iremos viendo.

@@ -18,7 +18,7 @@ import java.util.Optional;
 @Repository
 public interface PedidoRepository extends MasterRepository<Pedido, Long> {
 
-
+/*
     // Buscar pedidos por cliente o estado
     List<Pedido> findByClienteOrEstado(Cliente cliente, Estado estado);
 
@@ -85,5 +85,7 @@ public interface PedidoRepository extends MasterRepository<Pedido, Long> {
 
     // Contar pedidos por cliente
     Long countByCliente(Cliente cliente);
+
+ */
 
 }

@@ -9,6 +9,7 @@ import java.util.Optional;
 @Repository
 public interface UsuarioEmpleadoRepository extends MasterRepository<UsuarioEmpleado, Long> {
 
+    /*
     // Buscar por username
     Optional<UsuarioEmpleado> findByUsernameAndEliminadoFalse(String username);
 
@@ -17,4 +18,6 @@ public interface UsuarioEmpleadoRepository extends MasterRepository<UsuarioEmple
 
     // Verificar existencia de username
     boolean existsByUsernameAndEliminadoFalse(String username);
+
+     */
 }

@@ -10,6 +10,7 @@ import java.util.*;
 @Repository
 public interface SucursalRepository extends MasterRepository<Sucursal, Long> {
 
+    /*
     Optional<Sucursal> findByNombreIgnoreCase(String nombre);
 
     List<Sucursal> findByDireccionContainingIgnoreCase(String direccionParte);
@@ -18,4 +19,6 @@ public interface SucursalRepository extends MasterRepository<Sucursal, Long> {
     List<SucursalDTO> findAllDTO();
 
     // Métrica: contar empleados por sucursal (podemos usar la consulta en EmpleadoRepository también)
+
+     */
 }
