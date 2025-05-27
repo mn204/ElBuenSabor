@@ -39,9 +39,11 @@ function Navbar() {
             </nav>
 
             <Modal show={showModal} onHide={handleClose} centered>
-                <Modal.Header closeButton>
-                    <Modal.Title>{isLoginView ? 'Iniciar Sesión' : 'Registro de Usuario'}</Modal.Title>
+                <Modal.Header closeButton className="modal-header-custom">
+                    <img className='logoEmpresa' src={IconoEmpresa} alt="Icono Empresa" />
+                    <Modal.Title className="modal-title-custom">{isLoginView ? 'EL BUEN SABOR' : 'EL BUEN SABOR'}</Modal.Title>
                 </Modal.Header>
+
                 <Modal.Body>
                     {isLoginView ? (
                         <LoginUsuario onRegisterClick={handleOpenRegister} />

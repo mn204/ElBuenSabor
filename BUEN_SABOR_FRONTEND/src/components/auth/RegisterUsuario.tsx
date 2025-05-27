@@ -3,7 +3,8 @@ import { Button, Form } from "react-bootstrap";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { auth } from "./firebase"; // Ajustá según tu estructura
 
-
+//TODO implementar Validaciones de los campos.
+//TODO agregar boton a campos contraseña para ver.
 interface Props {
     onBackToLogin: () => void;
 }
