@@ -1,6 +1,7 @@
 export default class UsuarioCliente {
     id?: number;
-    auth0Id: string = "";
-    username: string = "";
+
+    email: string = "";
+    firebaseUid: string = "";
     eliminado!: boolean;
 }
