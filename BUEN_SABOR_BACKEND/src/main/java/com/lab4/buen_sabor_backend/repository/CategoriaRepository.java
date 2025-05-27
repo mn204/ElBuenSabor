@@ -15,12 +15,6 @@ public interface CategoriaRepository extends MasterRepository<Categoria, Long> {
     // Buscar rubros por coincidencia parcial en el nombre
     List<Categoria> findByDenominacionContainingIgnoreCaseAndEliminadoFalse(String nombreParcial);
 
-    // Obtener todos los rubros dados de alta
-    List<Categoria> findAllByAltaTrueAndEliminadoFalse();
-
-    // Obtener rubros activos ordenados (para barra de navegación)
-    List<Categoria> findAllByAltaTrueAndEliminadoFalseOrderByDenominacionAsc();
-
     List<Categoria> findAll(); // Para mostrar todos
     List<Categoria> findByEliminadoFalse();
 
