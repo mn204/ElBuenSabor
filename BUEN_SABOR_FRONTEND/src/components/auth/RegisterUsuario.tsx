@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { Button, Form } from "react-bootstrap";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { auth } from "./firebase"; // Ajustá según tu estructura
+
 
 interface Props {
     onBackToLogin: () => void;
@@ -22,6 +25,7 @@ const RegisterUsuario = ({ onBackToLogin }: Props) => {
     const [pais, setPais] = useState("");
     const [provincia, setProvincia] = useState("");
     const [localidad, setLocalidad] = useState("");
+
     const [codigoPostal, setCodigoPostal] = useState("");
     const [calle, setCalle] = useState("");
     const [numero, setNumero] = useState("");
@@ -29,11 +33,38 @@ const RegisterUsuario = ({ onBackToLogin }: Props) => {
     const [departamento, setDepartamento] = useState("");
     const [detalles, setDetalles] = useState("");
 
+    const handleRegister = async () => {
+        if (contrasena !== confirmarContrasena) {
+            alert("Las contraseñas no coinciden.");
+            return;
+        }
+
+        try {
+            const userCredential = await createUserWithEmailAndPassword(auth, email, contrasena);
+
+            // Opcional: actualizar el nombre de usuario en Firebase
+            await updateProfile(userCredential.user, {
+                displayName: `${nombre} ${apellido}`
+            });
+
+            console.log("Usuario registrado con éxito:", userCredential.user);
+
+            // Luego podés enviar los datos extra a tu backend si querés guardarlos
+            // como usuario real en la base de datos
+
+            alert("Registro exitoso!");
+            onBackToLogin(); // Vuelve al login
+        } catch (error: any) {
+            console.error("Error al registrar:", error);
+            alert(error.message);
+        }
+    };
+
+
     return (
         <div className="p-4">
             <h3 className="text-center fw-bold">Registrate !!!</h3>
             <hr style={{ width: "150px", borderTop: "3px solid orange", margin: "0 auto 20px" }} />
-            <p className="text-center">completa el formulario</p>
 
             <Form>
                 {step === 1 && (
@@ -123,28 +154,41 @@ const RegisterUsuario = ({ onBackToLogin }: Props) => {
                         </Form.Group>
 
                         <Form.Group controlId="pais" className="mb-2">
-                            <Form.Control
-                                type="text"
-                                placeholder="País"
+                            <Form.Select
+                                aria-label="Seleccione País"
                                 value={pais}
                                 onChange={(e) => setPais(e.target.value)}
-                            />
+                            >
+                                <option value="">Seleccione País</option>
+                                {/* {paises.map(p => (
+                                    <option key={p.id} value={p.id}>{p.nombre}</option>
+                                ))} */}
+                            </Form.Select>
                         </Form.Group>
 
                         <div className="d-flex gap-2 mb-2">
-                            <Form.Control
-                                type="text"
-                                placeholder="Provincia"
+                            <Form.Select
+                                aria-label="Seleccione Provincia"
                                 value={provincia}
                                 onChange={(e) => setProvincia(e.target.value)}
-                            />
-                            <Form.Control
-                                type="text"
-                                placeholder="Localidad"
+                            >
+                                <option value="">Provincia</option>
+                                {/* {provincias.map(pv => (
+                                    <option key={pv.id} value={pv.id}>{pv.nombre}</option>
+                                ))} */}
+                            </Form.Select>
+                            <Form.Select
+                                aria-label="Seleccione Localidad"
                                 value={localidad}
                                 onChange={(e) => setLocalidad(e.target.value)}
-                            />
+                            >
+                                <option value="">Localidad</option>
+                                {/* {localidades.map(l => (
+                                    <option key={l.id} value={l.id}>{l.nombre}</option>
+                                ))} */}
+                            </Form.Select>
                         </div>
+
 
                         <Form.Group controlId="codigoPostal" className="mb-2">
                             <Form.Control
@@ -198,9 +242,10 @@ const RegisterUsuario = ({ onBackToLogin }: Props) => {
                             <Button variant="dark" onClick={() => setStep(1)}>
                                 ← Atrás
                             </Button>
-                            <Button variant="dark">
-                                Registrarse ✔
+                            <Button variant="dark" onClick={handleRegister}>
+                                Registrarse
                             </Button>
+
                         </div>
                     </>
                 )}
