@@ -6,6 +6,6 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UsuarioClienteDTO extends MasterDTO{
-    private String username;
-    private String password;
+    private String email;
+    private String firebaseUid;
 }
