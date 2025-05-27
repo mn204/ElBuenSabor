@@ -23,6 +23,34 @@
     color: #555;
 }
 
+.search-results{
+    width: 300px;
+    background-color: #fff;
+    margin-top: 2.9em;
+    border-radius: 0 0 30px 30px;
+}
+
+.search-results ul{
+    place-items: flex-start;
+}
+
+.imgProductoBuscado{
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.linkProductoBsucado{
+    text-decoration: none;
+}
+
+.listaProductoBuscado li{
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 10px;
+    width: 100%;
+}
+
 @media screen and (max-width: 768px) {
     body{
         overflow: hidden;
@@ -30,5 +58,6 @@
     .search-bar {
         width: 70%;
         padding: 10px;
+        width: 200px;
     }
 }
