@@ -11,6 +11,9 @@ import lombok.*;
 @Builder
 public class UsuarioEmpleado extends Master{
 
-    private String username;
-    private String password;
+    @Column(nullable = false, unique = true)
+    private String email;
+
+    @Column(nullable = false, unique = true)
+    private String firebaseUid;
 }
