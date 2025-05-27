@@ -1,13 +1,9 @@
 package com.lab4.buen_sabor_backend.controller;
 
 import com.lab4.buen_sabor_backend.dto.ArticuloInsumoDTO;
-import com.lab4.buen_sabor_backend.dto.ArticuloManufacturadoDTO;
 import com.lab4.buen_sabor_backend.mapper.ArticuloInsumoMapper;
 import com.lab4.buen_sabor_backend.model.ArticuloInsumo;
-import com.lab4.buen_sabor_backend.model.ArticuloManufacturado;
-import com.lab4.buen_sabor_backend.model.Categoria;
 import com.lab4.buen_sabor_backend.service.ArticuloInsumoService;
-import com.lab4.buen_sabor_backend.service.ArticuloManufacturadoService;
 import com.lab4.buen_sabor_backend.service.CategoriaService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
