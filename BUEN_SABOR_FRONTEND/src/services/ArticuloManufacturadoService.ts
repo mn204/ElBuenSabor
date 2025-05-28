@@ -15,20 +15,58 @@ class ArticuloManufacturadoService {
     }
 
     async create(articulo: any): Promise<any> {
-    try {
-        const res = await fetch(`http://localhost:8080/api/productos`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(articulo)
-        });
-        console.log(JSON.stringify(articulo));
-        if (!res.ok) throw new Error("Error al crear artículo manufacturado");
-        return await res.json();
-    } catch (error) {
-        console.error(error);
-        throw error;
+        try {
+            const res = await fetch(`http://localhost:8080/api/productos`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(articulo)
+            });
+            console.log(JSON.stringify(articulo));
+            if (!res.ok) throw new Error("Error al crear artículo manufacturado");
+            return await res.json();
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
     }
-}
+    async update(id: number, articulo: ArticuloManufacturado): Promise<ArticuloManufacturado> {
+        try {
+            const res = await fetch(`${API_URL}/${id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(articulo)
+            });
+            console.log(JSON.stringify(articulo))
+            if (!res.ok) throw new Error("Error al actualizar artículo manufacturado");
+            return await res.json();
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
+
+    async delete(id: number): Promise<void> {
+        try {
+            const res = await fetch(`${API_URL}/${id}`, {
+                method: "DELETE"
+            });
+            if (!res.ok) throw new Error("Error al eliminar artículo manufacturado");
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
+
+    async getById(id: number): Promise<ArticuloManufacturado> {
+        try {
+            const res = await fetch(`${API_URL}/${id}`);
+            if (!res.ok) throw new Error("Error al obtener el artículo manufacturado");
+            return await res.json();
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
 
     async buscarPorDenominacion(denominacion: string): Promise<ArticuloManufacturado[]> {
         try {

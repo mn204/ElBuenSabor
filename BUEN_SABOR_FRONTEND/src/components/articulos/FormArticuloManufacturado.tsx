@@ -13,6 +13,7 @@ import FormArticuloFields from "./FormArticuloFields";
 import "../../styles/ArticuloManufacturado.css";
 import Button from "react-bootstrap/Button";
 import UnidadMedidaService from "../../services/UnidadMedidaService.ts";
+import HistoricoPrecioVenta from "../../models/HistoricoPrecioVenta.ts";
 
 function FormArticuloManufacturado() {
   // Estados principales
@@ -99,10 +100,13 @@ function FormArticuloManufacturado() {
       }
 
 
-
+      const precioVenta = new HistoricoPrecioVenta();
+      precioVenta.precio = totalConGanancia;
+      precioVenta.fecha = new Date();
+      precioVenta.eliminado = false;
       manufacturado.denominacion = denominacion;
       manufacturado.precioVenta = totalConGanancia;
-      manufacturado.historicosPrecioVenta = [];
+      manufacturado.historicosPrecioVenta = [precioVenta];
       manufacturado.historicosPrecioCompra = [];
       manufacturado.imagenes = [];
       manufacturado.unidadMedida = { id: unidadMedidaSeleccionada.id } as UnidadMedida;

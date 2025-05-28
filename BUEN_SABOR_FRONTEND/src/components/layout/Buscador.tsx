@@ -68,21 +68,13 @@ function Buscador() {
         {results.length > 0 && (
           <ul className='listaProductoBuscado overflow-hidde list-unstyled d-flex flex-column gap-2 w-100'>
         {results.slice(0, 3).map((producto: any) => {
-        // Selecciona el último precio del histórico (por fecha más reciente)
-        const historicos = producto.historicosPrecioVenta;
-        let ultimoPrecio = '';
-        if (historicos && historicos.length > 0) {
-          // Ordena por fecha descendente y toma el primero
-          const ultimoHistorico = [...historicos].sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())[0];
-          ultimoPrecio = ultimoHistorico.precio;
-        }
         return (
           <li key={producto.id}>
             <a className='linkProductoBsucado text-black d-flex text-start' href="">
               <img className='imgProductoBuscado' src={Ham} alt="asd" />
               <div className='d-flex flex-column'>
                 <span>{producto.denominacion}</span>
-                <span className='precioProductoBuscado'>${ultimoPrecio}</span>
+                <span className='precioProductoBuscado'>${producto.precioVenta}</span>
               </div>
             </a>
           </li>
