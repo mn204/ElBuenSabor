@@ -13,7 +13,6 @@ import java.util.*;
 @Getter
 @Setter
 @ToString
-@Builder
 public class Sucursal extends Master {
 
     private String nombre;

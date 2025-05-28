@@ -8,7 +8,6 @@ import lombok.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class UsuarioEmpleado extends Master{
 
     @Column(nullable = false, unique = true)

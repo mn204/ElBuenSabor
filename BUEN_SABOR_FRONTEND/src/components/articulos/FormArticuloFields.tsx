@@ -1,4 +1,5 @@
 import Categoria from "../../models/Categoria";
+import UnidadMedida from "../../models/UnidadMedida";
 
 interface Props {
   denominacion: string;
@@ -12,6 +13,10 @@ interface Props {
   categoria: string;
   setCategoria: (v: string) => void;
   categorias: Categoria[];
+  unidad: string;
+  setUnidad: (v: string) => void;
+  unidadesMedida: UnidadMedida[];
+
 }
 
 function FormArticuloFields({
@@ -20,7 +25,7 @@ function FormArticuloFields({
   tiempoEstimadoMinutos, setTiempoEstimadoMinutos,
   preparacion, setPreparacion,
   categoria, setCategoria,
-  categorias
+  categorias, unidad, unidadesMedida, setUnidad
 }: Props) {
   return (
     <form className="d-flex flex-column gap-3 text-start" onSubmit={e => e.preventDefault()}>
@@ -42,8 +47,21 @@ function FormArticuloFields({
         </select>
       </div>
       <div>
+          <label>Unidad de Medida:</label>
+          <select
+              value={unidad} onChange={(e) => setUnidad(e.target.value)}>
+              <option value="">Seleccione unidad</option>
+              {unidadesMedida.map((um) => (
+                  <option key={um.id} value={um.id}>
+                      {um.denominacion}
+                  </option>
+              ))}
+          </select>
+      </div>
+        <div>
         <label>Tiempo (m):</label>
         <input type="number" value={tiempoEstimadoMinutos} onChange={e => setTiempoEstimadoMinutos(Number(e.target.value))} />
+
       </div>
       <div>
         <label>Preparación:</label>

@@ -10,7 +10,6 @@ import java.util.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class SucursalInsumo extends Master {
 
     private Integer stockMinimo;

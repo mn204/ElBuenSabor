@@ -12,6 +12,7 @@ import DetalleInsumosTable from "./DetalleInsumosTable";
 import FormArticuloFields from "./FormArticuloFields";
 import "../../styles/ArticuloManufacturado.css";
 import Button from "react-bootstrap/Button";
+import UnidadMedidaService from "../../services/UnidadMedidaService.ts";
 
 function FormArticuloManufacturado() {
   // Estados principales
@@ -19,6 +20,8 @@ function FormArticuloManufacturado() {
   const [descripcion, setDescripcion] = useState("");
   const [tiempoEstimadoMinutos, setTiempoEstimadoMinutos] = useState(0);
   const [preparacion, setPreparacion] = useState("");
+  const [unidad, setUnidad] = useState<string>("");
+  const [unidadesMedida, setUnidadesMedida] = useState<UnidadMedida[]>([]);
   const [categoria, setCategoria] = useState<string>("");
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [porcentajeGanancia, setPorcentajeGanancia] = useState(0);
@@ -37,6 +40,12 @@ function FormArticuloManufacturado() {
     }
   }, [showModal]);
 
+  useEffect(() => {
+    // Si tenés un UnidadMedidaService con getAll
+    UnidadMedidaService.getAll()
+        .then(setUnidadesMedida)
+        .catch(() => setUnidadesMedida([]));
+  }, []);
   const totalInsumos = detalles.reduce((acc, det) => {
     const precio = det.articuloInsumo?.precioVenta ?? 0;
     return acc + precio * det.cantidad;
@@ -76,40 +85,50 @@ function FormArticuloManufacturado() {
   const Guardar = async () => {
     try {
       const manufacturado = new ArticuloManufacturado();
-      const unidadMedida = new UnidadMedida();
-      const categoria = new Categoria();
-      categoria.id = 1; // Asignar un ID de categoría por defecto
-      unidadMedida.denominacion = "Comidas"; // Asignar denominación por defecto
-      unidadMedida.id = 3; // Unidades
-      unidadMedida.denominacion = "Unidades";
-      unidadMedida.eliminado = false;
-      manufacturado.id = 16;
+
+      const unidadMedidaSeleccionada = unidadesMedida.find(um => um.id === Number(unidad));
+      if (!unidadMedidaSeleccionada) {
+        alert("Unidad de medida inválida");
+        return;
+      }
+
+      const categoriaSeleccionada = categorias.find(cat => cat.id === Number(categoria));
+      if (!categoriaSeleccionada) {
+        alert("Categoría inválida");
+        return;
+      }
+
+
+
       manufacturado.denominacion = denominacion;
       manufacturado.precioVenta = totalConGanancia;
-      manufacturado.historicoVentas = [];
-      manufacturado.historialCompra = [];
+      manufacturado.historicosPrecioVenta = [];
+      manufacturado.historicosPrecioCompra = [];
       manufacturado.imagenes = [];
-      manufacturado.unidadMedida = unidadMedida;
-      manufacturado.categoria = categoria;
+      manufacturado.unidadMedida = { id: unidadMedidaSeleccionada.id } as UnidadMedida;
+      manufacturado.categoria = { id: categoriaSeleccionada.id } as Categoria;
       manufacturado.descripcion = descripcion;
       manufacturado.tiempoEstimadoMinutos = tiempoEstimadoMinutos;
       manufacturado.preparacion = preparacion;
       manufacturado.detalles = detalles.map(det => ({
         cantidad: det.cantidad,
         articuloInsumo: det.articuloInsumo?.id
-          ? { id: det.articuloInsumo.id } as ArticuloInsumo
-          : undefined,
-          eliminado: false,
-        }));
-      manufacturado.imagenesManufacturado = [];
+            ? { id: det.articuloInsumo.id } as ArticuloInsumo
+            : undefined,
+        eliminado: false,
+      }));
+      manufacturado.imagenesArticuloManufacturado = [];
+
       console.log("Detalles a guardar:", manufacturado);
-      await ArticuloManufacturadoService.actualizar(manufacturado);
+      await ArticuloManufacturadoService.create(manufacturado);
       alert("Artículo manufacturado guardado correctamente");
       limpiarFormulario();
     } catch (error) {
+      console.error(error);
       alert("Error al guardar el artículo manufacturado");
     }
   };
+
 
   return (
     <div className="formArticuloManufacturado d-flex flex-column gap-3 justify-content-center align-items-center">
@@ -126,6 +145,9 @@ function FormArticuloManufacturado() {
         categoria={categoria}
         setCategoria={setCategoria}
         categorias={categorias}
+        unidad={unidad}
+        setUnidad={setUnidad}
+        unidadesMedida={unidadesMedida}
       />
       <Button className="agregarInsumo" variant="primary" onClick={() => setShowModal(true)}>
         Agregar Insumo

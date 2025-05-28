@@ -8,7 +8,6 @@ import lombok.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class Provincia extends Master{
 
     private String nombre;

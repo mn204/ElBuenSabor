@@ -11,7 +11,6 @@ import java.util.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class Categoria extends Master {
 
     private String denominacion;

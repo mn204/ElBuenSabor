@@ -8,7 +8,6 @@ import lombok.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class Localidad extends Master{
     private String nombre;
 

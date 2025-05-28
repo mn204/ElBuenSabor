@@ -15,7 +15,6 @@ import java.util.Set;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class Cliente extends Master{
 
     private String nombre;

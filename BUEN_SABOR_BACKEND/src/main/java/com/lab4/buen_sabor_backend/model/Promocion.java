@@ -14,7 +14,6 @@ import java.util.Set;
 @AllArgsConstructor
 @Getter
 @Setter
-@Builder
 public class Promocion extends Master {
 
     private String denominacion;

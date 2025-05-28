@@ -14,7 +14,6 @@ import java.io.Serializable;
 @Getter
 @ToString
 @Setter
-
 public abstract class Master implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

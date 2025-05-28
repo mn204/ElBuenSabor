@@ -14,10 +14,10 @@ class ArticuloManufacturadoService {
         }
     }
 
-    async actualizar(articulo: any): Promise<any> {
+    async create(articulo: any): Promise<any> {
     try {
-        const res = await fetch(`http://localhost:8080/api/productos/${articulo.id}`, {
-            method: "PUT",
+        const res = await fetch(`http://localhost:8080/api/productos`, {
+            method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(articulo)
         });

@@ -9,7 +9,7 @@ export default class ArticuloManufacturado extends Articulo {
     tiempoEstimadoMinutos: number = 0;
     preparacion: string = "";
     detalles: DetalleArticuloManufacturado[] = [];
-    imagenesManufacturado: ImagenArticuloManufacturado[] = [];
-    historicoVentas: HistoricoPrecioVenta[] = [];
-    historialCompra: HistoricoPrecioCompra[] = [];
+    imagenesArticuloManufacturado: ImagenArticuloManufacturado[] = [];
+    historicosPrecioVenta: HistoricoPrecioVenta[] = [];
+    historicosPrecioCompra: HistoricoPrecioCompra[] = [];
 }

@@ -12,7 +12,6 @@ import java.util.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class Existencia extends Master {
 
     private LocalDate fechaCompra;

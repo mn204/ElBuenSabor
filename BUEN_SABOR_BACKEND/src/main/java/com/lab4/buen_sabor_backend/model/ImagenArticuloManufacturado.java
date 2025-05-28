@@ -9,7 +9,6 @@ import lombok.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class ImagenArticuloManufacturado extends Master {
 
     private String denominacion;
