@@ -4,6 +4,7 @@ import Footer from './components/layout/Footer'
 import { Route, Routes } from 'react-router-dom'
 import Home from './components/layout/Home'
 import Perfil from './components/auth/Perfil'
+import FormArticuloManufacturado from './components/articulos/FormArticuloManufacturado'
 
 function App() {
 
@@ -14,6 +15,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/home" element={<Home />} />
         <Route path="/perfil" element={<Perfil />} />
+        <Route path="/manu" element={<FormArticuloManufacturado />} />
       </Routes>
       <Footer/>
     </>

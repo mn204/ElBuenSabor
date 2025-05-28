@@ -1,5 +1,7 @@
 import Articulo from "./Articulo";
 import DetalleArticuloManufacturado from "./DetalleArticuloManufacturado";
+import type HistoricoPrecioCompra from "./HistoricoPrecioCompra";
+import type HistoricoPrecioVenta from "./HistoricoPrecioVenta";
 import ImagenArticuloManufacturado from "./ImagenArticuloManufacturado";
 
 export default class ArticuloManufacturado extends Articulo {
@@ -7,5 +9,7 @@ export default class ArticuloManufacturado extends Articulo {
     tiempoEstimadoMinutos: number = 0;
     preparacion: string = "";
     detalles: DetalleArticuloManufacturado[] = [];
-    imagenes: ImagenArticuloManufacturado[] = [];
+    imagenesManufacturado: ImagenArticuloManufacturado[] = [];
+    historicoVentas: HistoricoPrecioVenta[] = [];
+    historialCompra: HistoricoPrecioCompra[] = [];
 }

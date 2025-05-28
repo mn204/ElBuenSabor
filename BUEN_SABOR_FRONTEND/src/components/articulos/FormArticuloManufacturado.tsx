@@ -1,0 +1,183 @@
+import { useState, useEffect } from "react";
+import ArticuloInsumoService from "../../services/ArticuloInsumoService";
+import CategoriaService from "../../services/CategoriaService";
+import ArticuloManufacturadoService from "../../services/ArticuloManufacturadoService";
+import ArticuloInsumo from "../../models/ArticuloInsumo";
+import Categoria from "../../models/Categoria";
+import DetalleArticuloManufacturado from "../../models/DetalleArticuloManufacturado";
+import ArticuloManufacturado from "../../models/ArticuloManufacturado";
+import UnidadMedida from "../../models/UnidadMedida";
+import ModalAgregarInsumo from "./ModalAgregarInsumo";
+import DetalleInsumosTable from "./DetalleInsumosTable";
+import FormArticuloFields from "./FormArticuloFields";
+import "../../styles/ArticuloManufacturado.css";
+import Button from "react-bootstrap/Button";
+
+function FormArticuloManufacturado() {
+  // Estados principales
+  const [denominacion, setDenominacion] = useState("");
+  const [descripcion, setDescripcion] = useState("");
+  const [tiempoEstimadoMinutos, setTiempoEstimadoMinutos] = useState(0);
+  const [preparacion, setPreparacion] = useState("");
+  const [categoria, setCategoria] = useState<string>("");
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [porcentajeGanancia, setPorcentajeGanancia] = useState(0);
+  const [detalles, setDetalles] = useState<DetalleArticuloManufacturado[]>([]);
+  const [showModal, setShowModal] = useState(false);
+  const [articulosInsumo, setArticulosInsumo] = useState<ArticuloInsumo[]>([]);
+  const [insumoSeleccionado, setInsumoSeleccionado] = useState<ArticuloInsumo | null>(null);
+  const [cantidadInsumo, setCantidadInsumo] = useState<number>(1);
+
+  useEffect(() => {
+    CategoriaService.getAll().then(setCategorias).catch(() => setCategorias([]));
+  }, []);
+  useEffect(() => {
+    if (showModal) {
+      ArticuloInsumoService.getAll().then(setArticulosInsumo);
+    }
+  }, [showModal]);
+
+  const totalInsumos = detalles.reduce((acc, det) => {
+    const precio = det.articuloInsumo?.precioVenta ?? 0;
+    return acc + precio * det.cantidad;
+  }, 0);
+  const totalConGanancia = totalInsumos + (totalInsumos * (porcentajeGanancia / 100));
+
+  const AgregarInsumo = () => {
+    if (insumoSeleccionado && cantidadInsumo > 0) {
+      setDetalles(prev => [
+        ...prev,
+        {
+          cantidad: cantidadInsumo,
+          articuloInsumo: insumoSeleccionado,
+          eliminado: false,
+        } as DetalleArticuloManufacturado,
+      ]);
+      setShowModal(false);
+      setInsumoSeleccionado(null);
+      setCantidadInsumo(1);
+    }
+  };
+
+  const EliminarDetalle = (index: number) => {
+    setDetalles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const limpiarFormulario = () => {
+    setDenominacion("");
+    setDescripcion("");
+    setTiempoEstimadoMinutos(0);
+    setPreparacion("");
+    setCategoria("");
+    setDetalles([]);
+    setPorcentajeGanancia(0);
+  };
+
+  const Guardar = async () => {
+    try {
+      const manufacturado = new ArticuloManufacturado();
+      const unidadMedida = new UnidadMedida();
+      const categoria = new Categoria();
+      categoria.id = 1; // Asignar un ID de categoría por defecto
+      unidadMedida.denominacion = "Comidas"; // Asignar denominación por defecto
+      unidadMedida.id = 3; // Unidades
+      unidadMedida.denominacion = "Unidades";
+      unidadMedida.eliminado = false;
+      manufacturado.id = 16;
+      manufacturado.denominacion = denominacion;
+      manufacturado.precioVenta = totalConGanancia;
+      manufacturado.historicoVentas = [];
+      manufacturado.historialCompra = [];
+      manufacturado.imagenes = [];
+      manufacturado.unidadMedida = unidadMedida;
+      manufacturado.categoria = categoria;
+      manufacturado.descripcion = descripcion;
+      manufacturado.tiempoEstimadoMinutos = tiempoEstimadoMinutos;
+      manufacturado.preparacion = preparacion;
+      manufacturado.detalles = detalles.map(det => ({
+        cantidad: det.cantidad,
+        articuloInsumo: det.articuloInsumo?.id
+          ? { id: det.articuloInsumo.id } as ArticuloInsumo
+          : undefined,
+          eliminado: false,
+        }));
+      manufacturado.imagenesManufacturado = [];
+      console.log("Detalles a guardar:", manufacturado);
+      await ArticuloManufacturadoService.actualizar(manufacturado);
+      alert("Artículo manufacturado guardado correctamente");
+      limpiarFormulario();
+    } catch (error) {
+      alert("Error al guardar el artículo manufacturado");
+    }
+  };
+
+  return (
+    <div className="formArticuloManufacturado d-flex flex-column gap-3 justify-content-center align-items-center">
+      <h2>Formulario de Artículo Manufacturado</h2>
+      <FormArticuloFields
+        denominacion={denominacion}
+        setDenominacion={setDenominacion}
+        descripcion={descripcion}
+        setDescripcion={setDescripcion}
+        tiempoEstimadoMinutos={tiempoEstimadoMinutos}
+        setTiempoEstimadoMinutos={setTiempoEstimadoMinutos}
+        preparacion={preparacion}
+        setPreparacion={setPreparacion}
+        categoria={categoria}
+        setCategoria={setCategoria}
+        categorias={categorias}
+      />
+      <Button className="agregarInsumo" variant="primary" onClick={() => setShowModal(true)}>
+        Agregar Insumo
+      </Button>
+      <ModalAgregarInsumo
+        show={showModal}
+        onHide={() => setShowModal(false)}
+        articulosInsumo={articulosInsumo}
+        insumoSeleccionado={insumoSeleccionado}
+        setInsumoSeleccionado={setInsumoSeleccionado}
+        cantidadInsumo={cantidadInsumo}
+        setCantidadInsumo={setCantidadInsumo}
+        onAgregar={AgregarInsumo}
+      />
+      <DetalleInsumosTable
+        detalles={detalles}
+        onEliminar={EliminarDetalle}
+        totalInsumos={totalInsumos}
+      />
+      <div className="d-flex align-items-center gap-3">
+        <label>% Ganancia:</label>
+        <input
+          type="number"
+          min={0}
+          value={porcentajeGanancia}
+          onChange={e => setPorcentajeGanancia(Number(e.target.value))}
+          style={{ width: 80 }}
+        />
+        <label><b>Total con ganancia:</b></label>
+        <input
+          type="text"
+          value={`$${totalConGanancia.toFixed(2)}`}
+          readOnly
+          style={{ width: 120, fontWeight: "bold" }}
+        />
+      </div>
+      <Button
+        variant="success"
+        className="mt-3"
+        onClick={Guardar}
+        disabled={
+          !denominacion ||
+          !descripcion ||
+          !preparacion ||
+          !categoria ||
+          detalles.length === 0
+        }
+      >
+        Guardar Artículo Manufacturado
+      </Button>
+    </div>
+  );
+}
+
+export default FormArticuloManufacturado;
