@@ -50,7 +50,8 @@ public class ArticuloManufacturadoServiceImpl extends MasterServiceImpl<Articulo
         // Validaciones antes de actualizar
         validarDatosBasicos(entity);
         validarIngredientes(entity);
-
+        System.out.println(entity.getDetalles());
+        System.out.println(entity);
         // Verificar duplicados excluyendo el ID actual
         if (existeByDenominacionExcluyendoId(entity.getDenominacion(), id)) {
             throw new IllegalArgumentException("Ya existe un producto con la denominación: " + entity.getDenominacion());
