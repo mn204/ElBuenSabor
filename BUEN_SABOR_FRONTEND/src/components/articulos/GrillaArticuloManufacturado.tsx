@@ -4,7 +4,7 @@ import ArticuloManufacturado from "../../models/ArticuloManufacturado";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 
-function EliminarArticuloManufacturado() {
+function GrillaArticuloManufacturado() {
   const [articulos, setArticulos] = useState<ArticuloManufacturado[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,7 +42,7 @@ function EliminarArticuloManufacturado() {
   };
 
   const handleActualizar = (art: ArticuloManufacturado) => {
-    window.location.href = `/actualizar?id=${art.id}`;
+    window.location.href = `/manu?id=${art.id}`;
   };
 
   // Nuevo: handleVer para abrir el modal
@@ -61,7 +61,7 @@ function EliminarArticuloManufacturado() {
 
   return (
     <div>
-      <h2>Eliminar Artículo Manufacturado</h2>
+      <h2>Artículos Manufacturado</h2>
       <table className="table">
         <thead>
           <tr>
@@ -141,4 +141,4 @@ function EliminarArticuloManufacturado() {
   );
 }
 
-export default EliminarArticuloManufacturado;
+export default GrillaArticuloManufacturado;

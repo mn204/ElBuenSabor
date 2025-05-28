@@ -14,6 +14,7 @@ import "../../styles/ArticuloManufacturado.css";
 import Button from "react-bootstrap/Button";
 import UnidadMedidaService from "../../services/UnidadMedidaService.ts";
 import HistoricoPrecioVenta from "../../models/HistoricoPrecioVenta.ts";
+import { useSearchParams } from "react-router-dom";
 
 function FormArticuloManufacturado() {
   // Estados principales
@@ -31,7 +32,35 @@ function FormArticuloManufacturado() {
   const [articulosInsumo, setArticulosInsumo] = useState<ArticuloInsumo[]>([]);
   const [insumoSeleccionado, setInsumoSeleccionado] = useState<ArticuloInsumo | null>(null);
   const [cantidadInsumo, setCantidadInsumo] = useState<number>(1);
-
+  const [searchParams] = useSearchParams();
+  const idFromUrl = searchParams.get("id");
+  
+  // Cargar datos del artículo seleccionado
+    useEffect(() => {
+    if (idFromUrl) {
+      ArticuloManufacturadoService.getById(Number(idFromUrl)).then(art => {
+        setDenominacion(art.denominacion ?? "");
+        setDescripcion(art.descripcion ?? "");
+        setTiempoEstimadoMinutos(art.tiempoEstimadoMinutos ?? 0);
+        setPreparacion(art.preparacion ?? "");
+        setCategoria(art.categoria?.id?.toString() ?? "");
+        setUnidad(art.unidadMedida?.id?.toString() ?? "");
+        setDetalles(art.detalles ?? []);
+        console.log(art);
+        // Calcular costo total de insumos
+        const costoInsumos = (art.detalles ?? []).reduce((acc, det) => {
+          const precio = det.articuloInsumo?.precioVenta ?? 0;
+          return acc + precio * det.cantidad;
+        }, 0);
+        // Calcular porcentaje de ganancia si hay costo
+        if (costoInsumos > 0 && art.precioVenta){
+          setPorcentajeGanancia(((art.precioVenta - costoInsumos)/costoInsumos) * 100);
+        } else {
+          setPorcentajeGanancia(0);
+        }
+      });
+    }
+  }, [idFromUrl]);
   useEffect(() => {
     CategoriaService.getAll().then(setCategorias).catch(() => setCategorias([]));
   }, []);
@@ -54,18 +83,17 @@ function FormArticuloManufacturado() {
   const totalConGanancia = totalInsumos + (totalInsumos * (porcentajeGanancia / 100));
 
   const AgregarInsumo = () => {
-    if (insumoSeleccionado && cantidadInsumo > 0) {
+    if (insumoSeleccionado) {
       setDetalles(prev => [
         ...prev,
         {
-          cantidad: cantidadInsumo,
+          cantidad: 1,
           articuloInsumo: insumoSeleccionado,
           eliminado: false,
         } as DetalleArticuloManufacturado,
       ]);
       setShowModal(false);
       setInsumoSeleccionado(null);
-      setCantidadInsumo(1);
     }
   };
 
@@ -82,7 +110,46 @@ function FormArticuloManufacturado() {
     setDetalles([]);
     setPorcentajeGanancia(0);
   };
+  const handleActualizar = async () => {
+    if (!idFromUrl) return;
+    try {
+      const manufacturado = new ArticuloManufacturado();
+      
+        const unidadMedidaSeleccionada = unidadesMedida.find(um => um.id === Number(unidad));
+        if (!unidadMedidaSeleccionada) {
+            alert("Unidad de medida inválida");
+            return;
+        }
 
+      const categoriaSeleccionada = categorias.find(cat => cat.id === Number(categoria));
+        if (!categoriaSeleccionada) {
+            alert("Categoría inválida");
+            return;
+      }
+      manufacturado.denominacion = denominacion;
+      manufacturado.precioVenta = totalConGanancia;
+      manufacturado.unidadMedida = { id: unidadMedidaSeleccionada.id } as UnidadMedida;
+      manufacturado.categoria = { id: categoriaSeleccionada.id } as Categoria;
+      manufacturado.descripcion = descripcion;
+      manufacturado.tiempoEstimadoMinutos = tiempoEstimadoMinutos;
+      manufacturado.preparacion = preparacion;
+      manufacturado.detalles = detalles.map(det => ({
+          id: det.id ?? undefined,
+          cantidad: det.cantidad,
+          articuloInsumo: det.articuloInsumo?.id
+              ? { id: det.articuloInsumo.id } as ArticuloInsumo
+              : undefined,
+          eliminado: false,
+      }));
+      console.log(manufacturado);
+      manufacturado.imagenesArticuloManufacturado = [];
+      await ArticuloManufacturadoService.update(Number(idFromUrl), manufacturado);
+      alert("Artículo manufacturado actualizado correctamente");
+      limpiarFormulario();
+      } catch (error) {
+        alert("Error al actualizar el artículo manufacturado");
+      }
+  };
   const Guardar = async () => {
     try {
       const manufacturado = new ArticuloManufacturado();
@@ -133,7 +200,13 @@ function FormArticuloManufacturado() {
     }
   };
 
-
+  const CambiarCantidadDetalle = (index: number, cantidad: number) => {
+    setDetalles(prev =>
+      prev.map((det, i) =>
+        i === index ? { ...det, cantidad } : det
+      )
+    );
+  };
   return (
     <div className="formArticuloManufacturado d-flex flex-column gap-3 justify-content-center align-items-center">
       <h2>Formulario de Artículo Manufacturado</h2>
@@ -169,6 +242,7 @@ function FormArticuloManufacturado() {
       <DetalleInsumosTable
         detalles={detalles}
         onEliminar={EliminarDetalle}
+        onCantidadChange={CambiarCantidadDetalle}
         totalInsumos={totalInsumos}
       />
       <div className="d-flex align-items-center gap-3">
@@ -188,20 +262,39 @@ function FormArticuloManufacturado() {
           style={{ width: 120, fontWeight: "bold" }}
         />
       </div>
-      <Button
-        variant="success"
+      {!idFromUrl ? (
+        <Button
+          variant="success"
+          className="mt-3"
+          onClick={Guardar}
+          disabled={
+            !denominacion ||
+            !descripcion ||
+            !preparacion ||
+            !categoria ||
+            detalles.length === 0
+          }
+        >
+          Guardar Artículo Manufacturado
+        </Button>
+      ) : (
+        <Button
+        variant="warning"
         className="mt-3"
-        onClick={Guardar}
+        onClick={handleActualizar}
         disabled={
+          !idFromUrl ||
           !denominacion ||
           !descripcion ||
           !preparacion ||
           !categoria ||
+          !unidad ||
           detalles.length === 0
         }
       >
-        Guardar Artículo Manufacturado
+        Actualizar Artículo Manufacturado
       </Button>
+      )}
     </div>
   );
 }

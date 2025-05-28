@@ -5,8 +5,7 @@ import { Route, Routes } from 'react-router-dom'
 import Home from './components/layout/Home'
 import Perfil from './components/auth/Perfil'
 import FormArticuloManufacturado from './components/articulos/FormArticuloManufacturado'
-import EliminarArticuloManufacturado from './components/articulos/EliminarArticuloManufacturado'
-import ActualizarArticuloManufacturado from './components/articulos/ActualizarArticuloManufacturado'
+import GrillaArticuloManufacturado from './components/articulos/GrillaArticuloManufacturado'
 
 function App() {
 
@@ -18,8 +17,7 @@ function App() {
         <Route path="/home" element={<Home />} />
         <Route path="/perfil" element={<Perfil />} />
         <Route path="/manu" element={<FormArticuloManufacturado />} />
-        <Route path="/eliminar" element={<EliminarArticuloManufacturado />} />
-        <Route path="/actualizar" element={<ActualizarArticuloManufacturado />} />
+        <Route path="/eliminar" element={<GrillaArticuloManufacturado />} />
       </Routes>
       <Footer/>
     </>
