@@ -39,26 +39,20 @@ dependencies {
     implementation 'org.mapstruct:mapstruct:1.5.5.Final'
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
 
+    // Firebase Admin SDK
+    implementation 'com.google.firebase:firebase-admin:9.2.0'
+
     // MySQL driver
     runtimeOnly 'com.mysql:mysql-connector-j'
 
     // H2 Database para pruebas
     runtimeOnly 'com.h2database:h2'
 
-    // JWT
-    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
-    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
-    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
-
     // Logging (SLF4J viene con Spring Boot, pero puedes añadir configuración específica)
     implementation 'ch.qos.logback:logback-classic'
 
     // WebClient (para llamadas API REST)
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
-
-    // Auth0
-    implementation 'com.auth0:auth0-spring-security-api:1.5.1'
-    implementation 'com.auth0:java-jwt:4.3.0'
 
     // Testing
     testImplementation 'org.springframework.boot:spring-boot-starter-test'

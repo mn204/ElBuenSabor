@@ -139,3 +139,35 @@ nav .homeNav{
       display: none;
     }
 }
+.modal-header-custom {
+    background: #F28500 !important;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;  /* centra horizontalmente los hijos */
+    gap: 10px;
+    border-bottom: none; /* Opcional: elimina la línea inferior */
+    position: relative;
+}
+
+.modal-title-custom {
+    color: #fff !important;
+    text-align: center;
+    flex: 1;
+    font-weight: bold;
+    font-size: 1.5rem;
+    margin: 0;
+    padding: 0;
+}
+
+.modal-header-custom .logoEmpresa {
+    height: 40px;
+    margin-right: 10px;
+}
+
+.modal-header-custom .btn-close {
+    position: absolute;
+    right: 16px;
+    top: 16px;
+    filter: invert(1);
+}
