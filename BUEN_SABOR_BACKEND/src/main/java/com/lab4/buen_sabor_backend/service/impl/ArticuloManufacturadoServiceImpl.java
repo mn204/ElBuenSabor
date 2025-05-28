@@ -34,6 +34,9 @@ public class ArticuloManufacturadoServiceImpl extends MasterServiceImpl<Articulo
         // Validaciones antes de guardar
         validarDatosBasicos(entity);
         validarIngredientes(entity);
+        for(DetalleArticuloManufacturado detalle : entity.getDetalles()) {
+            detalle.setArticuloManufacturado(entity);
+        }
 
         // Verificar duplicados
         if (existeByDenominacion(entity.getDenominacion())) {
@@ -54,6 +57,10 @@ public class ArticuloManufacturadoServiceImpl extends MasterServiceImpl<Articulo
         // Verificar duplicados excluyendo el ID actual
         if (existeByDenominacionExcluyendoId(entity.getDenominacion(), id)) {
             throw new IllegalArgumentException("Ya existe un producto con la denominación: " + entity.getDenominacion());
+        }
+
+        for(DetalleArticuloManufacturado detalle : entity.getDetalles()) {
+            detalle.setArticuloManufacturado(entity);
         }
 
         logger.info("Actualizando ArticuloManufacturado con ID: {}", id);
