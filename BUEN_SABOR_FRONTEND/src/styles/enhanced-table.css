@@ -1,0 +1,125 @@
+    /* Estilos para la tabla mejorada */
+    .enhanced-table-container {
+    position: relative;
+    }
+
+    /* Estilos para headers ordenables */
+    .sortable-header {
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s ease;
+    }
+
+    .sortable-header:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    }
+
+    .sort-icon {
+    font-size: 0.8em;
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+    }
+
+    .sortable-header:hover .sort-icon {
+    opacity: 1;
+    }
+
+    /* Estilos para virtualización */
+    .table-virtualized {
+    position: relative;
+    overflow: auto;
+    }
+
+    .table-virtualized tbody tr {
+    position: absolute;
+    left: 0;
+    right: 0;
+    }
+
+    /* Estilos para filtros */
+    .column-filter {
+    min-width: 120px;
+    }
+
+    /* Estilos para selección */
+    .table-active {
+    background-color: rgba(13, 110, 253, 0.1) !important;
+    }
+
+    /* Estilos para filas no seleccionables */
+    .table-secondary {
+    opacity: 0.6;
+    }
+
+    /* Estilos para el spinner de carga */
+    .loading-spinner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    }
+
+    /* Estilos responsivos */
+    @media (max-width: 768px) {
+    .enhanced-table-container .pagination {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .enhanced-table-container .pagination .page-item {
+        margin: 0.1rem;
+    }
+    }
+
+    /* Estilos para el header sticky */
+    .sticky-top {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: inherit;
+    }
+
+    /* Mejoras de accesibilidad */
+    .sortable-header:focus {
+    outline: 2px solid #0d6efd;
+    outline-offset: -2px;
+    }
+
+    /* Estilos para el estado de carga */
+    .table tbody tr.loading-row td {
+    text-align: center;
+    padding: 2rem;
+    color: #6c757d;
+    }
+
+    /* Animaciones suaves */
+    .enhanced-table-container * {
+    transition: all 0.2s ease;
+    }
+
+    /* Estilos para filtros en headers */
+    .column-filter-container {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    /* Estilos para indicadores de filtros activos */
+    .filter-active {
+    background-color: rgba(13, 110, 253, 0.1);
+    border-color: #0d6efd;
+    }
+
+    /* Estilos para la información de paginación */
+    .pagination-info {
+    font-size: 0.875rem;
+    color: #6c757d;
+    }
+
+    /* Estilos para el selector de tamaño de página */
+    .page-size-selector {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    }
