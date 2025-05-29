@@ -2,7 +2,7 @@
 import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "./firebase.ts"; // Asegurate de usar la ruta correcta
 import { useState } from "react";
-
+// TODO boton de ver la contraseña
 interface Props {
     onRegisterClick: () => void;
 }
@@ -14,16 +14,35 @@ const LoginUsuario = ({ onRegisterClick }: Props) => {
         try {
             const result = await signInWithPopup(auth, googleProvider);
             const user = result.user;
-            console.log("Google login exitoso:", user);
 
-            // Aquí podrías hacer una llamada a tu backend para verificar si ya existe el cliente
-            // Si no existe, podés crearlo con los datos del usuario de Google
+            console.log(JSON.stringify(user));
+           // const token = await user.getIdToken();
+
+            //verificamos el cliente en el backend
+           // const res = await fetch(`http://localhost:8080/auth/cliente/uid/${user.uid}`, {
+            //    headers: { Authorization: `Bearer ${token}` }
+           // });
+
+            if (false) {
+             //   const cliente = await res.json();
+               // console.log("Cliente ya existe:", cliente);
+                localStorage.removeItem('requiresGoogleRegistration');
+                // Redirigir al home o dashboard si querés
+            } else if (true) {
+                console.log("Cliente nuevo, redirigir a formulario");
+                localStorage.setItem('requiresGoogleRegistration', 'true');
+                window.location.href = "/";
+                // App.tsx se encargará de mostrar el modal
+            } else {
+                throw new Error("Error al verificar el cliente");
+            }
 
         } catch (err: any) {
             console.error("Error con Google login", err);
             setError("Error al iniciar sesión con Google");
         }
     };
+
 
     return (
         <form>
