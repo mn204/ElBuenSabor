@@ -11,7 +11,7 @@ import java.util.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@DiscriminatorValue("Manufacturado")
+@DiscriminatorValue("ArticuloManufacturado")
 public class ArticuloManufacturado extends Articulo {
 
     private String descripcion;

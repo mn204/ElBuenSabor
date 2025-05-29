@@ -9,7 +9,7 @@ import com.fasterxml.jackson.annotation.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@DiscriminatorValue("Manufacturado")
+@DiscriminatorValue("Insumo")
 public class ArticuloInsumo extends Articulo {
 
     private Double precioCompra;
