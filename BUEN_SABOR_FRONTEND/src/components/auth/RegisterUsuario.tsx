@@ -156,7 +156,7 @@ const RegisterUsuario = ({ onBackToLogin }: Props) => {
             console.log("Cliente a enviar:", JSON.stringify(cliente, null, 2));
 
             // Enviar a backend
-
+            /*
             const response = await fetch("http://localhost:8080/auth/cliente", {
                 method: "POST",
                 headers: {
@@ -174,6 +174,7 @@ const RegisterUsuario = ({ onBackToLogin }: Props) => {
 
             if (!response.ok) throw new Error("Error al registrar cliente en el backend");
 
+            */
 
             alert("Registro exitoso!");
             onBackToLogin(); // Vuelve al login
@@ -371,7 +372,7 @@ const RegisterUsuario = ({ onBackToLogin }: Props) => {
                         <Form.Group controlId="detalles" className="mb-2">
                             <Form.Control
                                 type="text"
-                                placeholder="Detalles"
+                                placeholder="Detalles Direccion"
                                 value={detalles}
                                 onChange={(e) => setDetalles(e.target.value)}
                             />
