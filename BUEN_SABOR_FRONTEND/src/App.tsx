@@ -13,6 +13,8 @@ import GrillaImagenArticulo from "./components/articulos/GrillaImagenArticulo";
 import GrillaHistoricoCompra from "./components/articulos/GrillaHistoricoCompra";
 import GrillaHistoricoVenta from "./components/articulos/GrillaHistoricoVenta";
 import FormCategoria from './components/articulos/FormCategoria'
+import RegisterEmpleado from "./components/auth/RegisterEmpleado.tsx";
+import LoginEmpleado from "./components/auth/LoginEmpleado.tsx";
 function App() {
 
   return (
@@ -31,6 +33,8 @@ function App() {
         <Route path="/historicocompra" element={<GrillaHistoricoCompra />} />
         <Route path="/historicoventa" element={<GrillaHistoricoVenta />} />
         <Route path="/categoria" element={<FormCategoria />} />
+          <Route path="/nuevo-empleado/" element={<RegisterEmpleado/>} />
+          <Route path="/login-empleado/" element={<LoginEmpleado/>} />
       </Routes>
       <Footer/>
     </>
