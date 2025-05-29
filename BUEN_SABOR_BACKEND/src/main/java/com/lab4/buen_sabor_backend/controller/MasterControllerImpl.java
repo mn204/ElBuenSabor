@@ -51,8 +51,23 @@ public abstract class MasterControllerImpl<E extends Master, D, ID extends Seria
     }
 
     @Override
+    public ResponseEntity<List<D>> getAllEliminadoFalse() {
+        List<D> dtos = service.getAllEliminadoFalse().stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(dtos);
+    }
+
+    @Override
     public ResponseEntity<Page<D>> getAll(Pageable pageable) {
         Page<D> dtoPage = service.getAll(pageable)
+                .map(this::toDTO);
+        return ResponseEntity.ok(dtoPage);
+    }
+
+    @Override
+    public ResponseEntity<Page<D>> getAllEliminadoFalse(Pageable pageable) {
+        Page<D> dtoPage = service.getAllEliminadoFalse(pageable)
                 .map(this::toDTO);
         return ResponseEntity.ok(dtoPage);
     }

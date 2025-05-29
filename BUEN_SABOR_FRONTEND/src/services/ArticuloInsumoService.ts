@@ -14,6 +14,18 @@ class ArticuloInsumoService {
         }
     }
 
+    async delete(id: number): Promise<void> {
+        try {
+            const res = await fetch(`${API_URL}/${id}`, {
+                method: "DELETE"
+            });
+            if (!res.ok) throw new Error("Error al eliminar artículo manufacturado");
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
+
     async getById(id: number): Promise<ArticuloInsumo> {
         try {
             const res = await fetch(`${API_URL}/${id}`);

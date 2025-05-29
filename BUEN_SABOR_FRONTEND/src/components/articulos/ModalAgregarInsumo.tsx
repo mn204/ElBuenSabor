@@ -16,7 +16,7 @@ interface Props {
 function ModalAgregarInsumo({
   show, onHide, articulosInsumo,
   insumoSeleccionado, setInsumoSeleccionado,
-  cantidadInsumo, setCantidadInsumo, onAgregar
+  onAgregar
 }: Props) {
   return (
     <Modal show={show} onHide={onHide}>
@@ -50,16 +50,6 @@ function ModalAgregarInsumo({
             ))}
           </tbody>
         </table>
-        <div>
-          <label>Cantidad:</label>
-          <input
-            type="number"
-            min={1}
-            value={cantidadInsumo}
-            onChange={e => setCantidadInsumo(Number(e.target.value))}
-            disabled={!insumoSeleccionado}
-          />
-        </div>
       </Modal.Body>
       <Modal.Footer>
         <Button variant="secondary" onClick={onHide}>
@@ -68,7 +58,7 @@ function ModalAgregarInsumo({
         <Button
           variant="primary"
           onClick={onAgregar}
-          disabled={!insumoSeleccionado || cantidadInsumo <= 0}
+          disabled={!insumoSeleccionado}
         >
           Agregar
         </Button>

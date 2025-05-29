@@ -9,6 +9,7 @@ import java.util.List;
 public interface ArticuloManufacturadoService extends MasterService<ArticuloManufacturado, Long> {
 
     // Métodos específicos para ArticuloManufacturado
+    List<ArticuloManufacturado> findAll();
 
     /**
      * Busca productos por denominación (nombre)

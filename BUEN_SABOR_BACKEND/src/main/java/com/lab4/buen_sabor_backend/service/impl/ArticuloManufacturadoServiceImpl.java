@@ -3,6 +3,7 @@ package com.lab4.buen_sabor_backend.service.impl;
 import com.lab4.buen_sabor_backend.exceptions.EntityNotFoundException;
 import com.lab4.buen_sabor_backend.model.ArticuloManufacturado;
 import com.lab4.buen_sabor_backend.model.DetalleArticuloManufacturado;
+import com.lab4.buen_sabor_backend.model.HistoricoPrecioVenta;
 import com.lab4.buen_sabor_backend.repository.ArticuloManufacturadoRepository;
 import com.lab4.buen_sabor_backend.service.ArticuloManufacturadoService;
 import jakarta.transaction.Transactional;
@@ -34,10 +35,17 @@ public class ArticuloManufacturadoServiceImpl extends MasterServiceImpl<Articulo
         // Validaciones antes de guardar
         validarDatosBasicos(entity);
         validarIngredientes(entity);
+        for(DetalleArticuloManufacturado detalle : entity.getDetalles()) {
+            detalle.setArticuloManufacturado(entity);
+        }
 
         // Verificar duplicados
         if (existeByDenominacion(entity.getDenominacion())) {
             throw new IllegalArgumentException("Ya existe un producto con la denominación: " + entity.getDenominacion());
+        }
+
+        for (HistoricoPrecioVenta historico : entity.getHistoricosPrecioVenta()) {
+            historico.setArticulo(entity);
         }
 
         logger.info("Guardando ArticuloManufacturado: {}", entity.getDenominacion());
@@ -55,6 +63,10 @@ public class ArticuloManufacturadoServiceImpl extends MasterServiceImpl<Articulo
         // Verificar duplicados excluyendo el ID actual
         if (existeByDenominacionExcluyendoId(entity.getDenominacion(), id)) {
             throw new IllegalArgumentException("Ya existe un producto con la denominación: " + entity.getDenominacion());
+        }
+
+        for(DetalleArticuloManufacturado detalle : entity.getDetalles()) {
+            detalle.setArticuloManufacturado(entity);
         }
 
         logger.info("Actualizando ArticuloManufacturado con ID: {}", id);
@@ -83,6 +95,12 @@ public class ArticuloManufacturadoServiceImpl extends MasterServiceImpl<Articulo
     public List<ArticuloManufacturado> findByTiempoMaximo(Integer tiempoMaximo) {
         logger.info("Buscando productos por tiempo máximo: {} minutos", tiempoMaximo);
         return articuloManufacturadoRepository.findByTiempoEstimadoMinutosLessThanEqualAndEliminadoFalse(tiempoMaximo);
+    }
+
+    @Override
+    public List<ArticuloManufacturado> findAll() {
+        logger.info("Buscando productos");
+        return articuloManufacturadoRepository.findAll();
     }
 
     @Override

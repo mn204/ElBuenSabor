@@ -1,5 +1,6 @@
 package com.lab4.buen_sabor_backend.controller;
 
+import com.lab4.buen_sabor_backend.dto.ArticuloManufacturadoDTO;
 import com.lab4.buen_sabor_backend.dto.CategoriaDTO;
 import com.lab4.buen_sabor_backend.mapper.CategoriaMapper;
 import com.lab4.buen_sabor_backend.model.Categoria;
@@ -8,9 +9,14 @@ import com.lab4.buen_sabor_backend.service.CategoriaService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/categoria")
@@ -28,7 +34,6 @@ public class CategoriaController extends MasterControllerImpl<Categoria, Categor
         this.CategoriaService = CategoriaService;
         this.CategoriaMapper = CategoriaMapper;
     }
-
     @Override
     protected Categoria toEntity(CategoriaDTO dto) {
         return CategoriaMapper.toEntity(dto);
