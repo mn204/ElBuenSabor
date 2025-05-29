@@ -33,8 +33,8 @@ function App() {
         <Route path="/historicocompra" element={<GrillaHistoricoCompra />} />
         <Route path="/historicoventa" element={<GrillaHistoricoVenta />} />
         <Route path="/categoria" element={<FormCategoria />} />
-          <Route path="/nuevo-empleado/" element={<RegisterEmpleado/>} />
-          <Route path="/login-empleado/" element={<LoginEmpleado/>} />
+          <Route path="/admin/nuevo-empleado/" element={<RegisterEmpleado/>} />
+          <Route path="/admin/login-empleado/" element={<LoginEmpleado/>} />
       </Routes>
       <Footer/>
     </>
