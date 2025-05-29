@@ -43,7 +43,7 @@ function GrillaArticuloManufacturado() {
   };
 
   const handleActualizar = (art: ArticuloManufacturado) => {
-    window.location.href = `/manu?id=${art.id}`;
+    window.location.href = `/accionManufacturado?id=${art.id}`;
   };
 
   const handleVer = (art: ArticuloManufacturado) => {
