@@ -2,6 +2,7 @@ import { useState } from "react";
 import { auth } from "./firebase";
 import {Button, Form} from "react-bootstrap";
 import type Cliente from "../../models/Cliente.ts";
+import Rol from "../../models/enums/Rol.ts";
 // === Datos hardcodeados ===
 const paises = [
     { nombre: "Argentina", id: 1 }
@@ -119,7 +120,7 @@ const RegisterGoogle = ({ onFinish }: { onFinish: () => void }) => {
                     }
                 }
             ],
-            usuario: {
+            usuario:{
                 email: user.email ?? "",
                 rol: Rol.CLIENTE,
                 firebaseUid: user.uid,

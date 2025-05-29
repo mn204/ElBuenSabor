@@ -3,7 +3,7 @@ import {Button, Form} from "react-bootstrap";
 import {createUserWithEmailAndPassword, updateProfile} from "firebase/auth";
 import {auth} from "./firebase";
 import type Cliente from "../../models/Cliente.ts";
-import {Rol} from "../../models/enums/Rol.ts"; // Ajustá según tu estructura
+import Rol from "../../models/enums/Rol.ts"; // Ajustá según tu estructura
 
 //TODO implementar Validaciones de los campos.
 //TODO agregar boton a campos contraseña para ver.
@@ -66,7 +66,7 @@ const localidadesPorProvincia: { [provincia: string]: string[] } = {
 };
 
 
-const RegisterUsuario = ({ onBackToLogin }: Props) => {
+const RegisterCliente = ({ onBackToLogin }: Props) => {
     const [step, setStep] = useState(1);
 
     // Primer paso
@@ -402,4 +402,4 @@ const RegisterUsuario = ({ onBackToLogin }: Props) => {
     );
 };
 
-export default RegisterUsuario;
+export default RegisterCliente;

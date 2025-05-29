@@ -1,4 +1,4 @@
-import {Rol} from "./enums/Rol";
+import Rol from "./enums/Rol";
 
 export default class Usuario {
     id?: number;
