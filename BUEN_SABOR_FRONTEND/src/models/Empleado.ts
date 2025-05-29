@@ -13,7 +13,7 @@ export default class Empleado {
     fechaNacimiento: Date = new Date();
     dni: number = 0;
     rolEmpleado!: Rol;
-    imagenEmpleado!: ImagenEmpleado;
+    imagenEmpleado?: ImagenEmpleado;
     usuarioEmpleado!: UsuarioEmpleado;
     domicilio?: Domicilio;
     pedidos: Pedido[] = [];

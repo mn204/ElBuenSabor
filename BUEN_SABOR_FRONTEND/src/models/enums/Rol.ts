@@ -1,1 +1,9 @@
-export type Rol = "ADMIN" | "COCINERO" | "CAJERO" | "DELIVERY" | "CLIENTE";
+
+// @ts-ignore
+export enum Rol {
+    ADMIN= 'ADMIN',
+    COCINERO = 'COCINERO',
+    DELIVERY= 'DELIVERY',
+    CAJERO= 'CAJERO',
+
+}
