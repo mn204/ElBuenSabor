@@ -119,8 +119,9 @@ const RegisterGoogle = ({ onFinish }: { onFinish: () => void }) => {
                     }
                 }
             ],
-            usuarioCliente: {
+            usuario: {
                 email: user.email ?? "",
+                rol: Rol.CLIENTE,
                 firebaseUid: user.uid,
                 eliminado: false
             },

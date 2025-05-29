@@ -1,1 +1,7 @@
-export type FormaPago = "EFECTIVO" | "TARJETA" | "MERCADO_PAGO";
+enum FormaPago {
+    EFECTIVO = "EFECTIVO",
+    TARJETA = "TARJETA",
+    MERCADO_PAGO = "MERCADO_PAGO"
+}
+
+export default FormaPago;

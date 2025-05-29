@@ -1,1 +1,6 @@
-export type TipoPromocion = "HAPPYHOUR" | "PROMOCION";
+enum TipoPromocion {
+    HAPPYHOUR = "HAPPYHOUR",
+    PROMOCION = "PROMOCION"
+}
+
+export default TipoPromocion;

@@ -1,8 +1,7 @@
 import ImagenEmpleado from "./ImagenEmpleado";
-import UsuarioEmpleado from "./UsuarioEmpleado";
 import Domicilio from "./Domicilio";
 import Pedido from "./Pedido";
-import type { Rol } from "./enums/Rol";
+import  Usuario from "./Usuario.ts";
 
 export default class Empleado {
     id?: number;
@@ -12,9 +11,8 @@ export default class Empleado {
     email: string = "";
     fechaNacimiento: Date = new Date();
     dni: number = 0;
-    rolEmpleado!: Rol;
+    usuario!: Usuario;
     imagenEmpleado?: ImagenEmpleado;
-    usuarioEmpleado!: UsuarioEmpleado;
     domicilio?: Domicilio;
     pedidos: Pedido[] = [];
     eliminado!: boolean;

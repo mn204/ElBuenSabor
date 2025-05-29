@@ -1,9 +1,9 @@
-
-// @ts-ignore
-export enum Rol {
-    ADMIN= 'ADMIN',
-    COCINERO = 'COCINERO',
-    DELIVERY= 'DELIVERY',
-    CAJERO= 'CAJERO',
-
+enum Rol {
+    ADMIN = "ADMIN",
+    COCINERO = "COCINERO",
+    CAJERO = "CAJERO",
+    DELIVERY = "DELIVERY",
+    CLIENTE = "CLIENTE"
 }
+
+export default Rol;

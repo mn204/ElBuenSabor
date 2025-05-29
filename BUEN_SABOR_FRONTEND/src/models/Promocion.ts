@@ -1,5 +1,5 @@
 import DetallePromocion from "./DetallePromocion";
-import type { TipoPromocion } from "./enums/TipoPromocion";
+import type  TipoPromocion from "./enums/TipoPromocion";
 import Imagen from "./ImagenPromocion";
 
 export default class Promocion {
