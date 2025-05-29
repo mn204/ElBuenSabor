@@ -1,1 +1,9 @@
-export type Estado = "PREPARACION" | "PENDIENTE" | "CANCELADO" | "RECHAZADO" | "ENTREGADO";
+enum Estado {
+    PREPARACION = "PREPARACION",
+    PENDIENTE = "PENDIENTE",
+    CANCELADO = "CANCELADO",
+    RECHAZADO = "RECHAZADO",
+    ENTREGADO = "ENTREGADO"
+}
+
+export default Estado;

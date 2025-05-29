@@ -1,1 +1,6 @@
-export type TipoEnvio = "DELIVERY" | "TAKEAWAY";
+enum TipoEnvio {
+    DELIVERY = "DELIVERY",
+    TAKEAWAY = "TAKEAWAY"
+}
+
+export default TipoEnvio;

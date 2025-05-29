@@ -1,1 +1,9 @@
-export type Rol = "ADMIN" | "COCINERO" | "CAJERO" | "DELIVERY" | "CLIENTE";
+enum Rol {
+    ADMIN = "ADMIN",
+    COCINERO = "COCINERO",
+    CAJERO = "CAJERO",
+    DELIVERY = "DELIVERY",
+    CLIENTE = "CLIENTE"
+}
+
+export default Rol;
