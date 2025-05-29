@@ -1,8 +1,9 @@
-import { useState } from "react";
-import { Button, Form } from "react-bootstrap";
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { auth } from "./firebase";
-import type Cliente from "../../models/Cliente.ts"; // Ajustá según tu estructura
+import {useState} from "react";
+import {Button, Form} from "react-bootstrap";
+import {createUserWithEmailAndPassword, updateProfile} from "firebase/auth";
+import {auth} from "./firebase";
+import type Cliente from "../../models/Cliente.ts";
+import {Rol} from "../../models/enums/Rol.ts"; // Ajustá según tu estructura
 
 //TODO implementar Validaciones de los campos.
 //TODO agregar boton a campos contraseña para ver.
@@ -146,9 +147,10 @@ const RegisterUsuario = ({ onBackToLogin }: Props) => {
                         }
                     }
                 ],
-                usuarioCliente: {
+                usuario: {
                     email: email,
                     firebaseUid: userCredential.user.uid,
+                    rol: Rol.CLIENTE,
                     eliminado: false
                 },
                 pedidos: [] // si tu clase no lo requiere aún, podés omitir este campo

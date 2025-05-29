@@ -23,8 +23,6 @@ public class Empleado extends Master{
     private LocalDate fechaNacimiento;
     private Integer dni;
 
-    @Enumerated(EnumType.STRING)
-    private Rol rolEmpleado;
 
     // Relación 1:1 con ImagenEmpleado
     @OneToOne(cascade = CascadeType.ALL)
@@ -33,8 +31,8 @@ public class Empleado extends Master{
 
     // Relación 1:1 con UsuarioEmpleado
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "usuario_empleado_id")
-    private UsuarioEmpleado usuarioEmpleado;
+    @JoinColumn(name = "usuario_id")
+    private Usuario usuario;
 
     // Relación ManyToOne con Domicilio
     @ManyToOne

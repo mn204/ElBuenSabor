@@ -1,10 +1,8 @@
 
-import { useState } from "react";
 // TODO boton de ver la contraseña
 
 
 const LoginEmpleado = ( ) => {
-    const [error, setError] = useState<string | null>(null);
 
 
     return (
@@ -21,7 +19,6 @@ const LoginEmpleado = ( ) => {
 
             <button type="submit" className="btn btn-dark w-100 mb-2">Iniciar Sesión</button>
 
-            {error && <div className="text-danger text-center mt-2">{error}</div>}
 
             <div className="text-center mt-2">
                 <a href="#" className="text-primary small">¿Olvidaste tu contraseña?</a>
