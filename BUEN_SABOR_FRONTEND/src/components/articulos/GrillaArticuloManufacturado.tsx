@@ -3,6 +3,7 @@ import ArticuloManufacturadoService from "../../services/ArticuloManufacturadoSe
 import ArticuloManufacturado from "../../models/ArticuloManufacturado";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
+import { ReusableTable } from "../Tabla"; // Importa el componente
 
 function GrillaArticuloManufacturado() {
   const [articulos, setArticulos] = useState<ArticuloManufacturado[]>([]);
@@ -34,7 +35,7 @@ function GrillaArticuloManufacturado() {
     if (!window.confirm("¿Seguro que desea eliminar este artículo manufacturado?")) return;
     try {
       await ArticuloManufacturadoService.delete(id);
-      setArticulos(prev => prev.filter(a => a.id !== id));
+      cargarArticulos();
       alert("Artículo manufacturado eliminado correctamente");
     } catch (err) {
       alert("Error al eliminar el artículo manufacturado");
@@ -45,7 +46,6 @@ function GrillaArticuloManufacturado() {
     window.location.href = `/manu?id=${art.id}`;
   };
 
-  // Nuevo: handleVer para abrir el modal
   const handleVer = (art: ArticuloManufacturado) => {
     setArticuloSeleccionado(art);
     setShowModal(true);
@@ -56,55 +56,59 @@ function GrillaArticuloManufacturado() {
     setArticuloSeleccionado(null);
   };
 
+  // Definición de columnas para la tabla reusable
+  const columns = [
+    { key: "denominacion", label: "Denominación" },
+    {
+      key: "precioVenta",
+      label: "Precio Venta",
+      render: (value: number) => `$${value}`,
+    },
+     {
+      key: "eliminado",
+      label: "Estado",
+      render: (value: boolean) => (value ? "Eliminado" : "Activo"),
+    },
+    {
+      key: "acciones",
+      label: "Acciones",
+      render: (_: any, row: ArticuloManufacturado) => (
+        <div>
+          <Button
+            variant="info"
+            size="sm"
+            className="me-2"
+            onClick={() => handleVer(row)}
+          >
+            Ver
+          </Button>
+          <Button
+            variant="warning"
+            size="sm"
+            className="me-2"
+            onClick={() => handleActualizar(row)}
+          >
+            Editar
+          </Button>
+          <Button
+            variant="danger"
+            size="sm"
+            onClick={() => eliminarArticulo(row.id!)}
+          >
+            Eliminar
+          </Button>
+        </div>
+      ),
+    },
+  ];  
+  console.log(articuloSeleccionado);
   if (loading) return <div>Cargando artículos...</div>;
   if (error) return <div>{error}</div>;
 
   return (
     <div>
       <h2>Artículos Manufacturado</h2>
-      <table className="table">
-        <thead>
-          <tr>
-            <th>Denominación</th>
-            <th>Precio Venta</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {articulos.map(art => (
-            <tr key={art.id}>
-              <td>{art.denominacion}</td>
-              <td>${art.precioVenta}</td>
-              <td>
-                <Button
-                  variant="info"
-                  size="sm"
-                  className="me-2"
-                  onClick={() => handleVer(art)}
-                >
-                  Ver
-                </Button>
-                <Button
-                  variant="warning"
-                  size="sm"
-                  className="me-2"
-                  onClick={() => handleActualizar(art)}
-                >
-                  Editar
-                </Button>
-                <Button
-                  variant="danger"
-                  size="sm"
-                  onClick={() => eliminarArticulo(art.id!)}
-                >
-                  Eliminar
-                </Button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
+      <ReusableTable columns={columns} data={articulos} />
       {/* Modal para ver información */}
       <Modal show={showModal} onHide={handleCloseModal} centered>
         <Modal.Header closeButton>
@@ -120,6 +124,7 @@ function GrillaArticuloManufacturado() {
               <p><b>Unidad de Medida:</b> {articuloSeleccionado.unidadMedida?.denominacion}</p>
               <p><b>Tiempo Estimado:</b> {articuloSeleccionado.tiempoEstimadoMinutos} min</p>
               <p><b>Preparación:</b> {articuloSeleccionado.preparacion}</p>
+              <p><b>Estado:</b> {articuloSeleccionado.eliminado ? "Eliminado" : "Activo"}</p>
               <b>Detalles:</b>
               <ul>
                 {articuloSeleccionado.detalles?.map((det, idx) => (

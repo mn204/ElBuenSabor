@@ -115,11 +115,11 @@ function FormArticuloManufacturado() {
     try {
       const manufacturado = new ArticuloManufacturado();
       
-        const unidadMedidaSeleccionada = unidadesMedida.find(um => um.id === Number(unidad));
-        if (!unidadMedidaSeleccionada) {
-            alert("Unidad de medida inválida");
-            return;
-        }
+      const unidadMedidaSeleccionada = unidadesMedida.find(um => um.id === Number(unidad));
+      if (!unidadMedidaSeleccionada) {
+          alert("Unidad de medida inválida");
+          return;
+      }
 
       const categoriaSeleccionada = categorias.find(cat => cat.id === Number(categoria));
         if (!categoriaSeleccionada) {

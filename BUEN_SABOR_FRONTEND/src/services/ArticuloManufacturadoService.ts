@@ -14,6 +14,17 @@ class ArticuloManufacturadoService {
         }
     }
 
+    async getAllNoElminados(): Promise<ArticuloManufacturado[]> {
+        try {
+            const res = await fetch(`${API_URL}`);
+            if (!res.ok) throw new Error("Error al obtener productos");
+            return await res.json();
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
+
     async create(articulo: any): Promise<any> {
         try {
             const res = await fetch(`http://localhost:8080/api/productos`, {

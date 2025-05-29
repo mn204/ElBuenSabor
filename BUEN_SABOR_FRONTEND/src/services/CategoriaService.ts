@@ -13,6 +13,18 @@ class CategoriaService {
             throw error;
         }
     }
+
+    async delete(id: number): Promise<void> {
+        try {
+            const res = await fetch(`${API_URL}/${id}`, {
+                method: "DELETE"
+            });
+            if (!res.ok) throw new Error("Error al eliminar la categoria");
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
 }
 
 export default new CategoriaService();
