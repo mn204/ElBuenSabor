@@ -120,7 +120,6 @@ const RegisterUsuario = () => {
                 email: email,
                 dni: parseInt(dni),
                 fechaNacimiento: new Date(fechaNacimiento),
-                rolEmpleado: rolEmpleado,
                 eliminado: false,
                 domicilio:
                     {
@@ -144,14 +143,15 @@ const RegisterUsuario = () => {
                             }
                         }
                     },
-                usuarioEmpleado: {
+                usuario: {
                     email: email,
                     firebaseUid: userCredential.user.uid,
+                    rol: rolEmpleado,
                     eliminado: false
                 },
                 pedidos: [] // si tu clase no lo requiere aún, podés omitir este campo
             };
-            console.log("Cliente a enviar:", JSON.stringify(empleado, null, 2));
+            console.log("Empleado a enviar:", JSON.stringify(empleado, null, 2));
 
             // Enviar a backend
             /*

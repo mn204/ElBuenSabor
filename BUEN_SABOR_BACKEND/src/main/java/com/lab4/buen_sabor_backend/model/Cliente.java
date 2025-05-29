@@ -29,9 +29,10 @@ public class Cliente extends Master{
     @JoinColumn(name = "imagen_cliente_id")
     private ImagenCliente imagenCliente;
 
+
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "usuario_cliente_id")
-    private UsuarioCliente usuarioCliente;
+    @JoinColumn(name = "usuario_id")
+    private Usuario usuario;
 
     @ManyToMany
     @JoinTable(
