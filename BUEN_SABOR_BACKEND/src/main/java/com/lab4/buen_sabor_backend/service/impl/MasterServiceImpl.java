@@ -45,7 +45,7 @@ public abstract class MasterServiceImpl <E extends Master, ID extends Serializab
 
     @Override
     @Transactional
-    public List<E> getAll() {
+    public List<E> getAllEliminadoFalse() {
         List<E> entities = masterRepository.findAllByEliminadoFalse();
         logger.info("Entidades obtenidas (no eliminadas): {}", entities.size());
         return entities;
@@ -53,8 +53,24 @@ public abstract class MasterServiceImpl <E extends Master, ID extends Serializab
 
     @Override
     @Transactional
-    public Page<E> getAll(Pageable pageable) {
+    public Page<E> getAllEliminadoFalse(Pageable pageable) {
         Page<E> entities = masterRepository.findAllByEliminadoFalse(pageable);
+        logger.info("Página obtenida: {} elementos", entities.getNumberOfElements());
+        return entities;
+    }
+
+    @Override
+    @Transactional
+    public List<E> getAll() {
+        List<E> entities = masterRepository.findAll();
+        logger.info("Entidades obtenidas (no eliminadas): {}", entities.size());
+        return entities;
+    }
+
+    @Override
+    @Transactional
+    public Page<E> getAll(Pageable pageable) {
+        Page<E> entities = masterRepository.findAll(pageable);
         logger.info("Página obtenida: {} elementos", entities.getNumberOfElements());
         return entities;
     }

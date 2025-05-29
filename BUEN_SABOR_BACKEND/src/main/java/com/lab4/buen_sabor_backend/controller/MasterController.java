@@ -22,6 +22,12 @@ public interface MasterController<DTO, ID extends Serializable> {
     @GetMapping("/page")
     ResponseEntity<Page<DTO>> getAll(Pageable pageable);
 
+    @GetMapping("/noEliminado")
+    ResponseEntity<List<DTO>> getAllEliminadoFalse();
+
+    @GetMapping("/page/noEliminado")
+    ResponseEntity<Page<DTO>> getAllEliminadoFalse(Pageable pageable);
+
     @PutMapping("/{id}")
     ResponseEntity<DTO> update(@PathVariable ID id, @RequestBody DTO dto);
 

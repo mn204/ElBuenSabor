@@ -1055,3 +1055,7 @@ SHOW COLUMNS FROM articulo_insumo, insumo [42000-232]
 org.h2.jdbc.JdbcSQLSyntaxErrorException: Error de Sintaxis en sentencia SQL "[*]ARTICULO_MANUFACTURADO"; se esperaba "ALTER, ANALYZE"
 Syntax error in SQL statement "[*]ARTICULO_MANUFACTURADO"; expected "ALTER, ANALYZE"; SQL statement:
 ARTICULO_MANUFACTURADO [42001-232]
+2025-05-28 20:15:29.652225-03:00 jdbc[13]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Error de Sintaxis en sentencia SQL "[*]ARTICULO"; se esperaba "ALTER, ANALYZE"
+Syntax error in SQL statement "[*]ARTICULO"; expected "ALTER, ANALYZE"; SQL statement:
+ARTICULO [42001-232]

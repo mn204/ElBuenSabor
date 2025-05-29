@@ -19,4 +19,5 @@ public class ArticuloDTO extends MasterDTO {
     private Set<ImagenArticuloDTO> imagenes = new HashSet<>();
     private UnidadMedidaDTO unidadMedida;
     private CategoriaDTO categoria;
+    private boolean eliminado;
 }

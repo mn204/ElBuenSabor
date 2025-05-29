@@ -8,6 +8,7 @@ import com.lab4.buen_sabor_backend.service.CategoriaService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -47,6 +48,14 @@ public class ArticuloInsumoController extends MasterControllerImpl<ArticuloInsum
      */
     @GetMapping("/grilla")
     public ResponseEntity<List<ArticuloInsumoDTO>> obtenerGrillaIngredientes() {
+        logger.info("Obteniendo grilla de ingredientes");
+        List<ArticuloInsumo> ingredientes = articuloInsumoService.getAll();
+        List<ArticuloInsumoDTO> ingredientesDTO = articuloInsumoMapper.toDTOsList(ingredientes);
+        return ResponseEntity.ok(ingredientesDTO);
+    }
+
+    @GetMapping("/noEliminados")
+    public ResponseEntity<List<ArticuloInsumoDTO>> getAllElimanodFalse() {
         logger.info("Obteniendo grilla de ingredientes");
         List<ArticuloInsumo> ingredientes = articuloInsumoService.getAll();
         List<ArticuloInsumoDTO> ingredientesDTO = articuloInsumoMapper.toDTOsList(ingredientes);

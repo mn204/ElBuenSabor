@@ -20,6 +20,7 @@ public interface MasterRepository<E extends Master, ID extends Serializable> ext
     void bajaLogica(@Param("id") ID id);
 
     List<E> findAllByEliminadoFalse();
+    List<E> findAll();
 
     Optional<E> findByIdAndEliminadoFalse(ID id);
 
