@@ -13,6 +13,7 @@ import GrillaImagenArticulo from "./components/articulos/GrillaImagenArticulo";
 import GrillaHistoricoCompra from "./components/articulos/GrillaHistoricoCompra";
 import GrillaHistoricoVenta from "./components/articulos/GrillaHistoricoVenta";
 import FormCategoria from './components/articulos/FormCategoria'
+import FormInsumos from './components/articulos/FormInsumos'
 function App() {
 
   return (
@@ -22,10 +23,11 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/home" element={<Home />} />
         <Route path="/perfil" element={<Perfil />} />
-        <Route path="/accionManufacturado" element={<FormArticuloManufacturado />} />
+        <Route path="/manufacturado" element={<FormArticuloManufacturado />} />
         <Route path="/manufacturados" element={<GrillaArticuloManufacturado />} />
         <Route path="/categorias" element={<GrillaCategorias />} />
         <Route path="/articulos" element={<GrillaInsumos />} />
+        <Route path="/articulo" element={<FormInsumos />} />
         <Route path="/unidades" element={<GrillaUnidadMedida />} />
         <Route path="/imagenes" element={<GrillaImagenArticulo />} />
         <Route path="/historicocompra" element={<GrillaHistoricoCompra />} />

@@ -43,7 +43,7 @@ function GrillaInsumos() {
   };
 
   const handleActualizar = (ins: Insumo) => {
-    window.location.href = `/insumo?id=${ins.id}`;
+    window.location.href = `/articulo?id=${ins.id}`;
   };
 
   const handleVer = (ins: Insumo) => {
@@ -81,7 +81,7 @@ function GrillaInsumos() {
       render: (_: any, row: Insumo) => row.unidadMedida?.denominacion || "-",
     },
     {
-      key: "precioCompra",
+      key: "precioVenta",
       label: "Precio Venta",
       render: (value: number) => `$${value}`,
     },

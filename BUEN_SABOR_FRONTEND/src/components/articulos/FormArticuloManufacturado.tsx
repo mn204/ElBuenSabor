@@ -15,9 +15,11 @@ import Button from "react-bootstrap/Button";
 import UnidadMedidaService from "../../services/UnidadMedidaService.ts";
 import HistoricoPrecioVenta from "../../models/HistoricoPrecioVenta.ts";
 import { useSearchParams } from "react-router-dom";
+import ImagenArticulo from "../../models/ImagenArticulo.ts";
 
 function FormArticuloManufacturado() {
   // Estados principales
+  const [imagenes, setImagenes] = useState<File[]>([]);
   const [denominacion, setDenominacion] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [tiempoEstimadoMinutos, setTiempoEstimadoMinutos] = useState(0);
@@ -34,9 +36,27 @@ function FormArticuloManufacturado() {
   const [cantidadInsumo, setCantidadInsumo] = useState<number>(1);
   const [searchParams] = useSearchParams();
   const idFromUrl = searchParams.get("id");
-  
-  // Cargar datos del artículo seleccionado
-    useEffect(() => {
+
+  // Utilidades
+  const totalInsumos = detalles.reduce((acc, det) => {
+    const precio = det.articuloInsumo?.precioVenta ?? 0;
+    return acc + precio * det.cantidad;
+  }, 0);
+  const totalConGanancia = totalInsumos + (totalInsumos * (porcentajeGanancia / 100));
+
+  // Cargar datos iniciales
+  useEffect(() => {
+    CategoriaService.getAll().then(setCategorias).catch(() => setCategorias([]));
+    UnidadMedidaService.getAll().then(setUnidadesMedida).catch(() => setUnidadesMedida([]));
+  }, []);
+
+  useEffect(() => {
+    if (showModal) {
+      ArticuloInsumoService.getAll().then(setArticulosInsumo);
+    }
+  }, [showModal]);
+
+  useEffect(() => {
     if (idFromUrl) {
       ArticuloManufacturadoService.getById(Number(idFromUrl)).then(art => {
         setDenominacion(art.denominacion ?? "");
@@ -46,41 +66,27 @@ function FormArticuloManufacturado() {
         setCategoria(art.categoria?.id?.toString() ?? "");
         setUnidad(art.unidadMedida?.id?.toString() ?? "");
         setDetalles(art.detalles ?? []);
-        console.log(art);
         // Calcular costo total de insumos
         const costoInsumos = (art.detalles ?? []).reduce((acc, det) => {
           const precio = det.articuloInsumo?.precioVenta ?? 0;
           return acc + precio * det.cantidad;
         }, 0);
         // Calcular porcentaje de ganancia si hay costo
-        if (costoInsumos > 0 && art.precioVenta){
-          setPorcentajeGanancia(((art.precioVenta - costoInsumos)/costoInsumos) * 100);
+        if (costoInsumos > 0 && art.precioVenta) {
+          setPorcentajeGanancia(((art.precioVenta - costoInsumos) / costoInsumos) * 100);
         } else {
           setPorcentajeGanancia(0);
         }
       });
     }
   }, [idFromUrl]);
-  useEffect(() => {
-    CategoriaService.getAll().then(setCategorias).catch(() => setCategorias([]));
-  }, []);
-  useEffect(() => {
-    if (showModal) {
-      ArticuloInsumoService.getAll().then(setArticulosInsumo);
-    }
-  }, [showModal]);
 
-  useEffect(() => {
-    // Si tenés un UnidadMedidaService con getAll
-    UnidadMedidaService.getAll()
-        .then(setUnidadesMedida)
-        .catch(() => setUnidadesMedida([]));
-  }, []);
-  const totalInsumos = detalles.reduce((acc, det) => {
-    const precio = det.articuloInsumo?.precioVenta ?? 0;
-    return acc + precio * det.cantidad;
-  }, 0);
-  const totalConGanancia = totalInsumos + (totalInsumos * (porcentajeGanancia / 100));
+  // Handlers
+  const handleImagenesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setImagenes(Array.from(e.target.files));
+    }
+  };
 
   const AgregarInsumo = () => {
     if (insumoSeleccionado) {
@@ -118,6 +124,14 @@ function FormArticuloManufacturado() {
     setDetalles(prev => prev.filter((_, i) => i !== index));
   };
 
+  const CambiarCantidadDetalle = (index: number, cantidad: number) => {
+    setDetalles(prev =>
+      prev.map((det, i) =>
+        i === index ? { ...det, cantidad } : det
+      )
+    );
+  };
+
   const limpiarFormulario = () => {
     setDenominacion("");
     setDescripcion("");
@@ -126,106 +140,97 @@ function FormArticuloManufacturado() {
     setCategoria("");
     setDetalles([]);
     setPorcentajeGanancia(0);
+    setImagenes([]);
+    setUnidad("");
   };
-  const handleActualizar = async () => {
-    if (!idFromUrl) return;
-    try {
-      const manufacturado = new ArticuloManufacturado();
-      
-      const unidadMedidaSeleccionada = unidadesMedida.find(um => um.id === Number(unidad));
-      if (!unidadMedidaSeleccionada) {
-          alert("Unidad de medida inválida");
-          return;
-      }
 
-      const categoriaSeleccionada = categorias.find(cat => cat.id === Number(categoria));
-        if (!categoriaSeleccionada) {
-            alert("Categoría inválida");
-            return;
-      }
-      manufacturado.denominacion = denominacion;
-      manufacturado.precioVenta = totalConGanancia;
-      manufacturado.unidadMedida = { id: unidadMedidaSeleccionada.id } as UnidadMedida;
-      manufacturado.categoria = { id: categoriaSeleccionada.id } as Categoria;
-      manufacturado.descripcion = descripcion;
-      manufacturado.tiempoEstimadoMinutos = tiempoEstimadoMinutos;
-      manufacturado.preparacion = preparacion;
-      manufacturado.detalles = detalles.map(det => ({
-          id: det.id ?? undefined,
-          cantidad: det.cantidad,
-          articuloInsumo: det.articuloInsumo?.id
-              ? { id: det.articuloInsumo.id } as ArticuloInsumo
-              : undefined,
-          eliminado: false,
-      }));
-      console.log(manufacturado);
-      manufacturado.imagenesArticuloManufacturado = [];
-      await ArticuloManufacturadoService.update(Number(idFromUrl), manufacturado);
-      alert("Artículo manufacturado actualizado correctamente");
-      limpiarFormulario();
-      window.location.href = "/manufacturados"; // Redirige a la lista de categorías
-      } catch (error) {
-        alert("Error al actualizar el artículo manufacturado");
-      }
+  // Utilidad para convertir archivo a base64
+  const fileToBase64 = (file: File) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = error => reject(error);
+    });
   };
+
+  // Factoriza la creación del objeto manufacturado
+  const buildManufacturado = async (): Promise<ArticuloManufacturado | null> => {
+    const unidadMedidaSeleccionada = unidadesMedida.find(um => um.id === Number(unidad));
+    if (!unidadMedidaSeleccionada) {
+      alert("Unidad de medida inválida");
+      return null;
+    }
+    const categoriaSeleccionada = categorias.find(cat => cat.id === Number(categoria));
+    if (!categoriaSeleccionada) {
+      alert("Categoría inválida");
+      return null;
+    }
+    const manufacturado = new ArticuloManufacturado();
+    manufacturado.denominacion = denominacion;
+    manufacturado.precioVenta = totalConGanancia;
+    manufacturado.unidadMedida = { id: unidadMedidaSeleccionada.id } as UnidadMedida;
+    manufacturado.categoria = { id: categoriaSeleccionada.id } as Categoria;
+    manufacturado.descripcion = descripcion;
+    manufacturado.tiempoEstimadoMinutos = tiempoEstimadoMinutos;
+    manufacturado.preparacion = preparacion;
+    manufacturado.detalles = detalles.map(det => ({
+      id: det.id ?? undefined,
+      cantidad: det.cantidad,
+      articuloInsumo: det.articuloInsumo?.id
+        ? { id: det.articuloInsumo.id } as ArticuloInsumo
+        : undefined,
+      eliminado: false,
+    }));
+    manufacturado.imagenesArticuloManufacturado = await Promise.all(
+      imagenes.map(async (file) => {
+        const base64 = await fileToBase64(file);
+        const imagen = new ImagenArticulo();
+        imagen.denominacion = base64 as string; // Usa la propiedad correcta
+        imagen.eliminado = false;
+        return imagen;
+      })
+    );
+    return manufacturado;
+  };
+
   const Guardar = async () => {
     try {
-      const manufacturado = new ArticuloManufacturado();
-
-      const unidadMedidaSeleccionada = unidadesMedida.find(um => um.id === Number(unidad));
-      if (!unidadMedidaSeleccionada) {
-        alert("Unidad de medida inválida");
-        return;
-      }
-
-      const categoriaSeleccionada = categorias.find(cat => cat.id === Number(categoria));
-      if (!categoriaSeleccionada) {
-        alert("Categoría inválida");
-        return;
-      }
-
+      const manufacturado = await buildManufacturado();
+      if (!manufacturado) return;
 
       const precioVenta = new HistoricoPrecioVenta();
       precioVenta.precio = totalConGanancia;
       precioVenta.fecha = new Date();
       precioVenta.eliminado = false;
-      manufacturado.denominacion = denominacion;
-      manufacturado.precioVenta = totalConGanancia;
       manufacturado.historicosPrecioVenta = [precioVenta];
       manufacturado.historicosPrecioCompra = [];
       manufacturado.imagenes = [];
-      manufacturado.unidadMedida = { id: unidadMedidaSeleccionada.id } as UnidadMedida;
-      manufacturado.categoria = { id: categoriaSeleccionada.id } as Categoria;
-      manufacturado.descripcion = descripcion;
-      manufacturado.tiempoEstimadoMinutos = tiempoEstimadoMinutos;
-      manufacturado.preparacion = preparacion;
-      manufacturado.detalles = detalles.map(det => ({
-        cantidad: det.cantidad,
-        articuloInsumo: det.articuloInsumo?.id
-            ? { id: det.articuloInsumo.id } as ArticuloInsumo
-            : undefined,
-        eliminado: false,
-      }));
-      manufacturado.imagenesArticuloManufacturado = [];
 
-      console.log("Detalles a guardar:", manufacturado);
       await ArticuloManufacturadoService.create(manufacturado);
       alert("Artículo manufacturado guardado correctamente");
       limpiarFormulario();
-      window.location.href = "/manufacturados"; // Redirige a la lista de categorías
+      window.location.href = "/manufacturados";
     } catch (error) {
       console.error(error);
       alert("Error al guardar el artículo manufacturado");
     }
   };
 
-  const CambiarCantidadDetalle = (index: number, cantidad: number) => {
-    setDetalles(prev =>
-      prev.map((det, i) =>
-        i === index ? { ...det, cantidad } : det
-      )
-    );
+  const handleActualizar = async () => {
+    if (!idFromUrl) return;
+    try {
+      const manufacturado = await buildManufacturado();
+      if (!manufacturado) return;
+      await ArticuloManufacturadoService.update(Number(idFromUrl), manufacturado);
+      alert("Artículo manufacturado actualizado correctamente");
+      limpiarFormulario();
+      window.location.href = "/manufacturados";
+    } catch (error) {
+      alert("Error al actualizar el artículo manufacturado");
+    }
   };
+
   return (
     <div className="formArticuloManufacturado d-flex flex-column gap-3 justify-content-center align-items-center">
       <h2>Formulario de Artículo Manufacturado</h2>
@@ -245,6 +250,25 @@ function FormArticuloManufacturado() {
         setUnidad={setUnidad}
         unidadesMedida={unidadesMedida}
       />
+      <div>
+        <label>Imágenes:</label>
+        <input
+          type="file"
+          multiple
+          accept="image/*"
+          onChange={handleImagenesChange}
+        />
+        <div className="preview-imagenes mt-2 d-flex gap-2">
+          {imagenes.map((img, idx) => (
+            <img
+              key={idx}
+              src={URL.createObjectURL(img)}
+              alt={`preview-${idx}`}
+              style={{ width: 60, height: 60, objectFit: "cover", borderRadius: 8 }}
+            />
+          ))}
+        </div>
+      </div>
       <Button className="agregarInsumo" variant="primary" onClick={() => setShowModal(true)}>
         Agregar Insumo
       </Button>
@@ -298,21 +322,21 @@ function FormArticuloManufacturado() {
         </Button>
       ) : (
         <Button
-        variant="warning"
-        className="mt-3"
-        onClick={handleActualizar}
-        disabled={
-          !idFromUrl ||
-          !denominacion ||
-          !descripcion ||
-          !preparacion ||
-          !categoria ||
-          !unidad ||
-          detalles.length === 0
-        }
-      >
-        Actualizar Artículo Manufacturado
-      </Button>
+          variant="warning"
+          className="mt-3"
+          onClick={handleActualizar}
+          disabled={
+            !idFromUrl ||
+            !denominacion ||
+            !descripcion ||
+            !preparacion ||
+            !categoria ||
+            !unidad ||
+            detalles.length === 0
+          }
+        >
+          Actualizar Artículo Manufacturado
+        </Button>
       )}
     </div>
   );

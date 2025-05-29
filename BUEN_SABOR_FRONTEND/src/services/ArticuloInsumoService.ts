@@ -48,6 +48,36 @@ class ArticuloInsumoService {
             throw error;
         }
     }
+    async create(articulo: any): Promise<any> {
+        try {
+            const res = await fetch(`${API_URL}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(articulo)
+            });
+            console.log(JSON.stringify(articulo));
+            if (!res.ok) throw new Error("Error al crear artículo manufacturado");
+            return await res.json();
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
+    async update(id: number, articulo: ArticuloInsumo): Promise<ArticuloInsumo> {
+        try {
+            const res = await fetch(`${API_URL}/${id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(articulo)
+            });
+            console.log(JSON.stringify(articulo))
+            if (!res.ok) throw new Error("Error al actualizar artículo manufacturado");
+            return await res.json();
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
 }
 
 export default new ArticuloInsumoService();

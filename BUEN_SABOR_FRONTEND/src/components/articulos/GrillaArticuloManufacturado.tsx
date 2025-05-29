@@ -129,6 +129,9 @@ function GrillaArticuloManufacturado() {
   return (
     <div>
       <h2>Artículos Manufacturado</h2>
+      <Button variant="primary" className="crearManufacturadoBtn mb-3" onClick={() => window.location.href = "/manufacturado"}>
+        Crear Artículo Manufacturado
+      </Button>
       <ReusableTable columns={columns} data={articulos} />
       {/* Modal para ver información */}
       <Modal show={showModal} onHide={handleCloseModal} centered>
