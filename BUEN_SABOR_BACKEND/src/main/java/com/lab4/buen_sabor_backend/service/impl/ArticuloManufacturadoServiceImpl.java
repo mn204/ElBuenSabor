@@ -73,6 +73,9 @@ public class ArticuloManufacturadoServiceImpl extends MasterServiceImpl<Articulo
         for(DetalleArticuloManufacturado detalle : entity.getDetalles()) {
             detalle.setArticuloManufacturado(entity);
         }
+        for (HistoricoPrecioVenta historico : entity.getHistoricosPrecioVenta()) {
+            historico.setArticulo(entity);
+        }
         for(ImagenArticuloManufacturado imagen : entity.getImagenesArticuloManufacturado()) {
             imagen.setArticuloManufacturado(entity);
         }
