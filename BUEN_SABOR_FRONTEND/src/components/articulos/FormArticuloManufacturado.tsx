@@ -15,11 +15,12 @@ import Button from "react-bootstrap/Button";
 import UnidadMedidaService from "../../services/UnidadMedidaService.ts";
 import HistoricoPrecioVenta from "../../models/HistoricoPrecioVenta.ts";
 import { useSearchParams } from "react-router-dom";
-import ImagenArticulo from "../../models/ImagenArticulo.ts";
+import ImagenArticuloManufacturado from "../../models/ImagenArticuloManufacturado.ts";
 
 function FormArticuloManufacturado() {
   // Estados principales
   const [imagenes, setImagenes] = useState<File[]>([]);
+  const [imagenesExistentes, setImagenesExistentes] = useState<ImagenArticuloManufacturado[]>([]);
   const [denominacion, setDenominacion] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [tiempoEstimadoMinutos, setTiempoEstimadoMinutos] = useState(0);
@@ -66,6 +67,7 @@ function FormArticuloManufacturado() {
         setCategoria(art.categoria?.id?.toString() ?? "");
         setUnidad(art.unidadMedida?.id?.toString() ?? "");
         setDetalles(art.detalles ?? []);
+        setImagenesExistentes(art.imagenesArticuloManufacturado ?? []);
         // Calcular costo total de insumos
         const costoInsumos = (art.detalles ?? []).reduce((acc, det) => {
           const precio = det.articuloInsumo?.precioVenta ?? 0;
@@ -80,14 +82,20 @@ function FormArticuloManufacturado() {
       });
     }
   }, [idFromUrl]);
-
+  const eliminarImagenExistente = (idx: number) => {
+    setImagenesExistentes(prev =>
+      prev.map((img, i) => (i === idx ? { ...img, eliminado: true } : img))
+    );
+  };
   // Handlers
   const handleImagenesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setImagenes(Array.from(e.target.files));
+    if (e.target.files && e.target.files.length > 0) {
+      setImagenes(prev => [...prev, ...Array.from(e.target.files as FileList)]);
     }
   };
-
+  const eliminarImagenNueva = (idx: number) => {
+    setImagenes(prev => prev.filter((_, i) => i !== idx));
+  };
   const AgregarInsumo = () => {
     if (insumoSeleccionado) {
       setDetalles(prev => {
@@ -182,54 +190,55 @@ function FormArticuloManufacturado() {
         : undefined,
       eliminado: false,
     }));
-    manufacturado.imagenesArticuloManufacturado = await Promise.all(
+    // Imágenes nuevas (archivos)
+    const nuevasImagenes = await Promise.all(
       imagenes.map(async (file) => {
         const base64 = await fileToBase64(file);
-        const imagen = new ImagenArticulo();
-        imagen.denominacion = base64 as string; // Usa la propiedad correcta
+        const imagen = new ImagenArticuloManufacturado();
+        imagen.denominacion = base64 as string;
         imagen.eliminado = false;
         return imagen;
       })
     );
+
+    // Imágenes existentes (no eliminadas)
+    const imagenesNoEliminadas = imagenesExistentes.filter(img => !img.eliminado);
+
+    manufacturado.imagenesArticuloManufacturado = [
+      ...imagenesNoEliminadas,
+      ...nuevasImagenes,
+    ];
+
     return manufacturado;
   };
 
-  const Guardar = async () => {
-    try {
-      const manufacturado = await buildManufacturado();
-      if (!manufacturado) return;
+const guardarOModificar = async () => {
+  try {
+    const manufacturado = await buildManufacturado();
+    if (!manufacturado) return;
 
-      const precioVenta = new HistoricoPrecioVenta();
-      precioVenta.precio = totalConGanancia;
-      precioVenta.fecha = new Date();
-      precioVenta.eliminado = false;
-      manufacturado.historicosPrecioVenta = [precioVenta];
-      manufacturado.historicosPrecioCompra = [];
-      manufacturado.imagenes = [];
+    const precioVenta = new HistoricoPrecioVenta();
+    precioVenta.precio = totalConGanancia;
+    precioVenta.fecha = new Date();
+    precioVenta.eliminado = false;
+    manufacturado.historicosPrecioVenta = [precioVenta];
+    manufacturado.historicosPrecioCompra = [];
+    manufacturado.imagenes = [];
 
-      await ArticuloManufacturadoService.create(manufacturado);
-      alert("Artículo manufacturado guardado correctamente");
-      limpiarFormulario();
-      window.location.href = "/manufacturados";
-    } catch (error) {
-      console.error(error);
-      alert("Error al guardar el artículo manufacturado");
-    }
-  };
-
-  const handleActualizar = async () => {
-    if (!idFromUrl) return;
-    try {
-      const manufacturado = await buildManufacturado();
-      if (!manufacturado) return;
+    if (idFromUrl) {
       await ArticuloManufacturadoService.update(Number(idFromUrl), manufacturado);
       alert("Artículo manufacturado actualizado correctamente");
-      limpiarFormulario();
-      window.location.href = "/manufacturados";
-    } catch (error) {
-      alert("Error al actualizar el artículo manufacturado");
+    } else {
+      await ArticuloManufacturadoService.create(manufacturado);
+      alert("Artículo manufacturado guardado correctamente");
     }
-  };
+    limpiarFormulario();
+    window.location.href = "/manufacturados";
+  } catch (error) {
+    console.error(error);
+    alert("Error al guardar o actualizar el artículo manufacturado");
+  }
+};
 
   return (
     <div className="formArticuloManufacturado d-flex flex-column gap-3 justify-content-center align-items-center">
@@ -249,26 +258,13 @@ function FormArticuloManufacturado() {
         unidad={unidad}
         setUnidad={setUnidad}
         unidadesMedida={unidadesMedida}
+        // Props de imágenes:
+        imagenes={imagenes}
+        imagenesExistentes={imagenesExistentes}
+        handleImagenesChange={handleImagenesChange}
+        eliminarImagenNueva={eliminarImagenNueva}
+        eliminarImagenExistente={eliminarImagenExistente}
       />
-      <div>
-        <label>Imágenes:</label>
-        <input
-          type="file"
-          multiple
-          accept="image/*"
-          onChange={handleImagenesChange}
-        />
-        <div className="preview-imagenes mt-2 d-flex gap-2">
-          {imagenes.map((img, idx) => (
-            <img
-              key={idx}
-              src={URL.createObjectURL(img)}
-              alt={`preview-${idx}`}
-              style={{ width: 60, height: 60, objectFit: "cover", borderRadius: 8 }}
-            />
-          ))}
-        </div>
-      </div>
       <Button className="agregarInsumo" variant="primary" onClick={() => setShowModal(true)}>
         Agregar Insumo
       </Button>
@@ -305,39 +301,21 @@ function FormArticuloManufacturado() {
           style={{ width: 120, fontWeight: "bold" }}
         />
       </div>
-      {!idFromUrl ? (
-        <Button
-          variant="success"
-          className="mt-3"
-          onClick={Guardar}
-          disabled={
-            !denominacion ||
-            !descripcion ||
-            !preparacion ||
-            !categoria ||
-            detalles.length === 0
-          }
-        >
-          Guardar Artículo Manufacturado
-        </Button>
-      ) : (
-        <Button
-          variant="warning"
-          className="mt-3"
-          onClick={handleActualizar}
-          disabled={
-            !idFromUrl ||
-            !denominacion ||
-            !descripcion ||
-            !preparacion ||
-            !categoria ||
-            !unidad ||
-            detalles.length === 0
-          }
-        >
-          Actualizar Artículo Manufacturado
-        </Button>
-      )}
+      <Button
+        variant={idFromUrl ? "warning" : "success"}
+        className="mt-3"
+        onClick={guardarOModificar}
+        disabled={
+          !denominacion ||
+          !descripcion ||
+          !preparacion ||
+          !categoria ||
+          !unidad ||
+          detalles.length === 0
+        }
+      >
+        {idFromUrl ? "Actualizar Artículo Manufacturado" : "Guardar Artículo Manufacturado"}
+      </Button>
     </div>
   );
 }

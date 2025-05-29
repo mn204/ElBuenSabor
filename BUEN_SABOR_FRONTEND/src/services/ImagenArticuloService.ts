@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:8080/api/imagenArticulo";
+const API_URL = "http://localhost:8080/api/imagenArticuloManu";
 
 const ImagenArticuloService = {
   getAll: async () => {

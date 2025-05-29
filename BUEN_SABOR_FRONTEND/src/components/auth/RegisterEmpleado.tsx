@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button, Form } from "react-bootstrap";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { auth } from "./firebase";
-import { Rol } from "../../models/enums/Rol.ts"; // ajusta este import según tu estructura
+import Rol from "../../models/enums/Rol.ts"; // ajusta este import según tu estructura
 import type Empleado from "../../models/Empleado.ts"; // Ajustá según tu estructura
 
 //TODO implementar Validaciones de los campos.

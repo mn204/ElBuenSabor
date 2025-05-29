@@ -55,11 +55,12 @@ function GrillaImagenArticulo() {
   };
 
   const columns = [
-    { key: "denominacion", label: "Denominación" },
     {
-      key: "url",
+      key: "denominacion",
       label: "Imagen",
-      render: (value: string) => <img src={value} alt="Imagen" style={{ width: 60, height: 60, objectFit: "cover" }} />,
+      render: (value: string) => (
+        <img src={value} alt="Imagen" style={{ width: 60, height: 60, objectFit: "cover" }} />
+      ),
     },
     {
       key: "acciones",
@@ -88,8 +89,7 @@ function GrillaImagenArticulo() {
         <Modal.Body>
           {imagenSeleccionada && (
             <div>
-              <p><b>Denominación:</b> {imagenSeleccionada.denominacion}</p>
-              <img src={imagenSeleccionada.url} alt="Imagen" style={{ width: 200, objectFit: "cover" }} />
+              <img src={imagenSeleccionada.denominacion} alt="Imagen" style={{ width: 200, objectFit: "cover" }} />
             </div>
           )}
         </Modal.Body>
