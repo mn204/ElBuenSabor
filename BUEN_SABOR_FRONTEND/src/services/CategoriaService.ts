@@ -68,6 +68,18 @@ class CategoriaService {
             throw error;
         }
     }
+
+    async changeEliminado(id: number): Promise<void> {
+        try {
+            const res = await fetch(`${API_URL}/darAlta/${id}`, {
+                method: "PUT"
+            });
+            if (!res.ok) throw new Error("Error al dar de alta la categoria");
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
 }
 
 export default new CategoriaService();

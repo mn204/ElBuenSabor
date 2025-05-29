@@ -11,12 +11,17 @@ function FormCategoria() {
     const [searchParams] = useSearchParams();
     const idFromUrl = searchParams.get("id");
     const [categoriaPadreId, setCategoriaPadreId] = useState<string>("");
+    const [eliminado, setEliminado] = useState(false);
+
     useEffect(() => {
-        categoriaService.getById(Number(idFromUrl))
-            .then(categoria => {
-                setDenominacion(categoria.denominacion);
-                setCategoriaPadreId(categoria.categoriaPadre?.id?.toString() || "");
-            });
+        if (idFromUrl) {
+            categoriaService.getById(Number(idFromUrl))
+                .then(categoria => {
+                    setDenominacion(categoria.denominacion);
+                    setCategoriaPadreId(categoria.categoriaPadre?.id?.toString() || "");
+                    setEliminado(!!categoria.eliminado);
+                });
+        }
     }, [idFromUrl]);
 
     useEffect(() => {
@@ -27,6 +32,7 @@ function FormCategoria() {
         const categoria: Categoria = {
             id: idFromUrl ? Number(idFromUrl) : undefined,
             denominacion,
+            eliminado,
             categoriaPadre: categoriaPadreId
                 ? categorias.find(cat => cat.id === Number(categoriaPadreId))
                 : undefined
@@ -70,6 +76,16 @@ function FormCategoria() {
                         ))}
                 </select>
             </div>
+            <div>
+                <label>Estado:</label>
+                <select
+                    value={eliminado ? "eliminado" : "activo"}
+                    onChange={e => setEliminado(e.target.value === "eliminado")}
+                >
+                    <option value="activo">Activo</option>
+                    <option value="eliminado">Eliminado</option>
+                </select>
+            </div>
             <Button
             variant="success"
             className="mt-3"
@@ -83,6 +99,5 @@ function FormCategoria() {
         </>
     );
 }
-
 
 export default FormCategoria;

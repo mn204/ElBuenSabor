@@ -31,11 +31,22 @@ function GrillaCategorias() {
     }
   };
 
+  const darDeAlta = async (id: number) => {
+    if (!window.confirm("¿Seguro que desea dar de alta esta categoría?")) return;
+    try {
+      await CategoriaService.changeEliminado(id);
+      cargarCategorias();
+      alert("Categoría dada de alta correctamente");
+    } catch (err) {
+      alert("Error al dar de alta la categoría");
+    }
+  }
+
   const eliminarCategoria = async (id: number) => {
     if (!window.confirm("¿Seguro que desea eliminar esta categoría?")) return;
     try {
       await CategoriaService.delete(id);
-      setCategorias(prev => prev.filter(a => a.id !== id));
+      cargarCategorias();
       alert("Categoría eliminada correctamente");
     } catch (err) {
       alert("Error al eliminar la categoría");
@@ -65,6 +76,11 @@ function GrillaCategorias() {
       render: (_: any, row: Categoria) => row.categoriaPadre?.denominacion || "-",
     },
     {
+      key: "eliminado",
+      label: "Estado",
+      render: (value: boolean) => (value ? "Eliminado" : "Activo"),
+    },
+    {
       key: "acciones",
       label: "Acciones",
       render: (_: any, row: Categoria) => (
@@ -85,13 +101,23 @@ function GrillaCategorias() {
           >
             Editar
           </Button>
-          <Button
-            variant="danger"
-            size="sm"
-            onClick={() => eliminarCategoria(row.id!)}
-          >
-            Eliminar
-          </Button>
+          {!row.eliminado ? (  
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={() => eliminarCategoria(row.id!)}
+            >
+              Eliminar
+            </Button>
+          ) : (
+            <Button
+              variant="success"
+              size="sm"
+              onClick={() => darDeAlta(row.id!)}
+            >
+              Dar de alta
+            </Button>
+          )}
         </div>
       ),
     },
@@ -114,6 +140,7 @@ function GrillaCategorias() {
             <div>
               <p><b>Denominación:</b> {categoriaSeleccionada.denominacion}</p>
               <p><b>Categoría Padre:</b> {categoriaSeleccionada.categoriaPadre?.denominacion || "-"}</p>
+              <p><b>Estado</b> {categoriaSeleccionada.eliminado ? "Eliminado" : "Activo"}</p>
             </div>
           )}
         </Modal.Body>

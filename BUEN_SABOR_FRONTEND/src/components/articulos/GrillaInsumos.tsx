@@ -35,7 +35,7 @@ function GrillaInsumos() {
     if (!window.confirm("¿Seguro que desea eliminar este insumo?")) return;
     try {
       await InsumoService.delete(id);
-      setInsumos(prev => prev.filter(a => a.id !== id));
+      cargarInsumos();
       alert("Insumo eliminado correctamente");
     } catch (err) {
       alert("Error al eliminar el insumo");
@@ -56,6 +56,17 @@ function GrillaInsumos() {
     setInsumoSeleccionado(null);
   };
 
+  const darDeAlta = async (id: number) => {
+      if (!window.confirm("¿Seguro que desea dar de alta esta categoría?")) return;
+      try {
+        await InsumoService.changeEliminado(id);
+        cargarInsumos();
+        alert("Insumo dada de alta correctamente");
+      } catch (err) {
+        alert("Error al dar de alta el Insumo");
+      }
+    }
+
   // Definición de columnas para la tabla reusable
   const columns = [
     { key: "denominacion", label: "Denominación" },
@@ -73,6 +84,11 @@ function GrillaInsumos() {
       key: "precioCompra",
       label: "Precio Venta",
       render: (value: number) => `$${value}`,
+    },
+    {
+      key: "eliminado",
+      label: "Estado",
+      render: (value: boolean) => (value ? "Eliminado" : "Activo"),
     },
     {
       key: "acciones",
@@ -95,13 +111,23 @@ function GrillaInsumos() {
           >
             Editar
           </Button>
-          <Button
-            variant="danger"
-            size="sm"
-            onClick={() => eliminarInsumo(row.id!)}
-          >
-            Eliminar
-          </Button>
+          {!row.eliminado ? (  
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={() => eliminarInsumo(row.id!)}
+            >
+              Eliminar
+            </Button>
+          ) : (
+            <Button
+              variant="success"
+              size="sm"
+              onClick={() => darDeAlta(row.id!)}
+            >
+              Dar de alta
+            </Button>
+            )}
         </div>
       ),
     },

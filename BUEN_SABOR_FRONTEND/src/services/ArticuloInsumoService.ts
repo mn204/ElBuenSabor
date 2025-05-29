@@ -19,7 +19,7 @@ class ArticuloInsumoService {
             const res = await fetch(`${API_URL}/${id}`, {
                 method: "DELETE"
             });
-            if (!res.ok) throw new Error("Error al eliminar artículo manufacturado");
+            if (!res.ok) throw new Error("Error al eliminar artículo insumo");
         } catch (error) {
             console.error(error);
             throw error;
@@ -31,6 +31,18 @@ class ArticuloInsumoService {
             const res = await fetch(`${API_URL}/${id}`);
             if (!res.ok) throw new Error("Error al obtener insumo");
             return await res.json();
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
+
+    async changeEliminado(id: number): Promise<void> {
+        try {
+            const res = await fetch(`${API_URL}/darAlta/${id}`, {
+                method: "PUT"
+            });
+            if (!res.ok) throw new Error("Error al dar de alta insumo");
         } catch (error) {
             console.error(error);
             throw error;
