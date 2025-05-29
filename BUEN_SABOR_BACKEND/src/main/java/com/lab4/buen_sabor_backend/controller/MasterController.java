@@ -31,6 +31,9 @@ public interface MasterController<DTO, ID extends Serializable> {
     @PutMapping("/{id}")
     ResponseEntity<DTO> update(@PathVariable ID id, @RequestBody DTO dto);
 
+    @PutMapping("/darAlta/{id}")
+    ResponseEntity<Void> changeEliminado(@PathVariable ID id);
+
     @DeleteMapping("/{id}")
     ResponseEntity<Void> delete(@PathVariable ID id);
 }
