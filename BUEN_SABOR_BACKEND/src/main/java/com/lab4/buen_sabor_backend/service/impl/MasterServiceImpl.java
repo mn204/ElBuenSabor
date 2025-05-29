@@ -100,4 +100,15 @@ public abstract class MasterServiceImpl <E extends Master, ID extends Serializab
         logger.info("Entidad eliminada lógicamente: {}", entity);
     }
 
+    @Override
+    @Transactional
+    public void changeEliminado(ID id) {
+        E entity = masterRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("No se encontró la entidad con id: " + id));
+
+        entity.setEliminado(false);
+        masterRepository.save(entity);
+        logger.info("Entidad dada de alta: {}", entity);
+    }
+
 }

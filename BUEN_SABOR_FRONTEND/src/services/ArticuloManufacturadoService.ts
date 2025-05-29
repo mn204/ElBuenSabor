@@ -27,7 +27,7 @@ class ArticuloManufacturadoService {
 
     async create(articulo: any): Promise<any> {
         try {
-            const res = await fetch(`http://localhost:8080/api/productos`, {
+            const res = await fetch(`${API_URL}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(articulo)
@@ -176,6 +176,18 @@ class ArticuloManufacturadoService {
             const res = await fetch(`${API_URL}/existe/${encodeURIComponent(denominacion)}`);
             if (!res.ok) throw new Error("Error al verificar existencia por denominación");
             return await res.json();
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
+
+    async changeEliminado(id: number): Promise<void> {
+        try {
+            const res = await fetch(`${API_URL}/darAlta/${id}`, {
+                method: "PUT"
+            });
+            if (!res.ok) throw new Error("Error al dar de alta el articulo");
         } catch (error) {
             console.error(error);
             throw error;

@@ -43,7 +43,7 @@ function GrillaArticuloManufacturado() {
   };
 
   const handleActualizar = (art: ArticuloManufacturado) => {
-    window.location.href = `/manu?id=${art.id}`;
+    window.location.href = `/accionManufacturado?id=${art.id}`;
   };
 
   const handleVer = (art: ArticuloManufacturado) => {
@@ -55,6 +55,17 @@ function GrillaArticuloManufacturado() {
     setShowModal(false);
     setArticuloSeleccionado(null);
   };
+
+  const darDeAlta = async (id: number) => {
+      if (!window.confirm("¿Seguro que desea dar de alta esta categoría?")) return;
+      try {
+        await ArticuloManufacturadoService.changeEliminado(id);
+        cargarArticulos();
+        alert("Categoría dada de alta correctamente");
+      } catch (err) {
+        alert("Error al dar de alta la categoría");
+      }
+    }
 
   // Definición de columnas para la tabla reusable
   const columns = [
@@ -90,13 +101,23 @@ function GrillaArticuloManufacturado() {
           >
             Editar
           </Button>
-          <Button
-            variant="danger"
-            size="sm"
-            onClick={() => eliminarArticulo(row.id!)}
-          >
-            Eliminar
-          </Button>
+          {!row.eliminado ? (  
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={() => eliminarArticulo(row.id!)}
+            >
+              Eliminar
+            </Button>
+          ) : (
+            <Button
+              variant="success"
+              size="sm"
+              onClick={() => darDeAlta(row.id!)}
+            >
+              Dar de alta
+            </Button>
+          )}
         </div>
       ),
     },

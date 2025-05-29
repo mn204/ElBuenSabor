@@ -163,6 +163,7 @@ function FormArticuloManufacturado() {
       await ArticuloManufacturadoService.update(Number(idFromUrl), manufacturado);
       alert("Artículo manufacturado actualizado correctamente");
       limpiarFormulario();
+      window.location.href = "/manufacturados"; // Redirige a la lista de categorías
       } catch (error) {
         alert("Error al actualizar el artículo manufacturado");
       }
@@ -211,6 +212,7 @@ function FormArticuloManufacturado() {
       await ArticuloManufacturadoService.create(manufacturado);
       alert("Artículo manufacturado guardado correctamente");
       limpiarFormulario();
+      window.location.href = "/manufacturados"; // Redirige a la lista de categorías
     } catch (error) {
       console.error(error);
       alert("Error al guardar el artículo manufacturado");

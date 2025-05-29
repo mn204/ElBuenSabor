@@ -15,4 +15,5 @@ public interface MasterService<E extends Master, ID extends Serializable> {
     Page<E> getAllEliminadoFalse(Pageable pageable); // Soporte para paginación
     E update(ID id, E entity); // Actualiza la entidad por ID
     void delete(ID id); // Eliminación lógica
+    void changeEliminado(ID id); // Cambio de eliminado a false
 }

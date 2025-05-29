@@ -80,6 +80,13 @@ public abstract class MasterControllerImpl<E extends Master, D, ID extends Seria
     }
 
     @Override
+    public ResponseEntity<Void> changeEliminado(ID id){
+        service.changeEliminado(id);
+        logger.info("Entidad con id {} dada de alta lógicamente.", id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Override
     public ResponseEntity<Void> delete(ID id) {
         service.delete(id);
         logger.info("Entidad con id {} eliminada lógicamente.", id);
