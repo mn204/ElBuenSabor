@@ -24,8 +24,6 @@ public class Cliente extends Master{
     private Integer dni;
     private LocalDate fechaNacimiento;
 
-    @Enumerated(EnumType.STRING)
-    private Rol rolCliente;
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "imagen_cliente_id")
