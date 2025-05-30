@@ -25,7 +25,7 @@ class ArticuloManufacturadoService {
         }
     }
 
-    async create(articulo: any): Promise<any> {
+    async create(articulo: ArticuloManufacturado): Promise<ArticuloManufacturado> {
         try {
             const res = await fetch(`${API_URL}`, {
                 method: "POST",
