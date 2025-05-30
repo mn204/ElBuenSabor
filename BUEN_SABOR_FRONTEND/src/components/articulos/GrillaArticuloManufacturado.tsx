@@ -4,7 +4,7 @@ import ArticuloManufacturado from "../../models/ArticuloManufacturado";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import { ReusableTable } from "../Tabla"; // Importa el componente
-
+import "../../styles/GrillaArticuloManufactura.css"; // Asegúrate de tener este archivo CSS
 function GrillaArticuloManufacturado() {
   const [articulos, setArticulos] = useState<ArticuloManufacturado[]>([]);
   const [loading, setLoading] = useState(true);
@@ -141,6 +141,7 @@ function GrillaArticuloManufacturado() {
         <Modal.Body>
           {articuloSeleccionado && (
             <div>
+              <img src={articuloSeleccionado.imagenesArticuloManufacturado[0].denominacion} className="imgModalArtManu" alt="" />
               <p><b>Denominación:</b> {articuloSeleccionado.denominacion}</p>
               <p><b>Descripción:</b> {articuloSeleccionado.descripcion}</p>
               <p><b>Precio Venta:</b> ${articuloSeleccionado.precioVenta}</p>
