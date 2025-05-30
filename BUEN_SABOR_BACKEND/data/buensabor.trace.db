@@ -1102,3 +1102,7 @@ Caused by: java.lang.AssertionError
 org.h2.jdbc.JdbcSQLDataException: Valor demasiado largo para la columna "DENOMINACION CHARACTER VARYING(255)": "'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAkACQAAD/2wBDAAIBAQIBAQICAgICAgICAwUD... (4079)"
 Value too long for column "DENOMINACION CHARACTER VARYING(255)": "'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAkACQAAD/2wBDAAIBAQIBAQICAgICAgICAwUD... (4079)"; SQL statement:
 insert into imagen_articulo_manufacturado (articulo_manufacturado_id,denominacion,eliminado,id) values (?,?,?,default) [22001-232]
+2025-05-30 17:13:20.711912-03:00 jdbc[13]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Error de Sintaxis en sentencia SQL "[*]USUARIO"; se esperaba "UPDATE"
+Syntax error in SQL statement "[*]USUARIO"; expected "UPDATE"; SQL statement:
+USUARIO [42001-232]
