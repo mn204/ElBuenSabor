@@ -89,10 +89,21 @@ function FormArticuloManufacturado() {
   };
   // Handlers
   const handleImagenesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setImagenes(prev => [...prev, ...Array.from(e.target.files as FileList)]);
+  if (e.target.files && e.target.files.length > 0) {
+    const nuevosArchivos = Array.from(e.target.files as FileList);
+
+    // Filtra para evitar duplicados por nombre y tamaño
+    const archivosFiltrados = nuevosArchivos.filter(nuevo =>
+      !imagenes.some(img => img.name === nuevo.name && img.size === nuevo.size)
+    );
+
+    if (archivosFiltrados.length < nuevosArchivos.length) {
+      alert("Algunas imágenes ya fueron seleccionadas y no se agregarán de nuevo.");
     }
-  };
+
+    setImagenes(prev => [...prev, ...archivosFiltrados]);
+  }
+};
   const eliminarImagenNueva = (idx: number) => {
     setImagenes(prev => prev.filter((_, i) => i !== idx));
   };
