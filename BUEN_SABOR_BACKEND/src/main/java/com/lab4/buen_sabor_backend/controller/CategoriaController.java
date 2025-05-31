@@ -10,10 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,12 +24,14 @@ public class CategoriaController extends MasterControllerImpl<Categoria, Categor
 
     private final CategoriaService CategoriaService;
     private final CategoriaMapper CategoriaMapper;
+    private final CategoriaService categoriaService;
 
     @Autowired
-    public CategoriaController(CategoriaService CategoriaService, CategoriaMapper CategoriaMapper) {
+    public CategoriaController(CategoriaService CategoriaService, CategoriaMapper CategoriaMapper, CategoriaService categoriaService) {
         super(CategoriaService);
         this.CategoriaService = CategoriaService;
         this.CategoriaMapper = CategoriaMapper;
+        this.categoriaService = categoriaService;
     }
     @Override
     protected Categoria toEntity(CategoriaDTO dto) {
@@ -42,5 +41,15 @@ public class CategoriaController extends MasterControllerImpl<Categoria, Categor
     @Override
     protected CategoriaDTO toDTO(Categoria entity) {
         return CategoriaMapper.toDTO(entity);
+    }
+
+    @GetMapping("/hijas")
+    public ResponseEntity<List<CategoriaDTO>> buscarHijas() {
+        logger.info("Buscando categorias hijas");
+        List<CategoriaDTO> categorias = categoriaService.findAllByCategoriaPadreNotNull()
+                .stream()
+                .map(CategoriaMapper::toDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(categorias);
     }
 }

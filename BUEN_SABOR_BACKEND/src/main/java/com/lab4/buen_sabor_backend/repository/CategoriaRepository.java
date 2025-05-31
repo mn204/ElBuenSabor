@@ -11,7 +11,7 @@ public interface CategoriaRepository extends MasterRepository<Categoria, Long> {
 
     // Buscar rubro por nombre exacto (para evitar duplicados)
     boolean existsByDenominacionIgnoreCaseAndEliminadoFalse(String denominacion);
-
+    List<Categoria> findAllByCategoriaPadreNotNull();
     // Buscar rubros por coincidencia parcial en el nombre
     List<Categoria> findByDenominacionContainingIgnoreCaseAndEliminadoFalse(String nombreParcial);
 
