@@ -1,6 +1,4 @@
-import { useState, useEffect } from "react";
-import ArticuloInsumoService from "../../services/ArticuloInsumoService";
-import CategoriaService from "../../services/CategoriaService";
+import { useState } from "react";
 import ArticuloManufacturadoService from "../../services/ArticuloManufacturadoService";
 import ArticuloInsumo from "../../models/ArticuloInsumo";
 import Categoria from "../../models/Categoria";
@@ -12,32 +10,35 @@ import DetalleInsumosTable from "./DetalleInsumosTable";
 import FormArticuloFields from "./FormArticuloFields";
 import "../../styles/ArticuloManufacturado.css";
 import Button from "react-bootstrap/Button";
-import UnidadMedidaService from "../../services/UnidadMedidaService.ts";
 import HistoricoPrecioVenta from "../../models/HistoricoPrecioVenta.ts";
-import { useSearchParams } from "react-router-dom";
 import ImagenArticuloManufacturado from "../../models/ImagenArticuloManufacturado.ts";
+import { useManufacturado } from "../../hooks/useManufactuado.ts";
+import { useCargaDatosIniciales } from "../../hooks/useCargarDatosIinicales.ts";
+import { useModal } from "../../hooks/useModal.ts";
 
 function FormArticuloManufacturado() {
+  const {
+    idFromUrl,
+    denominacion, setDenominacion,
+    descripcion, setDescripcion,
+    tiempoEstimadoMinutos, setTiempoEstimadoMinutos,
+    preparacion, setPreparacion,
+    unidad, setUnidad,
+    categoria, setCategoria,
+    detalles, setDetalles,
+    imagenesExistentes,
+    eliminado,
+    porcentajeGanancia, setPorcentajeGanancia,
+    eliminarImagenExistente,
+    imagenes, setImagenes,
+    limpiarFormulario, EliminarDetalle,
+    eliminarImagenNueva, CambiarCantidadDetalle
+  } = useManufacturado();
+  const { unidadesMedida, categorias } = useCargaDatosIniciales();
+  const { showModal, setShowModal, articulosInsumo } = useModal();
   // Estados principales
-  const [imagenes, setImagenes] = useState<File[]>([]);
-  const [imagenesExistentes, setImagenesExistentes] = useState<ImagenArticuloManufacturado[]>([]);
-  const [denominacion, setDenominacion] = useState("");
-  const [descripcion, setDescripcion] = useState("");
-  const [eliminado, setElimnado] = useState(false);
-  const [tiempoEstimadoMinutos, setTiempoEstimadoMinutos] = useState(0);
-  const [preparacion, setPreparacion] = useState("");
-  const [unidad, setUnidad] = useState<string>("");
-  const [unidadesMedida, setUnidadesMedida] = useState<UnidadMedida[]>([]);
-  const [categoria, setCategoria] = useState<string>("");
-  const [categorias, setCategorias] = useState<Categoria[]>([]);
-  const [porcentajeGanancia, setPorcentajeGanancia] = useState(0);
-  const [detalles, setDetalles] = useState<DetalleArticuloManufacturado[]>([]);
-  const [showModal, setShowModal] = useState(false);
-  const [articulosInsumo, setArticulosInsumo] = useState<ArticuloInsumo[]>([]);
   const [insumoSeleccionado, setInsumoSeleccionado] = useState<ArticuloInsumo | null>(null);
   const [cantidadInsumo, setCantidadInsumo] = useState<number>(1);
-  const [searchParams] = useSearchParams();
-  const idFromUrl = searchParams.get("id");
   const [showModalCategoria, setShowModalCategoria] = useState(false);
 
   // Utilidades
@@ -47,69 +48,24 @@ function FormArticuloManufacturado() {
   }, 0);
   const totalConGanancia = totalInsumos + (totalInsumos * (porcentajeGanancia / 100));
 
-  // Cargar datos iniciales
-  useEffect(() => {
-    CategoriaService.getAll().then(setCategorias).catch(() => setCategorias([]));
-    UnidadMedidaService.getAll().then(setUnidadesMedida).catch(() => setUnidadesMedida([]));
-  }, []);
-
-  useEffect(() => {
-    if (showModal) {
-      ArticuloInsumoService.getAll().then(setArticulosInsumo);
-    }
-  }, [showModal]);
-
-  useEffect(() => {
-    if (idFromUrl) {
-      ArticuloManufacturadoService.getById(Number(idFromUrl)).then(art => {
-        setDenominacion(art.denominacion ?? "");
-        setDescripcion(art.descripcion ?? "");
-        setTiempoEstimadoMinutos(art.tiempoEstimadoMinutos ?? 0);
-        setPreparacion(art.preparacion ?? "");
-        setCategoria(art.categoria?.id?.toString() ?? "");
-        setUnidad(art.unidadMedida?.id?.toString() ?? "");
-        setDetalles(art.detalles ?? []);
-        setImagenesExistentes(art.imagenesArticuloManufacturado ?? []);
-        setElimnado(art.eliminado ?? false);
-        // Calcular costo total de insumos
-        const costoInsumos = (art.detalles ?? []).reduce((acc, det) => {
-          const precio = det.articuloInsumo?.precioVenta ?? 0;
-          return acc + precio * det.cantidad;
-        }, 0);
-        // Calcular porcentaje de ganancia si hay costo
-        if (costoInsumos > 0 && art.precioVenta) {
-          setPorcentajeGanancia(((art.precioVenta - costoInsumos) / costoInsumos) * 100);
-        } else {
-          setPorcentajeGanancia(0);
-        }
-      });
-    }
-  }, [idFromUrl]);
-  const eliminarImagenExistente = (idx: number) => {
-    setImagenesExistentes(prev =>
-      prev.map((img, i) => (i === idx ? { ...img, eliminado: true } : img))
-    );
-  };
   // Handlers
   const handleImagenesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  if (e.target.files && e.target.files.length > 0) {
-    const nuevosArchivos = Array.from(e.target.files as FileList);
+    if (e.target.files && e.target.files.length > 0) {
+      const nuevosArchivos = Array.from(e.target.files as FileList);
 
-    // Filtra para evitar duplicados por nombre y tamaño
-    const archivosFiltrados = nuevosArchivos.filter(nuevo =>
-      !imagenes.some(img => img.name === nuevo.name && img.size === nuevo.size)
-    );
+      // Filtra para evitar duplicados por nombre y tamaño
+      const archivosFiltrados = nuevosArchivos.filter(nuevo =>
+        !imagenes.some(img => img.name === nuevo.name && img.size === nuevo.size)
+      );
 
-    if (archivosFiltrados.length < nuevosArchivos.length) {
-      alert("Algunas imágenes ya fueron seleccionadas y no se agregarán de nuevo.");
+      if (archivosFiltrados.length < nuevosArchivos.length) {
+        alert("Algunas imágenes ya fueron seleccionadas y no se agregarán de nuevo.");
+      }
+
+      setImagenes(prev => [...prev, ...archivosFiltrados]);
     }
-
-    setImagenes(prev => [...prev, ...archivosFiltrados]);
-  }
-};
-  const eliminarImagenNueva = (idx: number) => {
-    setImagenes(prev => prev.filter((_, i) => i !== idx));
   };
+  
   const AgregarInsumo = () => {
     if (insumoSeleccionado) {
       setDetalles(prev => {
@@ -140,30 +96,6 @@ function FormArticuloManufacturado() {
       setInsumoSeleccionado(null);
       setCantidadInsumo(1);
     }
-  };
-
-  const EliminarDetalle = (index: number) => {
-    setDetalles(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const CambiarCantidadDetalle = (index: number, cantidad: number) => {
-    setDetalles(prev =>
-      prev.map((det, i) =>
-        i === index ? { ...det, cantidad } : det
-      )
-    );
-  };
-
-  const limpiarFormulario = () => {
-    setDenominacion("");
-    setDescripcion("");
-    setTiempoEstimadoMinutos(0);
-    setPreparacion("");
-    setCategoria("");
-    setDetalles([]);
-    setPorcentajeGanancia(0);
-    setImagenes([]);
-    setUnidad("");
   };
 
   // Utilidad para convertir archivo a base64

@@ -28,7 +28,7 @@ function Footer() {
         <div className="DefensaAlConsumidor">
             <p className='fw-bold'>Defensa al consumidor</p>
             <p>Defensa a los consumidores ingresa acá</p>
-            <p>Ley N° 24.240 de Defensa a Consumidor  Ver contratos de Adhesión</p>zzzz
+            <p>Ley N° 24.240 de Defensa a Consumidor  Ver contratos de Adhesión</p>
         </div>
       </div>
     </footer>
