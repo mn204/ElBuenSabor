@@ -16,6 +16,14 @@ import UnidadMedidaService from "../../services/UnidadMedidaService.ts";
 import HistoricoPrecioVenta from "../../models/HistoricoPrecioVenta.ts";
 import { useSearchParams } from "react-router-dom";
 import ImagenArticuloManufacturado from "../../models/ImagenArticuloManufacturado.ts";
+//TODO mostrar unidad de medida en el formulario permitir decimales
+//TODO mostrar las categorias hijas para seleccionar en el articulo Manufacturado.
+//TODO mostrar el detalle de insumos con uinidad de medida y cantidad.
+//todo filyro agregar insumo
+//todo no mostrar insusmos ya agregados cuando quiero actualizar
+//todo filtros para buscar en el formularipo
+//TODO  filtstro par ver eliminardos y no eliminados
+
 
 function FormArticuloManufacturado() {
   // Estados principales
