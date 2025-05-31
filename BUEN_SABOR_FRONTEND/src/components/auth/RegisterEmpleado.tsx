@@ -257,11 +257,14 @@ const RegisterUsuario = () => {
                         </Form.Group>
 
                         <Form.Group controlId="fechaNacimiento" className="mb-2">
+                            <div className="d-flex  p-1 align-items-end" style={{width: "100%"}}>
+                                <Form.Label style={{width:"300px"}}> Fecha de nacimiento: </Form.Label>
                             <Form.Control
                                 type="date"
                                 value={fechaNacimiento}
                                 onChange={(e) => setFechaNacimiento(e.target.value)}
                             />
+                            </div>
                         </Form.Group>
 
                         <Form.Group controlId="telefono" className="mb-2">
