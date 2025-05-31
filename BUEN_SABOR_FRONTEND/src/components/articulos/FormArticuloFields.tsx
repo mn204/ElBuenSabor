@@ -1,7 +1,7 @@
-import React from "react";
 import Categoria from "../../models/Categoria";
 import UnidadMedida from "../../models/UnidadMedida";
 import ImagenArticuloManufacturado from "../../models/ImagenArticuloManufacturado";
+import ModalCategoriaArbol from "./ModalCategoriaArbol";
 
 interface Props {
   denominacion: string;
@@ -24,8 +24,9 @@ interface Props {
   handleImagenesChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   eliminarImagenNueva: (idx: number) => void;
   eliminarImagenExistente: (idx: number) => void;
+  showModalCategoria: boolean;
+  setShowModalCategoria: (v: boolean) => void;
 }
-
 const FormArticuloFields: React.FC<Props> = ({
   denominacion,
   setDenominacion,
@@ -46,6 +47,8 @@ const FormArticuloFields: React.FC<Props> = ({
   handleImagenesChange,
   eliminarImagenNueva,
   eliminarImagenExistente,
+  showModalCategoria,
+  setShowModalCategoria,
 }) => (
   <form className="d-flex flex-column gap-3 text-start" onSubmit={e => e.preventDefault()}>
     <div>
@@ -88,18 +91,26 @@ const FormArticuloFields: React.FC<Props> = ({
       />
     </div>
     <div>
-      <label>Categoría:</label>
-      <select
-        value={categoria}
-        onChange={e => setCategoria(e.target.value)}
-        className="form-select"
-        required
-      >
-        <option value="">Seleccione una categoría</option>
-        {categorias.map(cat => (
-          <option key={cat.id} value={cat.id}>{cat.denominacion}</option>
-        ))}
-      </select>
+  <label>Categoría:</label>
+  <div className="d-flex align-items-center gap-2">
+    <button
+      type="button"
+      className="btn btn-outline-primary"
+      onClick={() => setShowModalCategoria(true)}
+    >
+      Seleccionar categoría
+    </button>
+    <span>
+      {categorias.find(cat => String(cat.id) === categoria)?.denominacion || "Ninguna seleccionada"}
+    </span>
+  </div>
+      <ModalCategoriaArbol
+        show={showModalCategoria}
+        onHide={() => setShowModalCategoria(false)}
+        categorias={categorias}
+        categoriaSeleccionada={categoria}
+        setCategoriaSeleccionada={setCategoria}
+      />
     </div>
     <div>
       <label>Unidad de medida:</label>

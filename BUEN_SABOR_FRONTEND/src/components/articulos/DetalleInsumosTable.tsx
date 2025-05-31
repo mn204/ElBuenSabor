@@ -24,11 +24,16 @@ const DetalleInsumosTable = ({ detalles, onEliminar, onCantidadChange, totalInsu
           <td>
             <input
               type="number"
-              min={1}
+              min={0}
+              step="0.01"
               value={det.cantidad}
-              onChange={e => onCantidadChange(idx, Number(e.target.value))}
-              style={{ width: 80 }}
+              onChange={e => onCantidadChange(idx, parseFloat(e.target.value))}
+              style={{ width: 80, height: 30, textAlign: "right" }}
+              inputMode="decimal"
+              placeholder="0.00"
             />
+            {" "}
+            {det.articuloInsumo?.unidadMedida?.denominacion || ""}
           </td>
           <td>
             <button className="btn btn-danger btn-sm" onClick={() => onEliminar(idx)}>

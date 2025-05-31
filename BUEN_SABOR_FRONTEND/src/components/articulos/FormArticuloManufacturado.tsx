@@ -16,14 +16,6 @@ import UnidadMedidaService from "../../services/UnidadMedidaService.ts";
 import HistoricoPrecioVenta from "../../models/HistoricoPrecioVenta.ts";
 import { useSearchParams } from "react-router-dom";
 import ImagenArticuloManufacturado from "../../models/ImagenArticuloManufacturado.ts";
-//TODO mostrar unidad de medida en el formulario permitir decimales
-//TODO mostrar las categorias hijas para seleccionar en el articulo Manufacturado.
-//TODO mostrar el detalle de insumos con uinidad de medida y cantidad.
-//todo filyro agregar insumo
-//todo no mostrar insusmos ya agregados cuando quiero actualizar
-//todo filtros para buscar en el formularipo
-//TODO  filtstro par ver eliminardos y no eliminados
-
 
 function FormArticuloManufacturado() {
   // Estados principales
@@ -31,6 +23,7 @@ function FormArticuloManufacturado() {
   const [imagenesExistentes, setImagenesExistentes] = useState<ImagenArticuloManufacturado[]>([]);
   const [denominacion, setDenominacion] = useState("");
   const [descripcion, setDescripcion] = useState("");
+  const [eliminado, setElimnado] = useState(false);
   const [tiempoEstimadoMinutos, setTiempoEstimadoMinutos] = useState(0);
   const [preparacion, setPreparacion] = useState("");
   const [unidad, setUnidad] = useState<string>("");
@@ -45,6 +38,7 @@ function FormArticuloManufacturado() {
   const [cantidadInsumo, setCantidadInsumo] = useState<number>(1);
   const [searchParams] = useSearchParams();
   const idFromUrl = searchParams.get("id");
+  const [showModalCategoria, setShowModalCategoria] = useState(false);
 
   // Utilidades
   const totalInsumos = detalles.reduce((acc, det) => {
@@ -76,6 +70,7 @@ function FormArticuloManufacturado() {
         setUnidad(art.unidadMedida?.id?.toString() ?? "");
         setDetalles(art.detalles ?? []);
         setImagenesExistentes(art.imagenesArticuloManufacturado ?? []);
+        setElimnado(art.eliminado ?? false);
         // Calcular costo total de insumos
         const costoInsumos = (art.detalles ?? []).reduce((acc, det) => {
           const precio = det.articuloInsumo?.precioVenta ?? 0;
@@ -201,6 +196,7 @@ function FormArticuloManufacturado() {
     manufacturado.descripcion = descripcion;
     manufacturado.tiempoEstimadoMinutos = tiempoEstimadoMinutos;
     manufacturado.preparacion = preparacion;
+    manufacturado.eliminado = eliminado;
     manufacturado.detalles = detalles.map(det => ({
       id: det.id ?? undefined,
       cantidad: det.cantidad,
@@ -243,6 +239,7 @@ const guardarOModificar = async () => {
     manufacturado.historicosPrecioVenta = [precioVenta];
     manufacturado.historicosPrecioCompra = [];
     manufacturado.imagenes = [];
+    manufacturado.eliminado = eliminado;
 
     if (idFromUrl) {
       await ArticuloManufacturadoService.update(Number(idFromUrl), manufacturado);
@@ -283,6 +280,8 @@ const guardarOModificar = async () => {
         handleImagenesChange={handleImagenesChange}
         eliminarImagenNueva={eliminarImagenNueva}
         eliminarImagenExistente={eliminarImagenExistente}
+        showModalCategoria={showModalCategoria}
+        setShowModalCategoria={setShowModalCategoria}
       />
       <Button className="agregarInsumo" variant="primary" onClick={() => setShowModal(true)}>
         Agregar Insumo
@@ -290,7 +289,11 @@ const guardarOModificar = async () => {
       <ModalAgregarInsumo
         show={showModal}
         onHide={() => setShowModal(false)}
-        articulosInsumo={articulosInsumo}
+        articulosInsumo={
+          articulosInsumo.filter(
+            insumo => !detalles.some(det => det.articuloInsumo?.id === insumo.id)
+          )
+        }
         insumoSeleccionado={insumoSeleccionado}
         setInsumoSeleccionado={setInsumoSeleccionado}
         cantidadInsumo={cantidadInsumo}
