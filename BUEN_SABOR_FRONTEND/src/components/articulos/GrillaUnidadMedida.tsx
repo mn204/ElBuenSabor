@@ -4,6 +4,10 @@ import UnidadMedida from "../../models/UnidadMedida";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import { ReusableTable } from "../Tabla";
+import BotonVer from "../layout/BotonVer";
+import BotonEliminar from "../layout/BotonEliminar";
+import BotonModificar from "../layout/BotonModificar";
+import BotonAlta from "../layout/BotonAlta";
 
 function GrillaUnidadMedida() {
   const [unidades, setUnidades] = useState<UnidadMedida[]>([]);
@@ -60,10 +64,20 @@ function GrillaUnidadMedida() {
       key: "acciones",
       label: "Acciones",
       render: (_: any, row: UnidadMedida) => (
-        <div>
-          <Button variant="info" size="sm" className="me-2" onClick={() => handleVer(row)}>Ver</Button>
-          <Button variant="warning" size="sm" className="me-2" onClick={() => handleActualizar(row)}>Editar</Button>
-          <Button variant="danger" size="sm" onClick={() => eliminarUnidad(row.id!)}>Eliminar</Button>
+        <div className="d-flex justify-content-center">
+          <BotonVer 
+            onClick={() => handleVer(row)}
+          />
+          <BotonModificar
+            onClick={() => handleActualizar(row)}
+          />
+          {!row.eliminado ? (  
+            <BotonEliminar
+              onClick={() => eliminarUnidad(row.id!)}
+            />
+          ) : (
+            <BotonAlta />
+          )}
         </div>
       ),
     },

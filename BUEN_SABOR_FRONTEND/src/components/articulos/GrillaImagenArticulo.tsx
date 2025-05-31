@@ -4,6 +4,10 @@ import ImagenArticulo from "../../models/ImagenArticulo";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import { ReusableTable } from "../Tabla";
+import BotonVer from "../layout/BotonVer";
+import BotonEliminar from "../layout/BotonEliminar";
+import BotonModificar from "../layout/BotonModificar";
+import BotonAlta from "../layout/BotonAlta";
 
 function GrillaImagenArticulo() {
   const [imagenes, setImagenes] = useState<ImagenArticulo[]>([]);
@@ -66,10 +70,20 @@ function GrillaImagenArticulo() {
       key: "acciones",
       label: "Acciones",
       render: (_: any, row: ImagenArticulo) => (
-        <div>
-          <Button variant="info" size="sm" className="me-2" onClick={() => handleVer(row)}>Ver</Button>
-          <Button variant="warning" size="sm" className="me-2" onClick={() => handleActualizar(row)}>Editar</Button>
-          <Button variant="danger" size="sm" onClick={() => eliminarImagen(row.id!)}>Eliminar</Button>
+        <div className="d-flex justify-content-center">
+          <BotonVer 
+            onClick={() => handleVer(row)}
+          />
+          <BotonModificar
+            onClick={() => handleActualizar(row)}
+          />
+          {!row.eliminado ? (  
+            <BotonEliminar
+              onClick={() => eliminarImagen(row.id!)}
+            />
+          ) : (
+            <BotonAlta/>
+          )}
         </div>
       ),
     },

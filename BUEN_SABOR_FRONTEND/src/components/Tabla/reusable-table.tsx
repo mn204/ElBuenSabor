@@ -87,9 +87,24 @@ const ReusableTable: React.FC<ReusableTableProps> = ({
         .join(" ")
 
     const renderCellContent = (column: TableColumn, row: any) => {
-        if (column.render) return column.render(row[column.key], row)
-        return row[column.key] ?? "-"
+    if (column.render) {
+        const content = column.render(row[column.key], row);
+        // Si el contenido es un <div>, clónalo y agrégale la clase de la columna
+        if (
+            React.isValidElement(content) &&
+            content.type === "div" &&
+            column.className
+        ) {
+            // Type assertion para que TS sepa que props tiene className
+            const element = content as React.ReactElement<{ className?: string }>;
+            return React.cloneElement(element, {
+                className: [element.props.className, column.className].filter(Boolean).join(" "),
+            });
+        }
+        return content;
     }
+    return row[column.key] ?? "-";
+};
 
     const sortedData = getSortedData()
 

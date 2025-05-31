@@ -4,6 +4,10 @@ import Categoria from "../../models/Categoria";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import { ReusableTable } from "../Tabla";
+import BotonVer from "../layout/BotonVer";
+import BotonEliminar from "../layout/BotonEliminar";
+import BotonModificar from "../layout/BotonModificar";
+import BotonAlta from "../layout/BotonAlta";
 
 function GrillaCategorias() {
   const [categorias, setCategorias] = useState<Categoria[]>([]);
@@ -84,39 +88,19 @@ function GrillaCategorias() {
       key: "acciones",
       label: "Acciones",
       render: (_: any, row: Categoria) => (
-        <div>
-          <Button
-            variant="info"
-            size="sm"
-            className="me-2"
+        <div className="d-flex justify-content-center">
+          <BotonVer 
             onClick={() => handleVer(row)}
-          >
-            Ver
-          </Button>
-          <Button
-            variant="warning"
-            size="sm"
-            className="me-2"
+          />
+          <BotonModificar
             onClick={() => handleActualizar(row)}
-          >
-            Editar
-          </Button>
+          />
           {!row.eliminado ? (  
-            <Button
-              variant="danger"
-              size="sm"
+            <BotonEliminar
               onClick={() => eliminarCategoria(row.id!)}
-            >
-              Eliminar
-            </Button>
+            />
           ) : (
-            <Button
-              variant="success"
-              size="sm"
-              onClick={() => darDeAlta(row.id!)}
-            >
-              Dar de alta
-            </Button>
+            <BotonAlta onClick={() => darDeAlta(row.id!)}/>
           )}
         </div>
       ),

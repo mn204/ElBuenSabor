@@ -5,6 +5,10 @@ import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import { ReusableTable } from "../Tabla"; // Importa el componente
 import "../../styles/GrillaArticuloManufactura.css"; // Asegúrate de tener este archivo CSS
+import BotonEliminar from "../layout/BotonEliminar";
+import BotonModificar from "../layout/BotonModificar";
+import BotonVer from "../layout/BotonVer";
+import BotonAlta from "../layout/BotonAlta";
 function GrillaArticuloManufacturado() {
   const [articulos, setArticulos] = useState<ArticuloManufacturado[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,7 +39,11 @@ function GrillaArticuloManufacturado() {
     if (!window.confirm("¿Seguro que desea eliminar este artículo manufacturado?")) return;
     try {
       await ArticuloManufacturadoService.delete(id);
-      cargarArticulos();
+      setArticulos(prev =>
+        prev.map(a =>
+          a.id === id ? { ...a, eliminado: true } : a
+        )
+      );
       alert("Artículo manufacturado eliminado correctamente");
     } catch (err) {
       alert("Error al eliminar el artículo manufacturado");
@@ -60,7 +68,11 @@ function GrillaArticuloManufacturado() {
       if (!window.confirm("¿Seguro que desea dar de alta esta categoría?")) return;
       try {
         await ArticuloManufacturadoService.changeEliminado(id);
-        cargarArticulos();
+        setArticulos(prev =>
+          prev.map(a =>
+            a.id === id ? { ...a, eliminado: false } : a
+          )
+        );
         alert("Categoría dada de alta correctamente");
       } catch (err) {
         alert("Error al dar de alta la categoría");
@@ -83,40 +95,21 @@ function GrillaArticuloManufacturado() {
     {
       key: "acciones",
       label: "Acciones",
+      className: "acciones-column d-flex justify-content-center gap-1",
       render: (_: any, row: ArticuloManufacturado) => (
         <div>
-          <Button
-            variant="info"
-            size="sm"
-            className="me-2"
+          <BotonVer 
             onClick={() => handleVer(row)}
-          >
-            Ver
-          </Button>
-          <Button
-            variant="warning"
-            size="sm"
-            className="me-2"
+          />
+          <BotonModificar
             onClick={() => handleActualizar(row)}
-          >
-            Editar
-          </Button>
+          />
           {!row.eliminado ? (  
-            <Button
-              variant="danger"
-              size="sm"
+            <BotonEliminar
               onClick={() => eliminarArticulo(row.id!)}
-            >
-              Eliminar
-            </Button>
+            />
           ) : (
-            <Button
-              variant="success"
-              size="sm"
-              onClick={() => darDeAlta(row.id!)}
-            >
-              Dar de alta
-            </Button>
+            <BotonAlta onClick={() => darDeAlta(row.id!)}/>
           )}
         </div>
       ),

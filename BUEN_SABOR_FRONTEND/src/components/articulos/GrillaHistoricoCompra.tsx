@@ -1,9 +1,13 @@
 import { useState, useEffect } from "react";
 import HistoricoCompraService from "../../services/HistoricoCompraService";
-import HistoricoCompra from "../../models/HistoricoCompra";
+import HistoricoCompra from "../../models/HistoricoPrecioCompra";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import { ReusableTable } from "../Tabla";
+import BotonVer from "../layout/BotonVer";
+import BotonEliminar from "../layout/BotonEliminar";
+import BotonModificar from "../layout/BotonModificar";
+import BotonAlta from "../layout/BotonAlta";
 
 function GrillaHistoricoCompra() {
   const [historicos, setHistoricos] = useState<HistoricoCompra[]>([]);
@@ -61,10 +65,20 @@ function GrillaHistoricoCompra() {
       key: "acciones",
       label: "Acciones",
       render: (_: any, row: HistoricoCompra) => (
-        <div>
-          <Button variant="info" size="sm" className="me-2" onClick={() => handleVer(row)}>Ver</Button>
-          <Button variant="warning" size="sm" className="me-2" onClick={() => handleActualizar(row)}>Editar</Button>
-          <Button variant="danger" size="sm" onClick={() => eliminarHistorico(row.id!)}>Eliminar</Button>
+        <div className="d-flex justify-content-center">
+          <BotonVer 
+            onClick={() => handleVer(row)}
+          />
+          <BotonModificar
+            onClick={() => handleActualizar(row)}
+          />
+          {!row.eliminado ? (  
+            <BotonEliminar
+              onClick={() => eliminarHistorico(row.id!)}
+            />
+          ) : (
+            <BotonAlta />
+          )}
         </div>
       ),
     },
@@ -84,7 +98,7 @@ function GrillaHistoricoCompra() {
         <Modal.Body>
           {historicoSeleccionado && (
             <div>
-              <p><b>Fecha:</b> {historicoSeleccionado.fecha}</p>
+              <p><b>Fecha:</b> {historicoSeleccionado.fecha instanceof Date ? historicoSeleccionado.fecha.toLocaleDateString() : historicoSeleccionado.fecha}</p>
               <p><b>Precio:</b> ${historicoSeleccionado.precio}</p>
             </div>
           )}

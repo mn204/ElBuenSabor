@@ -4,6 +4,10 @@ import Insumo from "../../models/ArticuloInsumo";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import { ReusableTable } from "../Tabla";
+import BotonVer from "../layout/BotonVer";
+import BotonEliminar from "../layout/BotonEliminar";
+import BotonModificar from "../layout/BotonModificar";
+import BotonAlta from "../layout/BotonAlta";
 
 function GrillaInsumos() {
   const [insumos, setInsumos] = useState<Insumo[]>([]);
@@ -35,7 +39,11 @@ function GrillaInsumos() {
     if (!window.confirm("¿Seguro que desea eliminar este insumo?")) return;
     try {
       await InsumoService.delete(id);
-      cargarInsumos();
+      setInsumos(prev =>
+          prev.map(a =>
+            a.id === id ? { ...a, eliminado: true } : a
+          )
+        );
       alert("Insumo eliminado correctamente");
     } catch (err) {
       alert("Error al eliminar el insumo");
@@ -60,7 +68,11 @@ function GrillaInsumos() {
       if (!window.confirm("¿Seguro que desea dar de alta esta categoría?")) return;
       try {
         await InsumoService.changeEliminado(id);
-        cargarInsumos();
+        setInsumos(prev =>
+          prev.map(a =>
+            a.id === id ? { ...a, eliminado: false } : a
+          )
+        );
         alert("Insumo dada de alta correctamente");
       } catch (err) {
         alert("Error al dar de alta el Insumo");
@@ -94,40 +106,20 @@ function GrillaInsumos() {
       key: "acciones",
       label: "Acciones",
       render: (_: any, row: Insumo) => (
-        <div>
-          <Button
-            variant="info"
-            size="sm"
-            className="me-2"
+        <div className="d-flex justify-content-center">
+          <BotonVer 
             onClick={() => handleVer(row)}
-          >
-            Ver
-          </Button>
-          <Button
-            variant="warning"
-            size="sm"
-            className="me-2"
+          />
+          <BotonModificar
             onClick={() => handleActualizar(row)}
-          >
-            Editar
-          </Button>
+          />
           {!row.eliminado ? (  
-            <Button
-              variant="danger"
-              size="sm"
+            <BotonEliminar
               onClick={() => eliminarInsumo(row.id!)}
-            >
-              Eliminar
-            </Button>
+            />
           ) : (
-            <Button
-              variant="success"
-              size="sm"
-              onClick={() => darDeAlta(row.id!)}
-            >
-              Dar de alta
-            </Button>
-            )}
+            <BotonAlta onClick={() => darDeAlta(row.id!)}/>
+          )}
         </div>
       ),
     },
