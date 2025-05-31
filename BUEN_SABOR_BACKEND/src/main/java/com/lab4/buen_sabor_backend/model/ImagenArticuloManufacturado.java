@@ -10,7 +10,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ImagenArticuloManufacturado extends Master {
-
+    @Lob
     private String denominacion;
 
     @ManyToOne

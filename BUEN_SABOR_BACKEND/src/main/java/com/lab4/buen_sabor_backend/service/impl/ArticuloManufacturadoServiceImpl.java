@@ -4,6 +4,7 @@ import com.lab4.buen_sabor_backend.exceptions.EntityNotFoundException;
 import com.lab4.buen_sabor_backend.model.ArticuloManufacturado;
 import com.lab4.buen_sabor_backend.model.DetalleArticuloManufacturado;
 import com.lab4.buen_sabor_backend.model.HistoricoPrecioVenta;
+import com.lab4.buen_sabor_backend.model.ImagenArticuloManufacturado;
 import com.lab4.buen_sabor_backend.repository.ArticuloManufacturadoRepository;
 import com.lab4.buen_sabor_backend.service.ArticuloManufacturadoService;
 import jakarta.transaction.Transactional;
@@ -48,6 +49,10 @@ public class ArticuloManufacturadoServiceImpl extends MasterServiceImpl<Articulo
             historico.setArticulo(entity);
         }
 
+        for(ImagenArticuloManufacturado imagen : entity.getImagenesArticuloManufacturado()) {
+            imagen.setArticuloManufacturado(entity);
+        }
+
         logger.info("Guardando ArticuloManufacturado: {}", entity.getDenominacion());
         return super.save(entity);
     }
@@ -68,7 +73,12 @@ public class ArticuloManufacturadoServiceImpl extends MasterServiceImpl<Articulo
         for(DetalleArticuloManufacturado detalle : entity.getDetalles()) {
             detalle.setArticuloManufacturado(entity);
         }
-
+        for (HistoricoPrecioVenta historico : entity.getHistoricosPrecioVenta()) {
+            historico.setArticulo(entity);
+        }
+        for(ImagenArticuloManufacturado imagen : entity.getImagenesArticuloManufacturado()) {
+            imagen.setArticuloManufacturado(entity);
+        }
         logger.info("Actualizando ArticuloManufacturado con ID: {}", id);
         return super.update(id, entity);
     }

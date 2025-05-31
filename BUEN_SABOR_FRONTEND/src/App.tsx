@@ -23,7 +23,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/home" element={<Home />} />
         <Route path="/perfil" element={<Perfil />} />
-        <Route path="/accionManufacturado" element={<FormArticuloManufacturado />} />
+        <Route path="/manufacturado" element={<FormArticuloManufacturado />} />
         <Route path="/manufacturados" element={<GrillaArticuloManufacturado />} />
         <Route path="/categorias" element={<GrillaCategorias />} />
         <Route path="/articulos" element={<GrillaInsumos />} />
