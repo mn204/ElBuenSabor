@@ -212,8 +212,8 @@ const darDeAlta = async (id: number) => {
         <Modal.Body>
           {articuloSeleccionado && (
             <div>
-              {articuloSeleccionado.imagenesArticuloManufacturado[0] ? (
-                <img src={articuloSeleccionado.imagenesArticuloManufacturado[0].denominacion} className="imgModalArtManu" alt="" />
+              {articuloSeleccionado.imagenes[0] ? (
+                <img src={articuloSeleccionado.imagenes[0].denominacion} className="imgModalArtManu" alt="" />
               ):(
                 <div></div>
               )}

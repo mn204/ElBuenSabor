@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import ArticuloManufacturadoService from "../services/ArticuloManufacturadoService";
 import DetalleArticuloManufacturado from "../models/DetalleArticuloManufacturado";
-import ImagenArticuloManufacturado from "../models/ImagenArticuloManufacturado";
+import ImagenArticulo from "../models/ImagenArticulo";
 
 export function useManufacturado() {
   const [searchParams] = useSearchParams();
@@ -14,7 +14,7 @@ export function useManufacturado() {
   const [unidad, setUnidad] = useState<string>("");
   const [categoria, setCategoria] = useState<string>("");
   const [detalles, setDetalles] = useState<DetalleArticuloManufacturado[]>([]);
-  const [imagenesExistentes, setImagenesExistentes] = useState<ImagenArticuloManufacturado[]>([]);
+  const [imagenesExistentes, setImagenesExistentes] = useState<ImagenArticulo[]>([]);
   const [eliminado, setEliminado] = useState(false);
   const [porcentajeGanancia, setPorcentajeGanancia] = useState(0);
   const [imagenes, setImagenes] = useState<File[]>([]);
@@ -40,7 +40,7 @@ export function useManufacturado() {
         setCategoria(art.categoria?.id?.toString() ?? "");
         setUnidad(art.unidadMedida?.id?.toString() ?? "");
         setDetalles(art.detalles ?? []);
-        setImagenesExistentes(art.imagenesArticuloManufacturado ?? []);
+        setImagenesExistentes(art.imagenes ?? []);
         setEliminado(art.eliminado ?? false);
         // Calcular costo total de insumos
         const costoInsumos = (art.detalles ?? []).reduce((acc, det) => {

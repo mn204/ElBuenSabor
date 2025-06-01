@@ -1,7 +1,7 @@
 import Categoria from "../../models/Categoria";
 import UnidadMedida from "../../models/UnidadMedida";
-import ImagenArticuloManufacturado from "../../models/ImagenArticuloManufacturado";
 import ModalCategoriaArbol from "./ModalCategoriaArbol";
+import type ImagenArticulo from "../../models/ImagenArticulo";
 
 interface Props {
   denominacion: string;
@@ -20,7 +20,7 @@ interface Props {
   unidadesMedida: UnidadMedida[];
   // Imágenes
   imagenes: File[];
-  imagenesExistentes: ImagenArticuloManufacturado[];
+  imagenesExistentes: ImagenArticulo[];
   handleImagenesChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   eliminarImagenNueva: (idx: number) => void;
   eliminarImagenExistente: (idx: number) => void;

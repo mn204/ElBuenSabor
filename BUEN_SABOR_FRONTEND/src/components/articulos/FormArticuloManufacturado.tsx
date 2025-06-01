@@ -11,10 +11,10 @@ import FormArticuloFields from "./FormArticuloFields";
 import "../../styles/ArticuloManufacturado.css";
 import Button from "react-bootstrap/Button";
 import HistoricoPrecioVenta from "../../models/HistoricoPrecioVenta.ts";
-import ImagenArticuloManufacturado from "../../models/ImagenArticuloManufacturado.ts";
 import { useManufacturado } from "../../hooks/useManufactuado.ts";
 import { useCargaDatosIniciales } from "../../hooks/useCargarDatosIinicales.ts";
 import { useModal } from "../../hooks/useModal.ts";
+import ImagenArticulo from "../../models/ImagenArticulo.ts";
 
 function FormArticuloManufacturado() {
   const {
@@ -141,21 +141,22 @@ function FormArticuloManufacturado() {
     const nuevasImagenes = await Promise.all(
       imagenes.map(async (file) => {
         const base64 = await fileToBase64(file);
-        const imagen = new ImagenArticuloManufacturado();
+        const imagen = new ImagenArticulo();
         imagen.denominacion = base64 as string;
         imagen.eliminado = false;
         return imagen;
       })
     );
+    console.log("Imagen procesada:", nuevasImagenes);
 
     // Imágenes existentes (no eliminadas)
     const imagenesNoEliminadas = imagenesExistentes.filter(img => !img.eliminado);
 
-    manufacturado.imagenesArticuloManufacturado = [
+    manufacturado.imagenes = [
       ...imagenesNoEliminadas,
       ...nuevasImagenes,
     ];
-
+    console.log("Manufacturado creado:", manufacturado);
     return manufacturado;
   };
 
@@ -170,7 +171,6 @@ const guardarOModificar = async () => {
     precioVenta.eliminado = false;
     manufacturado.historicosPrecioVenta = [precioVenta];
     manufacturado.historicosPrecioCompra = [];
-    manufacturado.imagenes = [];
     manufacturado.eliminado = eliminado;
 
     if (idFromUrl) {
@@ -181,6 +181,7 @@ const guardarOModificar = async () => {
       alert("Artículo manufacturado guardado correctamente");
     }
     limpiarFormulario();
+    console.log("Manufacturado creado:", manufacturado);
     window.location.href = "/manufacturados";
   } catch (error) {
     console.error(error);

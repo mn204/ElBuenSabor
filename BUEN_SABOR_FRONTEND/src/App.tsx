@@ -15,28 +15,36 @@ import GrillaHistoricoVenta from "./components/articulos/GrillaHistoricoVenta";
 import FormCategoria from './components/articulos/FormCategoria'
 import RegisterEmpleado from "./components/auth/RegisterEmpleado.tsx";
 import LoginEmpleado from "./components/auth/LoginEmpleado.tsx";
+import { Carrito } from './components/articulos/Carrito.tsx'
+import Busqueda from './components/articulos/Busqueda.tsx'
+import VistaArticulo from './components/articulos/VistaArticulo.tsx'
+
 function App() {
 
   return (
     <>
-      <Navbar/>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/home" element={<Home />} />
-        <Route path="/perfil" element={<Perfil />} />
-        <Route path="/manufacturado" element={<FormArticuloManufacturado />} />
-        <Route path="/manufacturados" element={<GrillaArticuloManufacturado />} />
-        <Route path="/categorias" element={<GrillaCategorias />} />
-        <Route path="/articulos" element={<GrillaInsumos />} />
-        <Route path="/unidades" element={<GrillaUnidadMedida />} />
-        <Route path="/imagenes" element={<GrillaImagenArticulo />} />
-        <Route path="/historicocompra" element={<GrillaHistoricoCompra />} />
-        <Route path="/historicoventa" element={<GrillaHistoricoVenta />} />
-        <Route path="/categoria" element={<FormCategoria />} />
+        <Navbar/>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/home" element={<Home />} />
+          <Route path="/perfil" element={<Perfil />} />
+          <Route path="/manufacturado" element={<FormArticuloManufacturado />} />
+          <Route path="/manufacturados" element={<GrillaArticuloManufacturado />} />
+          <Route path="/categorias" element={<GrillaCategorias />} />
+          <Route path="/articulos" element={<GrillaInsumos />} />
+          <Route path="/unidades" element={<GrillaUnidadMedida />} />
+          <Route path="/imagenes" element={<GrillaImagenArticulo />} />
+          <Route path="/historicocompra" element={<GrillaHistoricoCompra />} />
+          <Route path="/historicoventa" element={<GrillaHistoricoVenta />} />
+          <Route path="/categoria" element={<FormCategoria />} />
           <Route path="/admin/nuevo-empleado/" element={<RegisterEmpleado/>} />
           <Route path="/admin/login-empleado/" element={<LoginEmpleado/>} />
-      </Routes>
-      <Footer/>
+          <Route path="/carrito" element={<Carrito />} />
+          <Route path="/busqueda" element={<Busqueda />} />
+          <Route path="/articulo/:id" element={<VistaArticulo />} />
+
+        </Routes>
+        <Footer/>
     </>
   )
 }

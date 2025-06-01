@@ -5,11 +5,14 @@ import App from './App.tsx'
 import { BrowserRouter } from 'react-router-dom'
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
-// ...existing code...
+import { CarritoProvider } from './components/context/CarritoContext';
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
+    <CarritoProvider>
     <BrowserRouter>
       <App />
     </BrowserRouter>
-  </StrictMode>,
+    </CarritoProvider>
+  </StrictMode>
 )
