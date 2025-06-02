@@ -23,6 +23,7 @@ function Navbar() {
         setShowModal(true);
     };
 
+    
     const handleClose = () => setShowModal(false);
     function handleBuscar(nuevaBusqueda: string) {
         if (nuevaBusqueda.trim() !== "") {

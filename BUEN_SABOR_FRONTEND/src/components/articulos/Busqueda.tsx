@@ -25,7 +25,7 @@ function Busqueda() {
           setResultados(data);
           setLoading(false);
         }
-      });
+      }); 
   }, [query, navigate]);
 
   return (
