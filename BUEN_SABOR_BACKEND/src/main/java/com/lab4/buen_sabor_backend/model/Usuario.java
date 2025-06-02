@@ -21,10 +21,4 @@ public class Usuario extends Master {
 
     @Enumerated(EnumType.STRING)
     private Rol rol; // CLIENTE, ADMINISTRADOR, COCINERO, etc.
-
-    @OneToOne(mappedBy = "usuario", cascade = CascadeType.ALL)
-    private Cliente cliente;
-
-    @OneToOne(mappedBy = "usuario", cascade = CascadeType.ALL)
-    private Empleado empleado;
 }

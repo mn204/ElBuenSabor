@@ -46,10 +46,6 @@ public class ArticuloManufacturadoServiceImpl extends MasterServiceImpl<Articulo
             historico.setArticulo(entity);
         }
 
-        for(ImagenArticuloManufacturado imagen : entity.getImagenesArticuloManufacturado()) {
-            imagen.setArticuloManufacturado(entity);
-        }
-
         logger.info("Guardando ArticuloManufacturado: {}", entity.getDenominacion());
         return super.save(entity);
     }

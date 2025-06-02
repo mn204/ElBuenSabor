@@ -27,11 +27,11 @@ public class Cliente extends Master{
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "imagen_cliente_id")
-    private ImagenCliente imagenCliente;
+    private ImagenUsuario imagenCliente;
 
 
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "usuario_id")
+    @JoinColumn(name = "usuario_id", unique = true)
     private Usuario usuario;
 
     @ManyToMany
@@ -43,6 +43,5 @@ public class Cliente extends Master{
     private Set<Domicilio> domicilios;
 
     @OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore
     private List<Pedido> pedidos = new ArrayList<>();
 }

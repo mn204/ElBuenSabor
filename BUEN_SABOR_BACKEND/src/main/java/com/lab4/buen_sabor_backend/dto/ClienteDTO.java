@@ -12,9 +12,9 @@ public class ClienteDTO extends MasterDTO {
     private String apellido;
     private String email;
     private String telefono;
+    private ImagenUsuarioDTO imagenCliente;
     private Set<DomicilioDTO> domicilios = new HashSet<>();
     private Rol rol;
-    private ImagenClienteDTO imagenCliente;
-    private UsuarioClienteDTO usuarioCliente;
+    private UsuarioDTO usuarioCliente;
     private Boolean eliminado;
 }

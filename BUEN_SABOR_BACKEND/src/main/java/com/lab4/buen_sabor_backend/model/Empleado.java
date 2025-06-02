@@ -27,11 +27,11 @@ public class Empleado extends Master{
     // Relación 1:1 con ImagenEmpleado
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "imagen_empleado_id")
-    private ImagenEmpleado imagenEmpleado;
+    private ImagenUsuario imagenEmpleado;
 
     // Relación 1:1 con UsuarioEmpleado
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "usuario_id")
+    @JoinColumn(name = "usuario_id", unique = true)
     private Usuario usuario;
 
     // Relación ManyToOne con Domicilio
@@ -40,6 +40,5 @@ public class Empleado extends Master{
     private Domicilio domicilio;
 
     @OneToMany(mappedBy = "empleado", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore
     private List<Pedido> pedidos = new ArrayList<>();
 }

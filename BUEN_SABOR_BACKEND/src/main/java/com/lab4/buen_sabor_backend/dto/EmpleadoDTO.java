@@ -17,9 +17,9 @@ public class EmpleadoDTO extends MasterDTO {
     private LocalDate fechaNacimiento;
     private Integer dni;
     private DomicilioDTO domicilio;
-    private ImagenEmpleadoDTO imagenEmpleado;
-    private UsuarioEmpleadoDTO usuarioEmpleado;
+    private ImagenUsuarioDTO imagenEmpleado;
     private Rol rolEmpleado;
+    private UsuarioDTO usuarioEmpleado;
     private Boolean eliminado;
 }
 

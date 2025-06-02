@@ -1,4 +1,4 @@
-import ImagenCliente from "./ImagenCliente";
+import ImagenUsuario from "./ImagenUsuario.ts";
 import Usuario from "./Usuario";
 import Domicilio from "./Domicilio";
 import Pedido from "./Pedido";
@@ -11,7 +11,7 @@ export default class Cliente {
     email: string = "";
     dni: number = 0;
     fechaNacimiento: Date = new Date();
-    imagenCliente?: ImagenCliente;
+    imagenCliente?: ImagenUsuario;
     usuario!: Usuario;
     domicilios: Domicilio[] = [];
     pedidos: Pedido[] = [];
