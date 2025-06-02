@@ -24,23 +24,23 @@ public class UnidadMedidaController extends MasterControllerImpl<UnidadMedida, U
 
     private static final Logger logger = LoggerFactory.getLogger(UnidadMedidaController.class);
 
-    private final UnidadMedidaService UnidadMedidaService;
-    private final UnidadMedidaMapper UnidadMedidaMapper;
+    private final UnidadMedidaService unidadMedidaService;
+    private final UnidadMedidaMapper unidadMedidaMapper;
 
     @Autowired
-    public UnidadMedidaController(UnidadMedidaService UnidadMedidaService, UnidadMedidaMapper UnidadMedidaMapper) {
-        super(UnidadMedidaService);
-        this.UnidadMedidaService = UnidadMedidaService;
-        this.UnidadMedidaMapper = UnidadMedidaMapper;
+    public UnidadMedidaController(UnidadMedidaService unidadMedidaService, UnidadMedidaMapper unidadMedidaMapper) {
+        super(unidadMedidaService);
+        this.unidadMedidaService = unidadMedidaService;
+        this.unidadMedidaMapper = unidadMedidaMapper;
     }
 
     @Override
     protected UnidadMedida toEntity(UnidadMedidaDTO dto) {
-        return UnidadMedidaMapper.toEntity(dto);
+        return unidadMedidaMapper.toEntity(dto);
     }
 
     @Override
     protected UnidadMedidaDTO toDTO(UnidadMedida entity) {
-        return UnidadMedidaMapper.toDTO(entity);
+        return unidadMedidaMapper.toDTO(entity);
     }
 }

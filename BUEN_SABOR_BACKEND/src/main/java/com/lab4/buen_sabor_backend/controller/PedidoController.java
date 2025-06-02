@@ -17,23 +17,23 @@ import org.springframework.web.bind.annotation.RestController;
 public class PedidoController extends MasterControllerImpl<Pedido, PedidoDTO, Long> implements MasterController<PedidoDTO, Long>{
 
     private static final Logger logger = LoggerFactory.getLogger(PedidoController.class);
-    private final PedidoService PedidoService;
-    private final PedidoMapper PedidoMapper;
+    private final PedidoService pedidoService;
+    private final PedidoMapper pedidoMapper;
 
     @Autowired
     public PedidoController(PedidoService pedidoService, PedidoMapper pedidoMapper) {
         super(pedidoService);
-        this.PedidoService = pedidoService;
-        this.PedidoMapper = pedidoMapper;
+        this.pedidoService = pedidoService;
+        this.pedidoMapper = pedidoMapper;
     }
 
     @Override
     protected Pedido toEntity(PedidoDTO dto) {
-        return PedidoMapper.toEntity(dto);
+        return pedidoMapper.toEntity(dto);
     }
 
     @Override
     protected PedidoDTO toDTO(Pedido entity) {
-        return PedidoMapper.toDTO(entity);
+        return pedidoMapper.toDTO(entity);
     }
 }
