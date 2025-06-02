@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button, Form } from "react-bootstrap";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { auth } from "./firebase";
-import Rol from "../../models/enums/Rol.ts"; // ajusta este import según tu estructura
+import  Rol  from "../../models/enums/Rol.ts"; // ajusta este import según tu estructura
 import type Empleado from "../../models/Empleado.ts"; // Ajustá según tu estructura
 
 //TODO implementar Validaciones de los campos.
@@ -257,11 +257,14 @@ const RegisterUsuario = () => {
                         </Form.Group>
 
                         <Form.Group controlId="fechaNacimiento" className="mb-2">
+                            <div className="d-flex  p-1 align-items-end" style={{width: "100%"}}>
+                                <Form.Label style={{width:"300px"}}> Fecha de nacimiento: </Form.Label>
                             <Form.Control
                                 type="date"
                                 value={fechaNacimiento}
                                 onChange={(e) => setFechaNacimiento(e.target.value)}
                             />
+                            </div>
                         </Form.Group>
 
                         <Form.Group controlId="telefono" className="mb-2">
@@ -281,9 +284,11 @@ const RegisterUsuario = () => {
                                 onChange={e => setRolEmpleado(e.target.value as Rol)}
                                 required
                             >
-                                {Object.values(Rol).map((rol) => (
-                                    <option key={rol} value={rol}>{rol}</option>
-                                ))}
+                                {Object.values(Rol)
+                                    .filter(rol => rol !== Rol.CLIENTE)
+                                    .map((rol) => (
+                                        <option key={rol} value={rol}>{rol}</option>
+                                    ))}
                             </Form.Select>
                             </div>
                         </Form.Group>

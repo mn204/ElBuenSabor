@@ -14,7 +14,6 @@ import GrillaHistoricoCompra from "./components/articulos/GrillaHistoricoCompra"
 import GrillaHistoricoVenta from "./components/articulos/GrillaHistoricoVenta";
 import FormCategoria from './components/articulos/FormCategoria'
 import RegisterEmpleado from "./components/auth/RegisterEmpleado.tsx";
-import LoginEmpleado from "./components/auth/LoginEmpleado.tsx";
 import { Carrito } from './components/articulos/Carrito.tsx'
 import Busqueda from './components/articulos/Busqueda.tsx'
 import VistaArticulo from './components/articulos/VistaArticulo.tsx'
@@ -38,13 +37,13 @@ function App() {
           <Route path="/historicoventa" element={<GrillaHistoricoVenta />} />
           <Route path="/categoria" element={<FormCategoria />} />
           <Route path="/admin/nuevo-empleado/" element={<RegisterEmpleado/>} />
-          <Route path="/admin/login-empleado/" element={<LoginEmpleado/>} />
           <Route path="/carrito" element={<Carrito />} />
           <Route path="/busqueda" element={<Busqueda />} />
           <Route path="/articulo/:id" element={<VistaArticulo />} />
 
         </Routes>
         <Footer/>
+
     </>
   )
 }

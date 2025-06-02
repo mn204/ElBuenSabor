@@ -1,14 +1,21 @@
 // LoginUsuario.tsx
-import { signInWithPopup } from "firebase/auth";
+import { signInWithPopup, sendPasswordResetEmail } from "firebase/auth";
 import { auth, googleProvider } from "./firebase.ts"; // Asegurate de usar la ruta correcta
 import { useState } from "react";
+import { Form, Button } from "react-bootstrap";
+
 // TODO boton de ver la contraseña
 interface Props {
     onRegisterClick: () => void;
 }
 
 const LoginUsuario = ({ onRegisterClick }: Props) => {
+    const [step, setStep] = useState(1);
+    const [email, setEmail] = useState("");
+    const [confirmEmail, setConfirmEmail] = useState("");
+    const [password, setPassword] = useState("");
     const [error, setError] = useState<string | null>(null);
+    const [message, setMessage] = useState<string | null>(null);
 
     const handleGoogleLogin = async () => {
         try {
@@ -42,20 +49,52 @@ const LoginUsuario = ({ onRegisterClick }: Props) => {
             setError("Error al iniciar sesión con Google");
         }
     };
+    const handlePasswordReset = async () => {
+        if (!email || !confirmEmail) {
+            setError("Por favor completá ambos campos.");
+            return;
+        }
 
+        if (email !== confirmEmail) {
+            setError("Los emails no coinciden.");
+            return;
+        }
+
+        try {
+            await sendPasswordResetEmail(auth, email);
+            setMessage("Te enviamos un correo para restablecer tu contraseña.");
+            setError(null);
+        } catch (error) {
+            setError("No se pudo enviar el correo. Verificá que el email esté registrado.");
+            setMessage(null);
+        }
+    };
 
     return (
-        <form>
-            <div className="mb-3">
-                <label htmlFor="email" className="form-label">Email</label>
-                <input type="email" className="form-control" id="email" />
-            </div>
-            <div className="mb-3">
-                <label htmlFor="password" className="form-label">Contraseña</label>
-                <input type="password" className="form-control" id="password" />
-            </div>
+        <Form>
+            {step === 1 && (
+                <>
+                <Form.Group className="mb-3">
+                    <Form.Label>Email</Form.Label>
+                    <Form.Control
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                    />
+                </Form.Group>
 
-            <button type="submit" className="btn btn-dark w-100 mb-2">Iniciar Sesión</button>
+                <Form.Group className="mb-3">
+                    <Form.Label>Contraseña</Form.Label>
+                    <Form.Control
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                    />
+                </Form.Group>
+
+                <Button type="submit" variant="dark" className="w-100 mb-2">
+                    Iniciar Sesión
+                </Button>
 
             <button
                 type="button"
@@ -72,20 +111,60 @@ const LoginUsuario = ({ onRegisterClick }: Props) => {
             </button>
 
             {error && <div className="text-danger text-center mt-2">{error}</div>}
+            {message && <div className="text-success text-center mt-2">{message}</div>}
+                    <div className="text-center mt-2">
+                        <Button variant="link" size="sm" onClick={() => setStep(2)}>
+                            ¿Olvidaste tu contraseña?
+                        </Button>
+                    </div>
 
-            <div className="text-center mt-2">
-                <a href="#" className="text-primary small">¿Olvidaste tu contraseña?</a>
-            </div>
+                    <hr />
 
-            <hr />
+                    <div className="text-center mt-3">
+                        <span>¿No tenés cuenta?</span><br />
+                        <Button variant="link" onClick={onRegisterClick}>
+                            Registrate
+                        </Button>
+                    </div>
+                </>
+            )}
 
-            <div className="text-center mt-3">
-                <span>¿No tenés cuenta?</span><br />
-                <button type="button" onClick={onRegisterClick} className="btn btn-link">
-                    Registrate
-                </button>
-            </div>
-        </form>
+            {step === 2 && (
+                <>
+                    <h5 className="text-center mb-3">Recuperar Contraseña</h5>
+
+                    <Form.Group className="mb-3">
+                        <Form.Label>Email</Form.Label>
+                        <Form.Control
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                        />
+                    </Form.Group>
+
+                    <Form.Group className="mb-3">
+                        <Form.Label>Confirmar Email</Form.Label>
+                        <Form.Control
+                            type="email"
+                            value={confirmEmail}
+                            onChange={(e) => setConfirmEmail(e.target.value)}
+                        />
+                    </Form.Group>
+
+                    <div className="d-grid gap-2">
+                        <Button variant="dark" onClick={handlePasswordReset}>
+                            Enviar correo de recuperación
+                        </Button>
+                        <Button variant="secondary" onClick={() => setStep(1)}>
+                            ← Volver al login
+                        </Button>
+                    </div>
+
+                    {error && <div className="text-danger text-center mt-2">{error}</div>}
+                    {message && <div className="text-success text-center mt-2">{message}</div>}
+                </>
+            )}
+        </Form>
     );
 };
 
