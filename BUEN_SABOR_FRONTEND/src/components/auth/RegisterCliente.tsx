@@ -66,7 +66,7 @@ const localidadesPorProvincia: { [provincia: string]: string[] } = {
 };
 
 
-const RegisterUsuario = ({ onBackToLogin }: Props) => {
+const RegisterCliente = ({ onBackToLogin }: Props) => {
     const [step, setStep] = useState(1);
 
     // Primer paso
@@ -275,11 +275,14 @@ const RegisterUsuario = ({ onBackToLogin }: Props) => {
                         </Form.Group>
 
                         <Form.Group controlId="fechaNacimiento" className="mb-2">
-                            <Form.Control
-                                type="date"
-                                value={fechaNacimiento}
-                                onChange={(e) => setFechaNacimiento(e.target.value)}
-                            />
+                            <div className="d-flex  p-1 align-items-end" style={{width: "100%"}}>
+                                <Form.Label style={{width:"300px"}}> Fecha de nacimiento: </Form.Label>
+                                <Form.Control
+                                    type="date"
+                                    value={fechaNacimiento}
+                                    onChange={(e) => setFechaNacimiento(e.target.value)}
+                                />
+                            </div>
                         </Form.Group>
 
 
@@ -402,4 +405,4 @@ const RegisterUsuario = ({ onBackToLogin }: Props) => {
     );
 };
 
-export default RegisterUsuario;
+export default RegisterCliente;

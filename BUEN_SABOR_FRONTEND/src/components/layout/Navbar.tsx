@@ -5,8 +5,8 @@ import Buscador from './Buscador';
 import  { useState } from 'react';
 import { Modal } from 'react-bootstrap';
 import LoginUsuario from '../auth/LoginUsuario.tsx';
-import RegisterUsuario from '../auth/RegisterUsuario.tsx';
 import { Link, useNavigate } from 'react-router-dom';
+import RegisterCliente from '../auth/RegisterCliente.tsx';
 
 function Navbar() {
     const [showModal, setShowModal] = useState(false);
@@ -64,7 +64,7 @@ function Navbar() {
                     {isLoginView ? (
                         <LoginUsuario onRegisterClick={handleOpenRegister} />
                     ) : (
-                        <RegisterUsuario onBackToLogin={handleOpenLogin} />
+                        <RegisterCliente onBackToLogin={handleOpenLogin} />
                     )}
                 </Modal.Body>
             </Modal>
