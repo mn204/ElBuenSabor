@@ -20,20 +20,22 @@ export const carritoContext = createContext<CarritoContextProps | undefined>(und
 export function CarritoProvider({ children }: { children: ReactNode }) {
   const [pedido, setPedido] = useState<Pedido>(() => {
     const nuevoPedido = new Pedido();
-    nuevoPedido.fechaPedido = new Date();
-    nuevoPedido.detalle = [];
+    const hoy = new Date();
+    const soloFecha = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
+    nuevoPedido.fechaPedido = soloFecha;
+    nuevoPedido.detalles = [];
     nuevoPedido.total = 0;
     return nuevoPedido;
   });
 
   const agregarAlCarrito = (articulo: Articulo, cantidad: number) => {
   setPedido((prevPedido) => {
-    const detalleExistente = prevPedido.detalle.find(
+    const detallesExistente = prevPedido.detalles.find(
       (d) => d.articulo.id === articulo.id,
     );
-    let nuevosdetalle: PedidoDetalle[];
-    if (detalleExistente) {
-      nuevosdetalle = prevPedido.detalle.map((d) => {
+    let nuevosdetalles: PedidoDetalle[];
+    if (detallesExistente) {
+      nuevosdetalles = prevPedido.detalles.map((d) => {
         if (d.articulo.id === articulo.id) {
           const nuevaCantidad = d.cantidad + cantidad;
           return {
@@ -45,21 +47,21 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
         return d;
       });
     } else {
-      const nuevoDetalle = new PedidoDetalle();
-      nuevoDetalle.articulo = articulo;
-      nuevoDetalle.cantidad = cantidad;
-      nuevoDetalle.subTotal = articulo.precioVenta * cantidad; // <--- aquí
-      nuevosdetalle = [...prevPedido.detalle, nuevoDetalle];
+      const nuevoDetalles = new PedidoDetalle();
+      nuevoDetalles.articulo = articulo;
+      nuevoDetalles.cantidad = cantidad;
+      nuevoDetalles.subTotal = articulo.precioVenta * cantidad; // <--- aquí
+      nuevosdetalles = [...prevPedido.detalles, nuevoDetalles];
     }
 
-    const nuevoTotal = nuevosdetalle.reduce((acc, d) => acc + d.subTotal, 0); // <--- aquí
-    return { ...prevPedido, detalle: nuevosdetalle, total: nuevoTotal };
+    const nuevoTotal = nuevosdetalles.reduce((acc, d) => acc + d.subTotal, 0); // <--- aquí
+    return { ...prevPedido, detalles: nuevosdetalles, total: nuevoTotal };
   });
 };
 
 const restarDelCarrito = (idArticulo: number) => {
   setPedido((prevPedido) => {
-    const nuevosdetalle = prevPedido.detalle
+    const nuevosdetalles = prevPedido.detalles
       .map((d) => {
         if (d.articulo.id === idArticulo) {
           const nuevaCantidad = d.cantidad - 1;
@@ -74,38 +76,41 @@ const restarDelCarrito = (idArticulo: number) => {
       })
       .filter((d): d is PedidoDetalle => d !== null);
 
-    const nuevoTotal = nuevosdetalle.reduce((acc, d) => acc + d.subTotal, 0); // <--- aquí
-    return { ...prevPedido, detalle: nuevosdetalle, total: nuevoTotal };
+    const nuevoTotal = nuevosdetalles.reduce((acc, d) => acc + d.subTotal, 0); // <--- aquí
+    return { ...prevPedido, detalles: nuevosdetalles, total: nuevoTotal };
   });
 };
 
   const quitarDelCarrito = (idArticulo: number) => {
     setPedido((prevPedido) => {
-      const nuevosdetalle = prevPedido.detalle.filter(
+      const nuevosdetalles = prevPedido.detalles.filter(
         (d) => d.articulo.id !== idArticulo
       );
-      const nuevoTotal = nuevosdetalle.reduce((acc, d) => acc + d.subTotal, 0);
-      return { ...prevPedido, detalle: nuevosdetalle, total: nuevoTotal };
+      const nuevoTotal = nuevosdetalles.reduce((acc, d) => acc + d.subTotal, 0);
+      return { ...prevPedido, detalles: nuevosdetalles, total: nuevoTotal };
     });
   };
 
   const limpiarCarrito = () => {
     const nuevoPedido = new Pedido();
     nuevoPedido.fechaPedido = new Date();
-    nuevoPedido.detalle = [];
+    nuevoPedido.detalles = [];
     nuevoPedido.total = 0;
     setPedido(nuevoPedido);
   };
 
   const enviarPedido = async () => {
-    if (pedido.detalle.length === 0) {
+    if (pedido.detalles.length === 0) {
       alert("El carrito está vacío. No se puede enviar el pedido.");
       return;
     }
 
     try {
+      const ahora = new Date();
+      const horaActual = ahora.toTimeString().split(' ')[0];
+      pedido.horaEstimadaFinalizacion = horaActual;
+      console.log("Hora actual:", horaActual);
       PedidoService.create(pedido)
-      limpiarCarrito();
     } catch (error) {
       console.error(error);
       alert("Hubo un error al enviar el pedido.");
@@ -113,14 +118,18 @@ const restarDelCarrito = (idArticulo: number) => {
   };
 
   const guardarPedidoYObtener = async (): Promise<Pedido | null> => {
-    if (pedido.detalle.length === 0) {
+    if (pedido.detalles.length === 0) {
       alert("El carrito está vacío. No se puede guardar el pedido.");
       return null;
     }
 
     try {
+      const ahora = new Date();
+      const horaActual = ahora.toTimeString().split(' ')[0];
+      console.log("Hora actual:", horaActual);
+      pedido.horaEstimadaFinalizacion = horaActual;
+
       PedidoService.create(pedido)
-      limpiarCarrito();
       const pedidoTemporal = new Pedido();
       return pedidoTemporal;
     } catch (error) {

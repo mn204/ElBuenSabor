@@ -6,8 +6,9 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DetallePedidoDTO extends MasterDTO {
-    private String articuloNombre;
     private Integer cantidad;
     private Double subTotal;
+    private PedidoDTO pedido;
     private ArticuloDTO articulo;
+    private boolean eliminado;
 }

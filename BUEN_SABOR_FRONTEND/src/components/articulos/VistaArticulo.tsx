@@ -37,6 +37,7 @@ const VistaArticulo: React.FC = () => {
   if (!articulo) return <p>No se encontró el artículo.</p>;
   const handleAgregarAlCarrito = () => {
     if (carritoCtx && articulo) {
+      console.log(articulo)
       carritoCtx.agregarAlCarrito(articulo, 1);
     }
   };

@@ -12,9 +12,25 @@ import org.springframework.stereotype.Service;
 @Service
 public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implements PedidoService {
 
+    private static final Logger logger = LoggerFactory.getLogger(PedidoServiceImpl.class);
+    private final PedidoRepository pedidoRepository;
+
+
     @Autowired
-    public PedidoServiceImpl(PedidoRepository pedidoRepository) {
+    public PedidoServiceImpl(PedidoRepository pedidoRepository, PedidoRepository pedidoRepository1) {
         super(pedidoRepository);
+        this.pedidoRepository = pedidoRepository1;
+    }
+
+    @Override
+    @Transactional
+    public Pedido save(Pedido entity) {
+        // Validaciones antes de guardar
+        for(DetallePedido detalle : entity.getDetalles()) {
+            detalle.setPedido(entity);
+        }
+        logger.info("Guardando ArticuloManufacturado: {}", entity.getId());
+        return super.save(entity);
     }
 
 }

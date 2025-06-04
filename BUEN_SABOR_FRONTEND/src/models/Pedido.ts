@@ -7,7 +7,7 @@ import type Factura from "./Factura";
 
 export default class Pedido {
     id?: number;
-    horaEstimadaFinalizacion: Date = new Date();
+    horaEstimadaFinalizacion: String = "";
     total: number = 0;
     totalCosto: number = 0;
     estado!: Estado;
@@ -16,6 +16,6 @@ export default class Pedido {
     fechaPedido: Date = new Date();
     cliente!: Cliente;
     factura?: Factura;
-    detalle: DetallePedido[] = [];
+    detalles: DetallePedido[] = [];
     eliminado!: boolean;
 }

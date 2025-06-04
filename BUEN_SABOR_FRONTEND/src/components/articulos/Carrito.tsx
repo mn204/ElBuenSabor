@@ -18,7 +18,7 @@ export function Carrito() {
     guardarPedidoYObtener
   } = carritoCtx;
 
-  const carrito = pedido.detalle;
+  const carrito = pedido.detalles;
   const handlePagarConMP = async () => {
     const pedidoFinal = await guardarPedidoYObtener();
     if (pedidoFinal) {

@@ -8,9 +8,7 @@ import org.mapstruct.*;
 public interface PedidoMapper extends MasterMapper<Pedido, PedidoDTO> {
 
     PedidoDTO toDTO(Pedido source);
-    @Mappings({
-            @Mapping(target = "detalles", ignore = true)
-    })
+
     Pedido toEntity(PedidoDTO source);
 }
 

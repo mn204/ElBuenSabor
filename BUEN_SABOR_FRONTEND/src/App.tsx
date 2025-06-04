@@ -17,6 +17,7 @@ import RegisterEmpleado from "./components/auth/RegisterEmpleado.tsx";
 import { Carrito } from './components/articulos/Carrito.tsx'
 import Busqueda from './components/articulos/Busqueda.tsx'
 import VistaArticulo from './components/articulos/VistaArticulo.tsx'
+import FormInsumos from './components/articulos/FormInsumos.tsx'
 
 function App() {
 
@@ -35,7 +36,7 @@ function App() {
           <Route path="/imagenes" element={<GrillaImagenArticulo />} />
           <Route path="/historicocompra" element={<GrillaHistoricoCompra />} />
           <Route path="/historicoventa" element={<GrillaHistoricoVenta />} />
-          <Route path="/categoria" element={<FormCategoria />} />
+          <Route path="/categoria" element={<FormInsumos />} />
           <Route path="/admin/nuevo-empleado/" element={<RegisterEmpleado/>} />
           <Route path="/carrito" element={<Carrito />} />
           <Route path="/busqueda" element={<Busqueda />} />

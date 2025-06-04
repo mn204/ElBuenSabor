@@ -23,7 +23,7 @@ import java.util.Set;
         @JsonSubTypes.Type(value = ArticuloInsumo.class, name = "insumo"),
         @JsonSubTypes.Type(value = ArticuloManufacturado.class, name = "manufacturado")
 })
-public abstract class Articulo extends Master {
+public class Articulo extends Master {
 
     private String denominacion;
     private Double precioVenta;
