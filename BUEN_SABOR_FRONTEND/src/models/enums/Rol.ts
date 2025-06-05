@@ -1,5 +1,5 @@
 enum Rol {
-    ADMIN = "ADMIN",
+    ADMIN = "ADMINISTRADOR",
     COCINERO = "COCINERO",
     CAJERO = "CAJERO",
     DELIVERY = "DELIVERY",

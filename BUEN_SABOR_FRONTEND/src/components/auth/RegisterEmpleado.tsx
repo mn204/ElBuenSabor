@@ -7,7 +7,8 @@ import type Empleado from "../../models/Empleado.ts";
 import type Pais from "../../models/Pais.ts";
 import type Provincia from "../../models/Provincia.ts";
 import type Localidad from "../../models/Localidad.ts";
-import {obtenerLocalidades, obtenerPaises, obtenerProvincias} from "../../services/LocalizacionService.ts"; // Ajustá según tu estructura
+import {obtenerLocalidades, obtenerPaises, obtenerProvincias} from "../../services/LocalizacionService.ts";
+import {Eye, EyeSlash} from "react-bootstrap-icons"; // Ajustá según tu estructura
 
 //TODO implementar Validaciones de los campos.
 //TODO agregar boton a campos contraseña para ver.
@@ -34,7 +35,7 @@ const RegisterEmpleado = () => {
 
     const [pais, setPais] = useState("");
     const [provincia, setProvincia] = useState("");
-    const [localidadId, setLocalidadId] = useState<number | "">("");
+    const [localidadId, setLocalidadId] = useState<number | undefined>(undefined)
 
     const [paises, setPaises] = useState<Pais[]>([]);
     const [provincias, setProvincias] = useState<Provincia[]>([]);
@@ -72,9 +73,18 @@ const RegisterEmpleado = () => {
 
     const handleRegister = async () => {
         if (contrasena !== confirmarContrasena) {
-            alert("Las contraseñas no coinciden.");
+            setFormError("Las contraseñas no coinciden.");
             return;
         }
+        if (contrasena.length < 6) {
+            setFormError("La contraseña debe tener al menos 6 caracteres.");
+            return;
+        }
+
+
+        setLoading(true);
+        setFormError(null);
+
 
         try {
             const userCredential = await createUserWithEmailAndPassword(auth, email, contrasena);
@@ -104,23 +114,14 @@ const RegisterEmpleado = () => {
                         detalles: detalles,
                         eliminado: false,
                         localidad: {
-                            nombre: localidad,
-                            eliminado: false,
-                            provincia: {
-                                nombre: provincia,
-                                eliminado: false,
-                                pais: {
-                                    nombre: pais,
-                                    eliminado: false
-                                }
-                            }
+                            id: localidadId
                         }
                     },
                 usuario: {
                     email: email,
                     firebaseUid: userCredential.user.uid,
                     rol: rolEmpleado,
-                    DNI: dni,
+                    dni: dni.toString(),
                     providerId: userCredential.user.providerData[0].providerId,
                     eliminado: false
                 },
@@ -128,13 +129,11 @@ const RegisterEmpleado = () => {
             };
             console.log("Empleado a enviar:", JSON.stringify(empleado, null, 2));
 
-            // Enviar a backend
-            /*
-            const response = await fetch("http://localhost:8080/auth/empleado", {
+
+            const response = await fetch("http://localhost:8080/api/empleado", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: `Bearer ${await userCredential.user.getIdToken()}`
                 },
                 body: JSON.stringify(empleado)
             });
@@ -147,7 +146,7 @@ const RegisterEmpleado = () => {
 
             if (!response.ok) throw new Error("Error al registrar empleado en el backend");
 
-            */
+
 
             alert("Registro exitoso!");
 
@@ -183,6 +182,7 @@ const RegisterEmpleado = () => {
                                 placeholder="Nombre"
                                 value={nombre}
                                 onChange={(e) => setNombre(e.target.value)}
+                                disabled={loading}
                             />
                         </Form.Group>
 
@@ -192,6 +192,7 @@ const RegisterEmpleado = () => {
                                 placeholder="Apellido"
                                 value={apellido}
                                 onChange={(e) => setApellido(e.target.value)}
+                                disabled={loading}
                             />
                         </Form.Group>
 
@@ -201,25 +202,46 @@ const RegisterEmpleado = () => {
                                 placeholder="Email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
+                                disabled={loading}
                             />
                         </Form.Group>
 
                         <Form.Group controlId="contrasena" className="mb-3">
-                            <Form.Control
-                                type="password"
-                                placeholder="Contraseña"
-                                value={contrasena}
-                                onChange={(e) => setContrasena(e.target.value)}
-                            />
+                            <div className="input-group">
+                                <Form.Control
+                                    type={showPassword ? "text" : "password"}
+                                    placeholder="Contraseña"
+                                    value={contrasena}
+                                    onChange={(e) => setContrasena(e.target.value)}
+                                    disabled={loading}
+                                />
+                                <Button
+                                    variant="outline-secondary"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    disabled={loading}
+                                >
+                                    {showPassword ? <EyeSlash size={18} /> : <Eye size={18} />}
+                                </Button>
+                            </div>
                         </Form.Group>
 
                         <Form.Group controlId="confirmarContrasena" className="mb-3">
-                            <Form.Control
-                                type="password"
-                                placeholder="Confirmar Contraseña"
-                                value={confirmarContrasena}
-                                onChange={(e) => setConfirmarContrasena(e.target.value)}
-                            />
+                            <div className="input-group">
+                                <Form.Control
+                                    type={showConfirmPassword ? "text" : "password"}
+                                    placeholder="Confirmar Contraseña"
+                                    value={confirmarContrasena}
+                                    onChange={(e) => setConfirmarContrasena(e.target.value)}
+                                    disabled={loading}
+                                />
+                                <Button
+                                    variant="outline-secondary"
+                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    disabled={loading}
+                                >
+                                    {showConfirmPassword ? <EyeSlash size={18} /> : <Eye size={18} />}
+                                </Button>
+                            </div>
                         </Form.Group>
 
                         <Form.Group controlId="dni" className="mb-2">
@@ -228,19 +250,22 @@ const RegisterEmpleado = () => {
                                 placeholder="DNI"
                                 value={dni}
                                 onChange={(e) => setDni(e.target.value)}
+                                disabled={loading}
                             />
                         </Form.Group>
 
                         <Form.Group controlId="fechaNacimiento" className="mb-2">
                             <div className="d-flex  p-1 align-items-end" style={{width: "100%"}}>
                                 <Form.Label style={{width:"300px"}}> Fecha de nacimiento: </Form.Label>
-                            <Form.Control
-                                type="date"
-                                value={fechaNacimiento}
-                                onChange={(e) => setFechaNacimiento(e.target.value)}
-                            />
+                                <Form.Control
+                                    type="date"
+                                    value={fechaNacimiento}
+                                    onChange={(e) => setFechaNacimiento(e.target.value)}
+                                    disabled={loading}
+                                />
                             </div>
                         </Form.Group>
+
 
                         <Form.Group controlId="telefono" className="mb-2">
                             <Form.Control
@@ -248,6 +273,7 @@ const RegisterEmpleado = () => {
                                 placeholder="Teléfono"
                                 value={telefono}
                                 onChange={(e) => setTelefono(e.target.value)}
+                                disabled={loading}
                             />
                         </Form.Group>
 
@@ -269,43 +295,45 @@ const RegisterEmpleado = () => {
                         </Form.Group>
 
                         <Form.Group controlId="pais" className="mb-2">
-                            <Form.Select
-                                value={pais}
-                                onChange={e => setPais(e.target.value)}
-                            >
+                            <Form.Select value={pais} onChange={e => {
+                                setPais(e.target.value);
+                                setProvincia("");
+                                setLocalidadId(undefined);  // ✅ importante
+                            }}>
                                 <option value="">Seleccioná un país...</option>
-                                {paises.map((p) => (
+                                {paises.map(p => (
                                     <option key={p.id} value={p.nombre}>{p.nombre}</option>
                                 ))}
                             </Form.Select>
                         </Form.Group>
 
-
                         <Form.Group controlId="provincia" className="mb-2">
-                            <Form.Select
-                                value={provincia}
-                                onChange={handleProvinciaChange}
-                            >
+                            <Form.Select value={provincia} onChange={e => {
+                                setProvincia(e.target.value);
+                                setLocalidadId(undefined);  // ✅ importante
+                            }}>
                                 <option value="">Seleccioná una provincia...</option>
-                                {provincias.map((prov, idx) => (
-                                    <option key={idx} value={prov.nombre}>{prov.nombre}</option>
+                                {provinciasFiltradas.map(p => (
+                                    <option key={p.id} value={p.nombre}>{p.nombre}</option>
                                 ))}
                             </Form.Select>
                         </Form.Group>
 
                         <Form.Group controlId="localidad" className="mb-2">
                             <Form.Select
-                                value={localidad}
-                                onChange={e => setLocalidad(e.target.value)}
-                                disabled={!localidades.length}
+                                value={localidadId?.toString() ?? ""} // ✅ value debe ser string
+                                onChange={e => {
+                                    const value = e.target.value;
+                                    setLocalidadId(value ? parseInt(value) : undefined); // ✅ conversión segura
+                                }}
+                                disabled={!localidadesFiltradas.length}
                             >
                                 <option value="">Seleccioná una localidad...</option>
-                                {localidades.map((loc, idx) => (
-                                    <option key={idx} value={loc}>{loc}</option>
+                                {localidadesFiltradas.map(l => (
+                                    <option key={l.id} value={l.id}>{l.nombre}</option>
                                 ))}
                             </Form.Select>
                         </Form.Group>
-
 
                         <Form.Group controlId="codigoPostal" className="mb-2">
                             <Form.Control
@@ -313,6 +341,7 @@ const RegisterEmpleado = () => {
                                 placeholder="Código Postal"
                                 value={codigoPostal}
                                 onChange={(e) => setCodigoPostal(e.target.value)}
+                                disabled={loading}
                             />
                         </Form.Group>
 
@@ -322,6 +351,7 @@ const RegisterEmpleado = () => {
                                 placeholder="Calle"
                                 value={calle}
                                 onChange={(e) => setCalle(e.target.value)}
+                                disabled={loading}
                             />
                         </Form.Group>
 
@@ -331,18 +361,21 @@ const RegisterEmpleado = () => {
                                 placeholder="Número"
                                 value={numero}
                                 onChange={(e) => setNumero(e.target.value)}
+                                disabled={loading}
                             />
                             <Form.Control
                                 type="text"
                                 placeholder="Piso Departamento"
                                 value={piso}
                                 onChange={(e) => setPiso(e.target.value)}
+                                disabled={loading}
                             />
                             <Form.Control
                                 type="text"
                                 placeholder="Número Departamento"
                                 value={departamento}
                                 onChange={(e) => setDepartamento(e.target.value)}
+                                disabled={loading}
                             />
                         </div>
 
@@ -352,19 +385,22 @@ const RegisterEmpleado = () => {
                                 placeholder="Detalles Direccion"
                                 value={detalles}
                                 onChange={(e) => setDetalles(e.target.value)}
+                                disabled={loading}
                             />
                         </Form.Group>
 
                         <div className="d-flex justify-content-between p-3">
-
-                            <Button variant="dark" onClick={handleRegister}>
-                                Registrar Empleado
+                            <Button
+                                variant="dark"
+                                onClick={handleRegister}
+                                disabled={loading}
+                            >
+                                {loading ? "Registrando..." : "Registrarse"}
                             </Button>
-
                         </div>
                     </>
             </Form>
-
+            {formError && <div className="alert alert-danger mt-3">{formError}</div>}
         </div>
     );
 };

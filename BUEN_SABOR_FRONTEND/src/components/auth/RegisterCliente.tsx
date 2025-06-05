@@ -74,8 +74,6 @@ const RegisterCliente = ({ onBackToLogin }: Props) => {
     }, []);
 
 
-
-
     const validateStep1 = () => {
         if (!nombre || !apellido || !email || !contrasena || !confirmarContrasena) {
             setFormError("Por favor completá todos los campos.");
@@ -143,7 +141,7 @@ const RegisterCliente = ({ onBackToLogin }: Props) => {
                     email: email,
                     firebaseUid: userCredential.user.uid,
                     rol: Rol.CLIENTE,
-                    DNI: dni.toString(),
+                    dni: dni.toString(),
                     providerId: userCredential.user.providerData[0].providerId,
                     eliminado: false
                 },
@@ -345,8 +343,6 @@ const RegisterCliente = ({ onBackToLogin }: Props) => {
                             </Form.Select>
                         </Form.Group>
 
-
-
                         <Form.Group controlId="codigoPostal" className="mb-2">
                             <Form.Control
                                 type="text"
@@ -380,6 +376,7 @@ const RegisterCliente = ({ onBackToLogin }: Props) => {
                                 placeholder="Piso Departamento"
                                 value={piso}
                                 onChange={(e) => setPiso(e.target.value)}
+                                disabled={loading}
                             />
                             <Form.Control
                                 type="text"

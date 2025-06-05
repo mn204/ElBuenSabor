@@ -97,7 +97,7 @@ const RegisterGoogle = ({ onFinish }: { onFinish: () => void }) => {
                 email: user.email ?? "",
                 rol: Rol.CLIENTE,
                 firebaseUid: user.uid,
-                DNI: dni.toString(),
+                dni: dni.toString(),
                 providerId: user.providerData[0].providerId,
                 eliminado: false
             },

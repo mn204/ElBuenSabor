@@ -6,6 +6,6 @@ export default class Usuario {
     firebaseUid: string = "";
     rol: Rol = Rol.CLIENTE;
     providerId: string = "";
-    DNI: string = "";
+    dni: string = "";
     eliminado: boolean = false;
 }
