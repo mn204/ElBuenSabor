@@ -7,23 +7,22 @@ import type Pais from "../../models/Pais.ts";
 import type Provincia from "../../models/Provincia.ts";
 import type Localidad from "../../models/Localidad.ts";
 import {obtenerLocalidades, obtenerPaises, obtenerProvincias} from "../../services/LocalizacionService.ts";
+import {obtenerUsuarioPorDni} from "../../services/UsuarioService.ts";
 
-//TODO manejar la busqueda del dni para que no hayan repetidos
+
 
 
 const RegisterGoogle = ({ onFinish }: { onFinish: () => void }) => {
 
     const [loading, setLoading] = useState(false);
     const [formError, setFormError] = useState<string | null>(null);
-
+    const [dniError, setDniError] = useState<string | null>(null);
 
     const [nombre, setNombre] = useState("");
     const [apellido, setApellido] = useState("");
     const [dni, setDni] = useState("");
     const [fechaNacimiento, setFechaNacimiento] = useState("");
     const [telefono, setTelefono] = useState("");
-
-
     const [pais, setPais] = useState("");
     const [provincia, setProvincia] = useState("");
     const [localidadId, setLocalidadId] = useState<number | "">("");
@@ -60,10 +59,59 @@ const RegisterGoogle = ({ onFinish }: { onFinish: () => void }) => {
         cargarDatos();
     }, []);
 
+    const handleDniChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+
+        // Solo permitir dígitos (sin puntos, comas ni negativos)
+        if (!/^\d*$/.test(value)) return;
+
+        setDni(value);
+        setDniError(null);
+
+        // Si tiene algún valor, consultamos al backend
+        if (value) {
+            try {
+                const usuario = await obtenerUsuarioPorDni(value);
+                if (usuario) {
+                    setDniError("DNI ya está en uso");
+                }
+            } catch (error) {
+                console.error("Error al verificar DNI:", error);
+            }
+        }
+    };
+    const handleTelefonoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        if (/^\d*$/.test(value)) {
+            setTelefono(value);
+        }
+    };
+    //numeor calle
+    const handleNumeroChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        if (/^\d*$/.test(value)) {
+            setNumero(value);
+        }
+    };
+
+    const handlePisoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        if (/^\d*$/.test(value)) {
+            setPiso(value);
+        }
+    };
+
+
     const handleSubmit = async () => {
 
         if (!nombre || !apellido || !dni || !fechaNacimiento || !telefono || !pais || !provincia || !localidadId || !codigoPostal || !calle || !numero || !detalles) {
             setFormError("Te faltan campos obligatorios");
+            return;
+        }
+        const usuarioPorDni = await obtenerUsuarioPorDni(dni.toString());
+        if (usuarioPorDni) {
+            setFormError("El DNI ya está registrado.");
+            setLoading(false);
             return;
         }
 
@@ -157,21 +205,29 @@ const RegisterGoogle = ({ onFinish }: { onFinish: () => void }) => {
                     </Form.Group>
                     <Form.Group controlId="dni" className="mb-2">
                         <Form.Control
-                            type="number"
+                            type="text"
                             placeholder="DNI"
                             value={dni}
-                            onChange={(e) => setDni(e.target.value)}
+                            onChange={handleDniChange}
+                            isInvalid={!!dniError}
                             disabled={loading}
                         />
+                        <Form.Control.Feedback type="invalid">
+                            {dniError}
+                        </Form.Control.Feedback>
                     </Form.Group>
 
                     <Form.Group controlId="fechaNacimiento" className="mb-2">
-                        <Form.Control
-                            type="date"
-                            value={fechaNacimiento}
-                            onChange={(e) => setFechaNacimiento(e.target.value)}
-                            disabled={loading}
-                        />
+                        <div className="d-flex p-1 align-items-end" style={{ width: "100%" }}>
+                            <Form.Label style={{ width: "300px" }}> Fecha de nacimiento: </Form.Label>
+                            <Form.Control
+                                type="date"
+                                value={fechaNacimiento}
+                                onChange={(e) => setFechaNacimiento(e.target.value)}
+                                max={new Date().toISOString().split("T")[0]}
+                                disabled={loading}
+                            />
+                        </div>
                     </Form.Group>
 
 
@@ -180,7 +236,7 @@ const RegisterGoogle = ({ onFinish }: { onFinish: () => void }) => {
                             type="text"
                             placeholder="Teléfono"
                             value={telefono}
-                            onChange={(e) => setTelefono(e.target.value)}
+                            onChange={handleTelefonoChange}
                             disabled={loading}
                         />
                     </Form.Group>
@@ -246,14 +302,14 @@ const RegisterGoogle = ({ onFinish }: { onFinish: () => void }) => {
                             type="text"
                             placeholder="Número"
                             value={numero}
-                            onChange={(e) => setNumero(e.target.value)}
+                            onChange={handleNumeroChange}
                             disabled={loading}
                         />
                         <Form.Control
                             type="text"
                             placeholder="Piso Departamento"
                             value={piso}
-                            onChange={(e) => setPiso(e.target.value)}
+                            onChange={handlePisoChange}
                             disabled={loading}
                         />
                         <Form.Control

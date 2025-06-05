@@ -12,14 +12,11 @@ import java.util.*;
 public class EmpleadoDTO extends MasterDTO {
     private String nombre;
     private String apellido;
-    private String email;
     private String telefono;
     private LocalDate fechaNacimiento;
-    private Integer dni;
     private DomicilioDTO domicilio;
-    private ImagenUsuarioDTO imagenEmpleado;
-    private Rol rolEmpleado;
-    private UsuarioDTO usuarioEmpleado;
+    private ImagenUsuarioDTO imagenUsuario;
+    private UsuarioDTO usuario;
     private Boolean eliminado;
 }
 

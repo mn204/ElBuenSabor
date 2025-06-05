@@ -20,21 +20,19 @@ public class Cliente extends Master{
     private String nombre;
     private String apellido;
     private String telefono;
-    private String email;
-    private Integer dni;
     private LocalDate fechaNacimiento;
 
 
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "imagen_cliente_id")
-    private ImagenUsuario imagenCliente;
+    @JoinColumn(name = "imagen_usuario_id")
+    private ImagenUsuario imagenUsuario;
 
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "usuario_id", unique = true)
     private Usuario usuario;
 
-    @ManyToMany
+    @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(
             name = "cliente_domicilio",
             joinColumns = @JoinColumn(name = "cliente_id"),
