@@ -111,7 +111,7 @@ function Buscador({ onBuscar, valorInicial = "", setValor }: BuscadorProps) {
             {results.slice(0, 3).map((producto: any) => (
               <li key={producto.id}>
                 <Link className='linkProductoBsucado text-black d-flex text-start' to={`/articulo/${producto.id}`} onClick={() => handleResultClick()}>
-                  <img className='imgProductoBuscado' src={Ham} alt={producto.denominacion} />
+                  <img className='imgProductoBuscado' src={producto.imagenes[0].denominacion} alt={producto.denominacion} />
                   <div className='d-flex flex-column'>
                     <span>{producto.denominacion}</span>
                     <span className='precioProductoBuscado'>${producto.precioVenta}</span>

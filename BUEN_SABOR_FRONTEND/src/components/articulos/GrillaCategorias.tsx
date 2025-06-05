@@ -3,7 +3,6 @@ import CategoriaService from "../../services/CategoriaService";
 import Categoria from "../../models/Categoria";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
-import { ReusableTable } from "../Tabla";
 import BotonVer from "../layout/BotonVer";
 import BotonEliminar from "../layout/BotonEliminar";
 import BotonModificar from "../layout/BotonModificar";
@@ -14,7 +13,6 @@ function GrillaCategorias() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Estado para el modal de "Ver"
   const [showModal, setShowModal] = useState(false);
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState<Categoria | null>(null);
 
@@ -71,50 +69,49 @@ function GrillaCategorias() {
     setCategoriaSeleccionada(null);
   };
 
-  // Definición de columnas para la tabla reusable
-  const columns = [
-    { key: "denominacion", label: "Denominación" },
-    {
-      key: "categoriaPadre",
-      label: "Categoría Padre",
-      render: (_: any, row: Categoria) => row.categoriaPadre?.denominacion || "-",
-    },
-    {
-      key: "eliminado",
-      label: "Estado",
-      render: (value: boolean) => (value ? "Eliminado" : "Activo"),
-    },
-    {
-      key: "acciones",
-      label: "Acciones",
-      render: (_: any, row: Categoria) => (
-        <div className="d-flex justify-content-center">
-          <BotonVer 
-            onClick={() => handleVer(row)}
-          />
-          <BotonModificar
-            onClick={() => handleActualizar(row)}
-          />
-          {!row.eliminado ? (  
-            <BotonEliminar
-              onClick={() => eliminarCategoria(row.id!)}
-            />
-          ) : (
-            <BotonAlta onClick={() => darDeAlta(row.id!)}/>
-          )}
-        </div>
-      ),
-    },
-  ];
+  // Función para transformar lista plana a árbol
+  const construirArbol = (categorias: Categoria[]): CategoriaNodo[] => {
+    const mapa = new Map<number, CategoriaNodo>();
+    const raiz: CategoriaNodo[] = [];
+
+    categorias.forEach(cat => {
+      mapa.set(cat.id!, { ...cat, hijos: [] });
+    });
+
+    mapa.forEach(cat => {
+      if (cat.categoriaPadre?.id) {
+        const padre = mapa.get(cat.categoriaPadre.id);
+        padre?.hijos.push(cat);
+      } else {
+        raiz.push(cat);
+      }
+    });
+
+    return raiz;
+  };
+
+  const categoriasArbol = construirArbol(categorias);
 
   if (loading) return <div>Cargando categorías...</div>;
   if (error) return <div>{error}</div>;
 
   return (
     <div>
-      <h2>Categorías</h2>
-      <ReusableTable columns={columns} data={categorias} />
-      {/* Modal para ver información */}
+      <h2>Categorías (Vista Árbol)</h2>
+      <ul style={{ listStyleType: "none", paddingLeft: 0 }}>
+        {categoriasArbol.map(cat => (
+          <CategoriaNodoUI
+            key={cat.id}
+            categoria={cat}
+            onVer={handleVer}
+            onModificar={handleActualizar}
+            onEliminar={eliminarCategoria}
+            onAlta={darDeAlta}
+          />
+        ))}
+      </ul>
+
+      {/* Modal */}
       <Modal show={showModal} onHide={handleCloseModal} centered>
         <Modal.Header closeButton>
           <Modal.Title>Detalle de la Categoría</Modal.Title>
@@ -124,14 +121,12 @@ function GrillaCategorias() {
             <div>
               <p><b>Denominación:</b> {categoriaSeleccionada.denominacion}</p>
               <p><b>Categoría Padre:</b> {categoriaSeleccionada.categoriaPadre?.denominacion || "-"}</p>
-              <p><b>Estado</b> {categoriaSeleccionada.eliminado ? "Eliminado" : "Activo"}</p>
+              <p><b>Estado:</b> {categoriaSeleccionada.eliminado ? "Eliminado" : "Activo"}</p>
             </div>
           )}
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={handleCloseModal}>
-            Cerrar
-          </Button>
+          <Button variant="secondary" onClick={handleCloseModal}>Cerrar</Button>
         </Modal.Footer>
       </Modal>
     </div>
@@ -139,3 +134,60 @@ function GrillaCategorias() {
 }
 
 export default GrillaCategorias;
+
+// Tipo extendido para árbol
+type CategoriaNodo = Categoria & { hijos: CategoriaNodo[] };
+
+function CategoriaNodoUI({
+  categoria,
+  onVer,
+  onModificar,
+  onEliminar,
+  onAlta
+}: {
+  categoria: CategoriaNodo;
+  onVer: (cat: Categoria) => void;
+  onModificar: (cat: Categoria) => void;
+  onEliminar: (id: number) => void;
+  onAlta: (id: number) => void;
+}) {
+  const [expandido, setExpandido] = useState(false);
+
+  return (
+    <li style={{ marginLeft: "1rem", borderLeft: "2px solid #eee", paddingLeft: "1rem", marginBottom: "0.5rem" }}>
+      <div className="d-flex justify-content-between align-items-center">
+        <div
+          style={{ cursor: categoria.hijos.length > 0 ? "pointer" : "default", fontWeight: 600 }}
+          onClick={() => categoria.hijos.length > 0 && setExpandido(!expandido)}
+        >
+          {categoria.hijos.length > 0 ? (expandido ? "− " : "+ ") : "• "}
+          {categoria.denominacion}
+        </div>
+        <div className="d-flex gap-2">
+          <BotonVer onClick={() => onVer(categoria)} />
+          <BotonModificar onClick={() => onModificar(categoria)} />
+          {!categoria.eliminado ? (
+            <BotonEliminar onClick={() => onEliminar(categoria.id!)} />
+          ) : (
+            <BotonAlta onClick={() => onAlta(categoria.id!)} />
+          )}
+        </div>
+      </div>
+          <br />
+      {expandido && categoria.hijos.length > 0 && (
+        <ul style={{ listStyleType: "none", paddingLeft: "1rem" }}>
+          {categoria.hijos.map(hijo => (
+            <CategoriaNodoUI
+              key={hijo.id}
+              categoria={hijo}
+              onVer={onVer}
+              onModificar={onModificar}
+              onEliminar={onEliminar}
+              onAlta={onAlta}
+            />
+          ))}
+        </ul>
+      )}
+    </li>
+  );
+}

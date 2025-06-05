@@ -28,7 +28,7 @@ export function Carrito() {
   };
 
   return (
-    <div>
+    <div className="p-4">
         {carrito.length === 0 ? (
           <p>El carrito está vacío.</p>
         ) : (
@@ -37,7 +37,7 @@ export function Carrito() {
               <Image
                 src={item.articulo.imagenes[0]?.denominacion}
                 alt={"Imagen del artículo"}
-                style={{ width: "60px", height: "60px", objectFit: "cover", marginRight: "10px" }}
+                style={{ width: "200px", height: "200px", objectFit: "cover", marginRight: "10px" }}
                 rounded
               />
               <div className="flex-grow-1">
@@ -56,7 +56,7 @@ export function Carrito() {
                   <small>Precio: ${item.articulo.precioVenta.toFixed(2)}</small>
                   <div className="d-flex align-items-center mx-2">
                     <Button
-                      style={{ background: "red", color: "white" }}
+                      style={{ background: "white", color: "black" }}
                       variant="outline-secondary"
                       size="sm"
                       onClick={() => restarDelCarrito(item.articulo.id ? item.articulo.id : 0)}
@@ -65,7 +65,7 @@ export function Carrito() {
                     </Button>
                     <span className="mx-2">{item.cantidad}</span>
                     <Button
-                      style={{ background: "green", color: "white" }}
+                      style={{ background: "white", color: "black" }}
                       variant="outline-secondary"
                       size="sm"
                       onClick={() => agregarAlCarrito(item.articulo, 1)}
@@ -74,7 +74,7 @@ export function Carrito() {
                     </Button>
                   </div>
                 </div>
-                <div>Subtotal: ${item.subTotal.toFixed(2)}</div>
+                <div className="text-end mt-4">Subtotal: ${item.subTotal.toFixed(2)}</div>
               </div>
             </div>
           ))
@@ -94,9 +94,7 @@ export function Carrito() {
               <Button variant="success" onClick={enviarPedido}>Guardar pedido</Button>
             </div>
             <div className="mt-3">
-            <Button variant="primary" onClick={handlePagarConMP}>
-              Pagar con Mercado Pago
-            </Button>
+
             </div>
           </>
         )}

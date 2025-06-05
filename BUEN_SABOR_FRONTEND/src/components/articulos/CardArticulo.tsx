@@ -8,7 +8,7 @@ interface Props {
 
 const CardArticulo: React.FC<Props> = ({ articulo }) => {
   const navigate = useNavigate();
-
+  console.log(articulo)
   return (
     <div
       className="card-articulo"
