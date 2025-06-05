@@ -34,12 +34,29 @@ function FormArticuloManufacturado() {
     limpiarFormulario, EliminarDetalle,
     eliminarImagenNueva, CambiarCantidadDetalle
   } = useManufacturado();
+  const [image, setImage] = useState<File | null>(null);
+  const [imageUrl, setImageUrl] = useState<string>("");
   const { unidadesMedida, categorias } = useCargaDatosIniciales();
   const { showModal, setShowModal, articulosInsumo } = useModal();
   // Estados principales
   const [insumoSeleccionado, setInsumoSeleccionado] = useState<ArticuloInsumo | null>(null);
   const [cantidadInsumo, setCantidadInsumo] = useState<number>(1);
   const [showModalCategoria, setShowModalCategoria] = useState(false);
+
+  const subirACloudinary = async (file: File): Promise<string> => {
+    const data = new FormData();
+    data.append("file", file);
+    data.append("upload_preset", "tienda_ropa"); // tu carpeta en Cloudinary
+
+    const res = await fetch("https://api.cloudinary.com/v1_1/dvyjtb1ns/image/upload", {
+      method: "POST",
+      body: data,
+    });
+
+    const response = await res.json();
+    return response.secure_url;
+  };
+
 
   // Utilidades
   const totalInsumos = detalles.reduce((acc, det) => {
@@ -98,16 +115,6 @@ function FormArticuloManufacturado() {
     }
   };
 
-  // Utilidad para convertir archivo a base64
-  const fileToBase64 = (file: File) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = error => reject(error);
-    });
-  };
-
   // Factoriza la creación del objeto manufacturado
   const buildManufacturado = async (): Promise<ArticuloManufacturado | null> => {
     const unidadMedidaSeleccionada = unidadesMedida.find(um => um.id === Number(unidad));
@@ -115,11 +122,13 @@ function FormArticuloManufacturado() {
       alert("Unidad de medida inválida");
       return null;
     }
+
     const categoriaSeleccionada = categorias.find(cat => cat.id === Number(categoria));
     if (!categoriaSeleccionada) {
       alert("Categoría inválida");
       return null;
     }
+
     const manufacturado = new ArticuloManufacturado();
     manufacturado.denominacion = denominacion;
     manufacturado.precioVenta = totalConGanancia;
@@ -129,6 +138,7 @@ function FormArticuloManufacturado() {
     manufacturado.tiempoEstimadoMinutos = tiempoEstimadoMinutos;
     manufacturado.preparacion = preparacion;
     manufacturado.eliminado = eliminado;
+
     manufacturado.detalles = detalles.map(det => ({
       id: det.id ?? undefined,
       cantidad: det.cantidad,
@@ -137,28 +147,28 @@ function FormArticuloManufacturado() {
         : undefined,
       eliminado: false,
     }));
-    // Imágenes nuevas (archivos)
+
+    // 🔄 Subir imágenes nuevas a Cloudinary
     const nuevasImagenes = await Promise.all(
       imagenes.map(async (file) => {
-        const base64 = await fileToBase64(file);
+        const url = await subirACloudinary(file);
         const imagen = new ImagenArticulo();
-        imagen.denominacion = base64 as string;
+        imagen.denominacion = url; // Usamos URL en lugar de base64
         imagen.eliminado = false;
         return imagen;
       })
     );
-    console.log("Imagen procesada:", nuevasImagenes);
 
-    // Imágenes existentes (no eliminadas)
     const imagenesNoEliminadas = imagenesExistentes.filter(img => !img.eliminado);
 
     manufacturado.imagenes = [
       ...imagenesNoEliminadas,
       ...nuevasImagenes,
     ];
-    console.log("Manufacturado creado:", manufacturado);
+
     return manufacturado;
   };
+
 
 const guardarOModificar = async () => {
   try {
