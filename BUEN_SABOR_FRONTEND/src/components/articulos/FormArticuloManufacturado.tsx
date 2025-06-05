@@ -34,8 +34,6 @@ function FormArticuloManufacturado() {
     limpiarFormulario, EliminarDetalle,
     eliminarImagenNueva, CambiarCantidadDetalle
   } = useManufacturado();
-  const [image, setImage] = useState<File | null>(null);
-  const [imageUrl, setImageUrl] = useState<string>("");
   const { unidadesMedida, categorias } = useCargaDatosIniciales();
   const { showModal, setShowModal, articulosInsumo } = useModal();
   // Estados principales
@@ -46,7 +44,7 @@ function FormArticuloManufacturado() {
   const subirACloudinary = async (file: File): Promise<string> => {
     const data = new FormData();
     data.append("file", file);
-    data.append("upload_preset", "tienda_ropa"); // tu carpeta en Cloudinary
+    data.append("upload_preset", "buen_sabor"); // tu carpeta en Cloudinary
 
     const res = await fetch("https://api.cloudinary.com/v1_1/dvyjtb1ns/image/upload", {
       method: "POST",
