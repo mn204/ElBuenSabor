@@ -8,10 +8,8 @@ export default class Cliente {
     nombre: string = "";
     apellido: string = "";
     telefono: string = "";
-    email: string = "";
-    dni: number = 0;
     fechaNacimiento: Date = new Date();
-    imagenCliente?: ImagenUsuario;
+    imagenUsuario?: ImagenUsuario;
     usuario!: Usuario;
     domicilios: Domicilio[] = [];
     pedidos: Pedido[] = [];

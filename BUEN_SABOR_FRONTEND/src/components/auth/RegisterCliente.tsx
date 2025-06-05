@@ -1,73 +1,29 @@
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {Button, Form} from "react-bootstrap";
 import {createUserWithEmailAndPassword, updateProfile} from "firebase/auth";
 import {auth} from "./firebase";
 import type Cliente from "../../models/Cliente.ts";
-import Rol from "../../models/enums/Rol.ts"; // Ajustá según tu estructura
+import Rol from "../../models/enums/Rol.ts";
+import { Eye, EyeSlash } from "react-bootstrap-icons";
+import type Pais from "../../models/Pais.ts";
+import type Provincia from "../../models/Provincia.ts";
+import type Localidad from "../../models/Localidad.ts";
+import {obtenerLocalidades, obtenerPaises, obtenerProvincias} from "../../services/LocalizacionService.ts";
+
 
 //TODO implementar Validaciones de los campos.
 //TODO agregar boton a campos contraseña para ver.
 interface Props {
     onBackToLogin: () => void;
 }
-// === Datos hardcodeados ===
-const paises = [
-    { nombre: "Argentina", id: 1 }
-];
-
-const provincias = [
-    { nombre: "Buenos Aires" },
-    { nombre: "Catamarca" },
-    { nombre: "Chaco" },
-    { nombre: "Chubut" },
-    { nombre: "Córdoba" },
-    { nombre: "Corrientes" },
-    { nombre: "Entre Ríos" },
-    { nombre: "Formosa" },
-    { nombre: "Jujuy" },
-    { nombre: "La Pampa" },
-    { nombre: "La Rioja" },
-    { nombre: "Mendoza" },
-    { nombre: "Misiones" },
-    { nombre: "Neuquén" },
-    { nombre: "Río Negro" },
-    { nombre: "Salta" },
-    { nombre: "San Juan" },
-    { nombre: "San Luis" },
-    { nombre: "Santa Cruz" },
-    { nombre: "Santa Fe" },
-    { nombre: "Santiago del Estero" },
-    { nombre: "Tierra del Fuego" },
-    { nombre: "Tucumán" },
-    { nombre: "CABA" }
-];
-
-const localidadesPorProvincia: { [provincia: string]: string[] } = {
-    "Mendoza": [
-        "Mendoza",
-        "Godoy Cruz",
-        "Guaymallén",
-        "Maipú",
-        "Las Heras",
-        "Luján de Cuyo",
-        "San Rafael",
-        "General Alvear",
-        "Malargüe",
-        "Rivadavia",
-        "San Martín",
-        "Tunuyán",
-        "Tupungato",
-        "San Carlos",
-        "Lavalle",
-        "Santa Rosa",
-        "La Paz"
-    ],
-    // Puedes agregar localidades hardcodeadas para otras provincias si es necesario...
-};
-
 
 const RegisterCliente = ({ onBackToLogin }: Props) => {
     const [step, setStep] = useState(1);
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [formError, setFormError] = useState<string | null>(null);
+
 
     // Primer paso
     const [nombre, setNombre] = useState("");
@@ -82,14 +38,18 @@ const RegisterCliente = ({ onBackToLogin }: Props) => {
     const [telefono, setTelefono] = useState("");
     const [pais, setPais] = useState("");
     const [provincia, setProvincia] = useState("");
-    const [localidad, setLocalidad] = useState("");
-    const [localidades, setLocalidades] = useState<string[]>([]);
-    const handleProvinciaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const prov = e.target.value;
-        setProvincia(prov);
-        setLocalidad(""); // reset
-        setLocalidades(localidadesPorProvincia[prov] || []);
-    };
+    const [localidadId, setLocalidadId] = useState<number | "">("");
+
+    const [paises, setPaises] = useState<Pais[]>([]);
+    const [provincias, setProvincias] = useState<Provincia[]>([]);
+    const [localidades, setLocalidades] = useState<Localidad[]>([]);
+    // Provincias filtradas por país seleccionado
+    const provinciasFiltradas = provincias.filter(p => p.pais.nombre === pais);
+
+    // Localidades filtradas por provincia seleccionada
+    // @ts-ignore
+    const localidadesFiltradas = localidades.filter(l => l.provincia.nombre === provincia);
+
 
     const [codigoPostal, setCodigoPostal] = useState("");
     const [calle, setCalle] = useState("");
@@ -98,12 +58,55 @@ const RegisterCliente = ({ onBackToLogin }: Props) => {
     const [departamento, setDepartamento] = useState("");
     const [detalles, setDetalles] = useState("");
 
-    const handleRegister = async () => {
+    useEffect(() => {
+        const cargarDatos = async () => {
+            const [paisesData, provinciasData, localidadesData] = await Promise.all([
+                obtenerPaises(),
+                obtenerProvincias(),
+                obtenerLocalidades()
+            ]);
+            setPaises(paisesData);
+            setProvincias(provinciasData);
+            setLocalidades(localidadesData);
+        };
+
+        cargarDatos();
+    }, []);
+
+
+
+
+    const validateStep1 = () => {
+        if (!nombre || !apellido || !email || !contrasena || !confirmarContrasena) {
+            setFormError("Por favor completá todos los campos.");
+            return;
+        }
         if (contrasena !== confirmarContrasena) {
-            alert("Las contraseñas no coinciden.");
+            setFormError("Las contraseñas no coinciden.");
+            return;
+        }
+        if (contrasena.length < 6) {
+            setFormError("La contraseña debe tener al menos 6 caracteres.");
             return;
         }
 
+        setFormError(null);
+        setStep(2);
+    };
+
+
+    const handleRegister = async () => {
+        if (contrasena !== confirmarContrasena) {
+            setFormError("Las contraseñas no coinciden.");
+            return;
+        }
+        if (!dni || !fechaNacimiento || !telefono || !pais || !provincia || !localidadId || !codigoPostal || !calle || !numero || !detalles) {
+            setFormError("Te faltan campos obligatorios");
+            return;
+        }
+
+        setLoading(true);
+        setFormError(null);
         try {
             const userCredential = await createUserWithEmailAndPassword(auth, email, contrasena);
 
@@ -120,8 +123,6 @@ const RegisterCliente = ({ onBackToLogin }: Props) => {
                 nombre: nombre,
                 apellido: apellido,
                 telefono: telefono,
-                email: email,
-                dni: parseInt(dni),
                 fechaNacimiento: new Date(fechaNacimiento),
                 eliminado: false,
                 domicilios: [
@@ -134,16 +135,7 @@ const RegisterCliente = ({ onBackToLogin }: Props) => {
                         detalles: detalles,
                         eliminado: false,
                         localidad: {
-                            nombre: localidad,
-                            eliminado: false,
-                            provincia: {
-                                nombre: provincia,
-                                eliminado: false,
-                                pais: {
-                                    nombre: pais,
-                                    eliminado: false
-                                }
-                            }
+                            id: localidadId
                         }
                     }
                 ],
@@ -151,19 +143,19 @@ const RegisterCliente = ({ onBackToLogin }: Props) => {
                     email: email,
                     firebaseUid: userCredential.user.uid,
                     rol: Rol.CLIENTE,
+                    DNI: dni.toString(),
+                    providerId: userCredential.user.providerData[0].providerId,
                     eliminado: false
                 },
                 pedidos: [] // si tu clase no lo requiere aún, podés omitir este campo
             };
             console.log("Cliente a enviar:", JSON.stringify(cliente, null, 2));
 
-            // Enviar a backend
-            /*
-            const response = await fetch("http://localhost:8080/auth/cliente", {
+
+            const response = await fetch("http://localhost:8080/api/cliente", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: `Bearer ${await userCredential.user.getIdToken()}`
                 },
                 body: JSON.stringify(cliente)
             });
@@ -175,8 +167,6 @@ const RegisterCliente = ({ onBackToLogin }: Props) => {
               }
 
             if (!response.ok) throw new Error("Error al registrar cliente en el backend");
-
-            */
 
             alert("Registro exitoso!");
             onBackToLogin(); // Vuelve al login
@@ -213,6 +203,7 @@ const RegisterCliente = ({ onBackToLogin }: Props) => {
                                 placeholder="Nombre"
                                 value={nombre}
                                 onChange={(e) => setNombre(e.target.value)}
+                                disabled={loading}
                             />
                         </Form.Group>
 
@@ -222,6 +213,7 @@ const RegisterCliente = ({ onBackToLogin }: Props) => {
                                 placeholder="Apellido"
                                 value={apellido}
                                 onChange={(e) => setApellido(e.target.value)}
+                                disabled={loading}
                             />
                         </Form.Group>
 
@@ -231,32 +223,53 @@ const RegisterCliente = ({ onBackToLogin }: Props) => {
                                 placeholder="Email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
+                                disabled={loading}
                             />
                         </Form.Group>
 
                         <Form.Group controlId="contrasena" className="mb-3">
-                            <Form.Control
-                                type="password"
-                                placeholder="Contraseña"
-                                value={contrasena}
-                                onChange={(e) => setContrasena(e.target.value)}
-                            />
+                            <div className="input-group">
+                                <Form.Control
+                                    type={showPassword ? "text" : "password"}
+                                    placeholder="Contraseña"
+                                    value={contrasena}
+                                    onChange={(e) => setContrasena(e.target.value)}
+                                    disabled={loading}
+                                />
+                                <Button
+                                    variant="outline-secondary"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    disabled={loading}
+                                >
+                                    {showPassword ? <EyeSlash size={18} /> : <Eye size={18} />}
+                                </Button>
+                            </div>
                         </Form.Group>
 
                         <Form.Group controlId="confirmarContrasena" className="mb-3">
-                            <Form.Control
-                                type="password"
-                                placeholder="Confirmar Contraseña"
-                                value={confirmarContrasena}
-                                onChange={(e) => setConfirmarContrasena(e.target.value)}
-                            />
+                            <div className="input-group">
+                                <Form.Control
+                                    type={showConfirmPassword ? "text" : "password"}
+                                    placeholder="Confirmar Contraseña"
+                                    value={confirmarContrasena}
+                                    onChange={(e) => setConfirmarContrasena(e.target.value)}
+                                    disabled={loading}
+                                />
+                                <Button
+                                    variant="outline-secondary"
+                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    disabled={loading}
+                                >
+                                    {showConfirmPassword ? <EyeSlash size={18} /> : <Eye size={18} />}
+                                </Button>
+                            </div>
                         </Form.Group>
 
                         <div className="d-grid gap-2 mb-2">
-                            <Button variant="dark" onClick={() => setStep(2)}>
+                            <Button variant="dark" onClick={validateStep1} disabled={loading}>
                                 Siguiente →
                             </Button>
-                            <Button variant="dark" onClick={onBackToLogin}>
+                            <Button variant="dark" onClick={onBackToLogin} disabled={loading}>
                                 Salir
                             </Button>
                         </div>
@@ -271,6 +284,7 @@ const RegisterCliente = ({ onBackToLogin }: Props) => {
                                 placeholder="DNI"
                                 value={dni}
                                 onChange={(e) => setDni(e.target.value)}
+                                disabled={loading}
                             />
                         </Form.Group>
 
@@ -281,6 +295,7 @@ const RegisterCliente = ({ onBackToLogin }: Props) => {
                                     type="date"
                                     value={fechaNacimiento}
                                     onChange={(e) => setFechaNacimiento(e.target.value)}
+                                    disabled={loading}
                                 />
                             </div>
                         </Form.Group>
@@ -292,43 +307,40 @@ const RegisterCliente = ({ onBackToLogin }: Props) => {
                                 placeholder="Teléfono"
                                 value={telefono}
                                 onChange={(e) => setTelefono(e.target.value)}
+                                disabled={loading}
                             />
                         </Form.Group>
 
                         <Form.Group controlId="pais" className="mb-2">
-                            <Form.Select
-                                value={pais}
-                                onChange={e => setPais(e.target.value)}
-                            >
+                            <Form.Select value={pais} onChange={e => {
+                                setPais(e.target.value);
+                                setProvincia("");
+                                setLocalidadId("");
+                            }}>
                                 <option value="">Seleccioná un país...</option>
-                                {paises.map((p) => (
+                                {paises.map(p => (
                                     <option key={p.id} value={p.nombre}>{p.nombre}</option>
                                 ))}
                             </Form.Select>
                         </Form.Group>
 
-
                         <Form.Group controlId="provincia" className="mb-2">
-                            <Form.Select
-                                value={provincia}
-                                onChange={handleProvinciaChange}
-                            >
+                            <Form.Select value={provincia} onChange={e => {
+                                setProvincia(e.target.value);
+                                setLocalidadId("");
+                            }}>
                                 <option value="">Seleccioná una provincia...</option>
-                                {provincias.map((prov, idx) => (
-                                    <option key={idx} value={prov.nombre}>{prov.nombre}</option>
+                                {provinciasFiltradas.map(p => (
+                                    <option key={p.id} value={p.nombre}>{p.nombre}</option>
                                 ))}
                             </Form.Select>
                         </Form.Group>
 
                         <Form.Group controlId="localidad" className="mb-2">
-                            <Form.Select
-                                value={localidad}
-                                onChange={e => setLocalidad(e.target.value)}
-                                disabled={!localidades.length}
-                            >
+                            <Form.Select value={localidadId} onChange={e => setLocalidadId(parseInt(e.target.value))} disabled={!localidadesFiltradas.length}>
                                 <option value="">Seleccioná una localidad...</option>
-                                {localidades.map((loc, idx) => (
-                                    <option key={idx} value={loc}>{loc}</option>
+                                {localidadesFiltradas.map(l => (
+                                    <option key={l.id} value={l.id}>{l.nombre}</option>
                                 ))}
                             </Form.Select>
                         </Form.Group>
@@ -341,6 +353,7 @@ const RegisterCliente = ({ onBackToLogin }: Props) => {
                                 placeholder="Código Postal"
                                 value={codigoPostal}
                                 onChange={(e) => setCodigoPostal(e.target.value)}
+                                disabled={loading}
                             />
                         </Form.Group>
 
@@ -350,6 +363,7 @@ const RegisterCliente = ({ onBackToLogin }: Props) => {
                                 placeholder="Calle"
                                 value={calle}
                                 onChange={(e) => setCalle(e.target.value)}
+                                disabled={loading}
                             />
                         </Form.Group>
 
@@ -359,6 +373,7 @@ const RegisterCliente = ({ onBackToLogin }: Props) => {
                                 placeholder="Número"
                                 value={numero}
                                 onChange={(e) => setNumero(e.target.value)}
+                                disabled={loading}
                             />
                             <Form.Control
                                 type="text"
@@ -371,6 +386,7 @@ const RegisterCliente = ({ onBackToLogin }: Props) => {
                                 placeholder="Número Departamento"
                                 value={departamento}
                                 onChange={(e) => setDepartamento(e.target.value)}
+                                disabled={loading}
                             />
                         </div>
 
@@ -380,24 +396,38 @@ const RegisterCliente = ({ onBackToLogin }: Props) => {
                                 placeholder="Detalles Direccion"
                                 value={detalles}
                                 onChange={(e) => setDetalles(e.target.value)}
+                                disabled={loading}
                             />
                         </Form.Group>
 
                         <div className="d-flex justify-content-between">
-                            <Button variant="dark" onClick={() => setStep(1)}>
+                            <Button
+                                variant="dark"
+                                onClick={() => setStep(1)}
+                                disabled={loading}
+                            >
                                 ← Atrás
                             </Button>
-                            <Button variant="dark" onClick={handleRegister}>
-                                Registrarse
+                            <Button
+                                variant="dark"
+                                onClick={handleRegister}
+                                disabled={loading}
+                            >
+                                {loading ? "Registrando..." : "Registrarse"}
                             </Button>
-
                         </div>
                     </>
                 )}
             </Form>
 
+            {formError && <div className="alert alert-danger mt-3">{formError}</div>}
+
             <div className="text-center mt-3">
-                <button onClick={onBackToLogin} className="btn btn-link">
+                <button
+                    onClick={onBackToLogin}
+                    className="btn btn-link"
+                    disabled={loading}
+                >
                     ¿Ya tenés cuenta? Iniciar sesión
                 </button>
             </div>

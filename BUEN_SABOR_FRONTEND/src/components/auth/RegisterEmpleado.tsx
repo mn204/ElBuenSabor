@@ -1,70 +1,23 @@
-import { useState } from "react";
+import {useEffect, useState} from "react";
 import { Button, Form } from "react-bootstrap";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { auth } from "./firebase";
 import  Rol  from "../../models/enums/Rol.ts"; // ajusta este import según tu estructura
-import type Empleado from "../../models/Empleado.ts"; // Ajustá según tu estructura
+import type Empleado from "../../models/Empleado.ts";
+import type Pais from "../../models/Pais.ts";
+import type Provincia from "../../models/Provincia.ts";
+import type Localidad from "../../models/Localidad.ts";
+import {obtenerLocalidades, obtenerPaises, obtenerProvincias} from "../../services/LocalizacionService.ts"; // Ajustá según tu estructura
 
 //TODO implementar Validaciones de los campos.
 //TODO agregar boton a campos contraseña para ver.
 
-// === Datos hardcodeados ===
-const paises = [
-    { nombre: "Argentina", id: 1 }
-];
 
-const provincias = [
-    { nombre: "Buenos Aires" },
-    { nombre: "Catamarca" },
-    { nombre: "Chaco" },
-    { nombre: "Chubut" },
-    { nombre: "Córdoba" },
-    { nombre: "Corrientes" },
-    { nombre: "Entre Ríos" },
-    { nombre: "Formosa" },
-    { nombre: "Jujuy" },
-    { nombre: "La Pampa" },
-    { nombre: "La Rioja" },
-    { nombre: "Mendoza" },
-    { nombre: "Misiones" },
-    { nombre: "Neuquén" },
-    { nombre: "Río Negro" },
-    { nombre: "Salta" },
-    { nombre: "San Juan" },
-    { nombre: "San Luis" },
-    { nombre: "Santa Cruz" },
-    { nombre: "Santa Fe" },
-    { nombre: "Santiago del Estero" },
-    { nombre: "Tierra del Fuego" },
-    { nombre: "Tucumán" },
-    { nombre: "CABA" }
-];
-
-const localidadesPorProvincia: { [provincia: string]: string[] } = {
-    "Mendoza": [
-        "Mendoza",
-        "Godoy Cruz",
-        "Guaymallén",
-        "Maipú",
-        "Las Heras",
-        "Luján de Cuyo",
-        "San Rafael",
-        "General Alvear",
-        "Malargüe",
-        "Rivadavia",
-        "San Martín",
-        "Tunuyán",
-        "Tupungato",
-        "San Carlos",
-        "Lavalle",
-        "Santa Rosa",
-        "La Paz"
-    ],
-    // Puedes agregar localidades hardcodeadas para otras provincias si es necesario...
-};
-
-
-const RegisterUsuario = () => {
+const RegisterEmpleado = () => {
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [formError, setFormError] = useState<string | null>(null);
 
     // Primer paso
     const [nombre, setNombre] = useState("");
@@ -72,21 +25,26 @@ const RegisterUsuario = () => {
     const [email, setEmail] = useState("");
     const [contrasena, setContrasena] = useState("");
     const [confirmarContrasena, setConfirmarContrasena] = useState("");
+
     const [dni, setDni] = useState("");
     const [fechaNacimiento, setFechaNacimiento] = useState("");
     const [rolEmpleado, setRolEmpleado] = useState<Rol>(Rol.CAJERO);
 
     const [telefono, setTelefono] = useState("");
+
     const [pais, setPais] = useState("");
     const [provincia, setProvincia] = useState("");
-    const [localidad, setLocalidad] = useState("");
-    const [localidades, setLocalidades] = useState<string[]>([]);
-    const handleProvinciaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const prov = e.target.value;
-        setProvincia(prov);
-        setLocalidad(""); // reset
-        setLocalidades(localidadesPorProvincia[prov] || []);
-    };
+    const [localidadId, setLocalidadId] = useState<number | "">("");
+
+    const [paises, setPaises] = useState<Pais[]>([]);
+    const [provincias, setProvincias] = useState<Provincia[]>([]);
+    const [localidades, setLocalidades] = useState<Localidad[]>([]);
+    // Provincias filtradas por país seleccionado
+    const provinciasFiltradas = provincias.filter(p => p.pais.nombre === pais);
+
+    // Localidades filtradas por provincia seleccionada
+    // @ts-ignore
+    const localidadesFiltradas = localidades.filter(l => l.provincia.nombre === provincia);
 
     const [codigoPostal, setCodigoPostal] = useState("");
     const [calle, setCalle] = useState("");
@@ -94,6 +52,23 @@ const RegisterUsuario = () => {
     const [piso, setPiso] = useState("");
     const [departamento, setDepartamento] = useState("");
     const [detalles, setDetalles] = useState("");
+
+    useEffect(() => {
+        const cargarDatos = async () => {
+            const [paisesData, provinciasData, localidadesData] = await Promise.all([
+                obtenerPaises(),
+                obtenerProvincias(),
+                obtenerLocalidades()
+            ]);
+            setPaises(paisesData);
+            setProvincias(provinciasData);
+            setLocalidades(localidadesData);
+        };
+
+        cargarDatos();
+    }, []);
+
+
 
     const handleRegister = async () => {
         if (contrasena !== confirmarContrasena) {
@@ -117,8 +92,6 @@ const RegisterUsuario = () => {
                 nombre: nombre,
                 apellido: apellido,
                 telefono: telefono,
-                email: email,
-                dni: parseInt(dni),
                 fechaNacimiento: new Date(fechaNacimiento),
                 eliminado: false,
                 domicilio:
@@ -147,6 +120,8 @@ const RegisterUsuario = () => {
                     email: email,
                     firebaseUid: userCredential.user.uid,
                     rol: rolEmpleado,
+                    DNI: dni,
+                    providerId: userCredential.user.providerData[0].providerId,
                     eliminado: false
                 },
                 pedidos: [] // si tu clase no lo requiere aún, podés omitir este campo
@@ -394,4 +369,4 @@ const RegisterUsuario = () => {
     );
 };
 
-export default RegisterUsuario;
+export default RegisterEmpleado;

@@ -8,11 +8,9 @@ export default class Empleado {
     nombre: string = "";
     apellido: string = "";
     telefono: string = "";
-    email: string = "";
     fechaNacimiento: Date = new Date();
-    dni: number = 0;
     usuario!: Usuario;
-    imagenEmpleado?: ImagenUsuario;
+    imagenUsuario?: ImagenUsuario;
     domicilio?: Domicilio;
     pedidos: Pedido[] = [];
     eliminado!: boolean;
