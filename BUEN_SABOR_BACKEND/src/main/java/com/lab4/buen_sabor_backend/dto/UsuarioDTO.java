@@ -14,4 +14,5 @@ public class UsuarioDTO extends MasterDTO{
     private String dni;
     private Rol rol;
     private String providerId;
+    private String photoUrl;
 }

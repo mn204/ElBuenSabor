@@ -1,7 +1,6 @@
 import Domicilio from "./Domicilio";
 import Pedido from "./Pedido";
 import  Usuario from "./Usuario.ts";
-import type ImagenUsuario from "./ImagenUsuario.ts";
 
 export default class Empleado {
     id?: number;
@@ -10,7 +9,6 @@ export default class Empleado {
     telefono: string = "";
     fechaNacimiento: Date = new Date();
     usuario!: Usuario;
-    imagenUsuario?: ImagenUsuario;
     domicilio?: Domicilio;
     pedidos: Pedido[] = [];
     eliminado!: boolean;

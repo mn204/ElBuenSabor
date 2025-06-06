@@ -44,3 +44,26 @@ export const obtenerUsuarios = async () => {
     }
     return response.json();
 };
+
+export const actualizarDatosUsuario = async (id: number, datosActualizados: Usuario): Promise<Usuario | null> => {
+    try {
+        const response = await fetch(`${BASE_URL}/${id}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(datosActualizados),
+        });
+
+        if (!response.ok) {
+            console.error("Error al actualizar el usuario:", response.statusText);
+            return null;
+        }
+
+        const usuarioActualizado: Usuario = await response.json();
+        return usuarioActualizado;
+    } catch (error) {
+        console.error("Error en la solicitud PUT:", error);
+        return null;
+    }
+};

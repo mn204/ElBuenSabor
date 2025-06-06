@@ -27,4 +27,6 @@ public class Usuario extends Master {
     private Rol rol; // CLIENTE, ADMINISTRADOR, COCINERO, etc.
 
     private String providerId;
+
+    private String photoUrl;
 }

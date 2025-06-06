@@ -23,10 +23,6 @@ public class Cliente extends Master{
     private LocalDate fechaNacimiento;
 
 
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "imagen_usuario_id")
-    private ImagenUsuario imagenUsuario;
-
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "usuario_id", unique = true)

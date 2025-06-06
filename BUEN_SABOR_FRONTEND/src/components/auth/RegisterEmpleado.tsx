@@ -30,6 +30,7 @@ const RegisterEmpleado = () => {
     const [contrasena, setContrasena] = useState("");
     const [confirmarContrasena, setConfirmarContrasena] = useState("");
     const [dni, setDni] = useState("");
+    const [imagenEmpleado, setImagenEmpleado] = useState<File | null>(null);
     const [fechaNacimiento, setFechaNacimiento] = useState("");
     const [rolEmpleado, setRolEmpleado] = useState<Rol>(Rol.CAJERO);
     const [telefono, setTelefono] = useState("");
@@ -203,6 +204,29 @@ const RegisterEmpleado = () => {
 
             console.log(JSON.stringify(userCredential.user, null, 2));
 
+            let fotoUrl = "";
+
+            if (imagenEmpleado) {
+                const data = new FormData();
+                data.append("file", imagenEmpleado);
+                data.append("upload_preset", "buen_sabor"); // o el nombre correcto del preset
+
+                try {
+                    const res = await fetch("https://api.cloudinary.com/v1_1/dvyjtb1ns/image/upload", {
+                        method: "POST",
+                        body: data
+                    });
+                    const file = await res.json();
+                    fotoUrl = file.secure_url;
+                } catch (error) {
+                    console.error("Error al subir imagen a Cloudinary:", error);
+                    setFormError("Error al subir la imagen del empleado.");
+                    setLoading(false);
+                    return;
+                }
+            }
+
+
             const empleado: Empleado = {
                 nombre: nombre,
                 apellido: apellido,
@@ -228,6 +252,7 @@ const RegisterEmpleado = () => {
                     rol: rolEmpleado,
                     dni: dni.toString(),
                     providerId: userCredential.user.providerData[0].providerId || "password",
+                    photoUrl: fotoUrl,
                     eliminado: false
                 },
                 pedidos: [] // si tu clase no lo requiere aún, podés omitir este campo
@@ -452,6 +477,17 @@ const RegisterEmpleado = () => {
                                         <option key={rol} value={rol}>{rol}</option>
                                     ))}
                             </Form.Select>
+                            </div>
+                        </Form.Group>
+
+                        <Form.Group controlId="fotoEmpleado" className="mb-3">
+                            <div className="d-flex gap-4 p-1 align-items-end" style={{width: "100%"}}>
+                            <Form.Label>Foto: </Form.Label>
+                            <Form.Control
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => setImagenEmpleado(e.target.files?.[0] || null)}
+                            />
                             </div>
                         </Form.Group>
 

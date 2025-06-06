@@ -14,7 +14,6 @@ public class ClienteDTO extends MasterDTO {
     private String apellido;
     private String telefono;
     private LocalDate fechaNacimiento;
-    private ImagenUsuarioDTO imagenUsuario;
     private Set<DomicilioDTO> domicilios = new HashSet<>();
     private UsuarioDTO usuario;
     private Boolean eliminado;

@@ -51,20 +51,14 @@ INSERT INTO LOCALIDAD (ELIMINADO, NOMBRE, PROVINCIA_ID) VALUES
                                                             (0, 'La Paz', @mendoza_provincia_id);
 -- USUARIO
 INSERT INTO USUARIO VALUES
-                                   (1, FALSE, '123123', 'admin@buensa.com', '0wT1WSonPZfdiXIoceu2imy7GJ53', 'password', 'ADMINISTRADOR'),
-                                   (2, FALSE, '123', 'cajero@buensa.com', 'IvLNrda6CkPiT7uqp3DfpguF6rZ2', 'password', 'CAJERO'),
-                                   (3, FALSE, '1234', 'cocinero@buensa.com', 'FBOrztuIpidGMVcJRRmsWDfbNf83', 'password', 'COCINERO'),
-                                   (4, FALSE, '12345', 'delivery@buensa.com', 'aqi54XpX0wgvG3jhIkSSukDg7Yx2', 'password', 'DELIVERY'),
-                                   (5, FALSE, '4334343', 'juan@hotmail.com', 'v1E2gY1G90MlcrqT3jefJBSMVhf1', 'password', 'CLIENTE'),
-                                    (6,FALSE,'12121242','mln204manutup@gmail.com','kElDAKE3EHNP4tcysw3N3915mh83','password','ADMINISTRADOR');
+                                   (1, FALSE, '123123', 'admin@buensa.com', '0wT1WSonPZfdiXIoceu2imy7GJ53', 'https://res.cloudinary.com/dvyjtb1ns/image/upload/v1749221525/jhzs2z2iod6vznfirkv3.jpg',  'password', 'ADMINISTRADOR'),
+                                   (2, FALSE, '123', 'cajero@buensa.com', 'IvLNrda6CkPiT7uqp3DfpguF6rZ2','https://res.cloudinary.com/dvyjtb1ns/image/upload/v1749221580/hirlalizap8uluw3sa1u.jpg',  'password', 'CAJERO'),
+                                   (3, FALSE, '1234', 'cocinero@buensa.com', 'FBOrztuIpidGMVcJRRmsWDfbNf83','https://res.cloudinary.com/dvyjtb1ns/image/upload/v1749221678/pkfdcanbungp7lpx75xo.jpg',  'password', 'COCINERO'),
+                                   (4, FALSE, '12345', 'delivery@buensa.com', 'aqi54XpX0wgvG3jhIkSSukDg7Yx2','https://res.cloudinary.com/dvyjtb1ns/image/upload/v1749221617/l42s8t31mivewaalmmuq.jpg',  'password', 'DELIVERY'),
+                                   (5, FALSE, '4334343', 'juan@hotmail.com', 'v1E2gY1G90MlcrqT3jefJBSMVhf1','https://res.cloudinary.com/dvyjtb1ns/image/upload/v1749220817/yekjwtrrthcqf3thhu3c.jpg',  'password', 'CLIENTE'),
+                                    (6,FALSE,'12121242','mln204manutup@gmail.com','70oXKoe8CyePy3dFYy7P9SRjGwJ3','https://res.cloudinary.com/dvyjtb1ns/image/upload/v1749221525/jhzs2z2iod6vznfirkv3.jpg', 'password','ADMINISTRADOR');
 
--- IMAGEN_USUARIO
-INSERT INTO IMAGEN_USUARIO VALUES
-                                          (1, FALSE, 'admin.jpg'),
-                                          (2, FALSE, 'cajero.jpg'),
-                                          (3, FALSE, 'cocinero.jpg'),
-                                          (4, FALSE, 'delivery.jpg'),
-                                          (5, FALSE, 'cliente.jpg');
+
 
 -- DOMICILIO (al menos 4)
 INSERT INTO DOMICILIO VALUES
@@ -76,15 +70,15 @@ INSERT INTO DOMICILIO VALUES
 
 -- EMPLEADO
 INSERT INTO EMPLEADO VALUES
-                                    (1, FALSE, 'Gómez', '1990-05-12', 'Ana', '2611111111', 1, 1, 1),
-                                    (2, FALSE, 'Pérez', '1985-03-20', 'Luis', '2612222222', 2, 2, 2),
-                                    (3, FALSE, 'Rodríguez', '1992-08-30', 'Marta', '2613333333', 3, 3, 3),
-                                    (4, FALSE, 'Fernández', '1995-11-11', 'Carlos', '2614444444', 4, 4, 4),
-                                    (5, FALSE,  'Diaz','2009-02-11','Franco','124115',5,NULL,6);
+                                    (1, FALSE, 'Gómez', '1990-05-12', 'Ana', '2611111111', 1, 1),
+                                    (2, FALSE, 'Pérez', '1985-03-20', 'Luis', '2612222222', 2, 2),
+                                    (3, FALSE, 'Rodríguez', '1992-08-30', 'Marta', '2613333333', 3, 3),
+                                    (4, FALSE, 'Fernández', '1995-11-11', 'Carlos', '2614444444', 4, 4),
+                                    (5, FALSE,  'Diaz','2009-02-11','Franco','124115',5, 6);
 
 -- CLIENTE
 INSERT INTO CLIENTE VALUES
-    (1, FALSE, 'Ramírez', '2000-01-01', 'Juan', '2615555555', 5, 5);
+    (1, FALSE, 'Ramírez', '2000-01-01', 'Juan', '2615555555', 5);
 
 -- CLIENTE_DOMICILIO (cliente con múltiples domicilios)
 INSERT INTO CLIENTE_DOMICILIO VALUES

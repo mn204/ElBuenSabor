@@ -15,7 +15,6 @@ public class EmpleadoDTO extends MasterDTO {
     private String telefono;
     private LocalDate fechaNacimiento;
     private DomicilioDTO domicilio;
-    private ImagenUsuarioDTO imagenUsuario;
     private UsuarioDTO usuario;
     private Boolean eliminado;
 }

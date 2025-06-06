@@ -23,6 +23,8 @@ import {AuthProvider, useAuth} from './context/AuthContext.tsx'
 import ProtectedRoute from './context/ProtectedRoute.tsx'
 import Rol from './models/enums/Rol.ts'
 import {Modal} from "react-bootstrap";
+import 'bootstrap-icons/font/bootstrap-icons.css';
+
 import RegisterGoogle from "./components/auth/RegisterGoogle.tsx";
 
 function AppContent() {

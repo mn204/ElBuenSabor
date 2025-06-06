@@ -3,8 +3,18 @@ import IconoEmpresa from '../../assets/IconoEmpresa.jpg';
 import { useAuth } from "../../context/AuthContext";
 import {sendPasswordResetEmail} from "firebase/auth";
 import {auth} from "./firebase.ts";
+import { actualizarDatosUsuario } from "../../services/UsuarioService.ts";
+import {Button, Modal} from "react-bootstrap";
+import {useState} from "react";
+
 
 function Perfil() {
+
+    const [showModal, setShowModal] = useState(false);
+    const [nuevaImagen, setNuevaImagen] = useState<File | null>(null);
+
+    const handleAbrirModal = () => setShowModal(true);
+    const handleCerrarModal = () => setShowModal(false);
 
     const { cliente, empleado, usuario, user, logout } = useAuth();
 
@@ -20,7 +30,10 @@ function Perfil() {
     const rol = usuario?.rol;
     const providerId = usuario?.providerId;
 
-    const domicilio = esEmpleado ? empleado?.domicilio : null;
+    const domicilio = esEmpleado ? empleado?.domicilio : null
+
+
+
 
     const handleCambiarContrasena = async () => {
         if (window.confirm('¿Deseas cambiar tu contraseña? Se enviará un mail para continuar el proceso.')) {
@@ -41,6 +54,33 @@ function Perfil() {
             window.location.href = '/'; // Redirige al home después del logout
         }
     };
+    const handleSubirImagen = async () => {
+        if (!nuevaImagen || !usuario) return;
+
+        const data = new FormData();
+        data.append("file", nuevaImagen);
+        data.append("upload_preset", "buen_sabor");
+
+        try {
+            const res = await fetch("https://api.cloudinary.com/v1_1/dvyjtb1ns/image/upload", {
+                method: "POST",
+                body: data,
+            });
+
+            const file = await res.json();
+            const nuevaUrl = file.secure_url;
+
+            // Actualizar el usuario
+            const usuarioActualizado = { ...usuario, photoUrl: nuevaUrl };
+            await actualizarDatosUsuario(usuario.id, usuarioActualizado);
+
+            // Actualizá el contexto o recargá la página si es necesario
+            window.location.reload();
+        } catch (error) {
+            console.error("Error al subir imagen:", error);
+        }
+    };
+
 
     return (
         <div className="perfil d-flex flex-column justify-content-center align-items-center">
@@ -59,7 +99,21 @@ function Perfil() {
                         </p>
                     )}
                 </div>
-                <img src={IconoEmpresa} alt="Imagen de perfil" className="perfilImagen w-auto rounded-circle" />
+                <div className="position-relative">
+                    <img
+                        src={user?.photoURL || usuario?.photoUrl || IconoEmpresa}
+                        alt="Imagen de perfil"
+                        className="perfilImagen w-auto rounded-circle"
+                    />
+                    {esCliente && providerId === "password" && (
+                        <i
+                            className="bi bi-pencil-fill position-absolute bottom-0 end-0 bg-white rounded-circle p-1"
+                            role="button"
+                            onClick={handleAbrirModal}
+                            style={{ cursor: "pointer" }}
+                        ></i>
+                    )}
+                </div>
             </div>
 
             <div className="buttons d-flex flex-column justify-content-center align-items-center">
@@ -81,7 +135,29 @@ function Perfil() {
                 )}
 
                 <button className="perfilButton" onClick={handleCerrarSesion}>Cerrar Sesión</button>
+                <Modal show={showModal} onHide={handleCerrarModal}>
+                    <Modal.Header closeButton>
+                        <Modal.Title>Actualizar imagen de perfil</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => setNuevaImagen(e.target.files?.[0] || null)}
+                        />
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <Button variant="secondary" onClick={handleCerrarModal}>
+                            Cancelar
+                        </Button>
+                        <Button variant="primary" onClick={handleSubirImagen}>
+                            Subir Imagen
+                        </Button>
+                    </Modal.Footer>
+                </Modal>
             </div>
+
+
         </div>
     );
 }

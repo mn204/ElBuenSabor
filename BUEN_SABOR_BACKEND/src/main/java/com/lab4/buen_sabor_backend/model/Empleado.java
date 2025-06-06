@@ -21,10 +21,6 @@ public class Empleado extends Master{
     private String telefono;
     private LocalDate fechaNacimiento;
 
-    // Relación 1:1 con ImagenEmpleado
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "imagen_usuario_id")
-    private ImagenUsuario imagenUsuario;
 
     // Relación 1:1 con UsuarioEmpleado
     @OneToOne(cascade = CascadeType.ALL)
