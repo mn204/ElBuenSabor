@@ -26,6 +26,7 @@ import {Modal} from "react-bootstrap";
 import 'bootstrap-icons/font/bootstrap-icons.css';
 
 import RegisterGoogle from "./components/auth/RegisterGoogle.tsx";
+import PanelAdmin from "./components/empleados/PanelAdmin.tsx";
 
 function AppContent() {
   const { requiresGoogleRegistration, completeGoogleRegistration } = useAuth();
@@ -54,6 +55,14 @@ function AppContent() {
           <Route path="/carrito" element={<Carrito />} />
 
           {/* Rutas para empleados y administradores */}
+
+          <Route path="/empleado" element={
+            <ProtectedRoute requiredRoles={[Rol.ADMIN, Rol.CAJERO, Rol.COCINERO, Rol.DELIVERY]}>
+              <PanelAdmin/>
+            </ProtectedRoute>
+          } />
+
+
           <Route path="/manufacturado" element={
             <ProtectedRoute requiredRoles={[Rol.ADMIN, Rol.COCINERO]}>
               <FormArticuloManufacturado />

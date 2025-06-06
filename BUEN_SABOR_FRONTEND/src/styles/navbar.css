@@ -1,6 +1,6 @@
-nav{
+nav {
     display: flex;
-    justify-content: space-around;
+    justify-content: space-between; /* En lugar de space-around */
     align-items: center;
     width: 100%;
     background-color: #F28500;
@@ -8,7 +8,7 @@ nav{
     top: 0;
     left: 0;
     z-index: 1000;
-    padding: 10px 0;
+    padding: 0 20px;
     height: 70px;
 }
 .logoEmpresa{
@@ -16,15 +16,42 @@ nav{
     height: auto;
 }
 
+.navContainer {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    justify-content: space-between;
+}
+.navLeft,
+.navCenter,
+.navRight {
+    display: flex;
+    align-items: center;
+}
+
+.navLeft {
+    flex: 1;
+}
+
+.navCenter {
+    flex: 2;
+    justify-content: center;
+}
+
+.navRight {
+    flex: 1;
+    justify-content: flex-end;
+}
+
 .homeNav:hover{
     cursor: pointer;
     color: #fff;
 }
 
-nav .navButtons{
-  display: flex;
-  align-items: center;
-  gap: 30px;
+nav .navButtons {
+    display: flex;
+    align-items: center;
+    gap: 30px;
 }
 
 nav .homeNav{

@@ -6,6 +6,9 @@ import {auth} from "./firebase.ts";
 import { actualizarDatosUsuario } from "../../services/UsuarioService.ts";
 import {Button, Modal} from "react-bootstrap";
 import {useState} from "react";
+//TODO impleamentar cambio de datos personales segun corresponda
+//TODO implementar cambio de mail en usuarios password
+//TODO implementar el apartado de domicilios de los clientes
 
 
 function Perfil() {
