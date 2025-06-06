@@ -1,4 +1,5 @@
 import './App.css'
+import IconoEmpresa from './assets/IconoEmpresa.jpg';
 import Navbar from './components/layout/Navbar'
 import Footer from './components/layout/Footer'
 import { Route, Routes } from 'react-router-dom'
@@ -18,13 +19,21 @@ import { Carrito } from './components/articulos/Carrito.tsx'
 import Busqueda from './components/articulos/Busqueda.tsx'
 import VistaArticulo from './components/articulos/VistaArticulo.tsx'
 import FormInsumos from './components/articulos/FormInsumos.tsx'
-import { AuthProvider } from './context/AuthContext.tsx'
+import {AuthProvider, useAuth} from './context/AuthContext.tsx'
 import ProtectedRoute from './context/ProtectedRoute.tsx'
 import Rol from './models/enums/Rol.ts'
+import {Modal} from "react-bootstrap";
+import RegisterGoogle from "./components/auth/RegisterGoogle.tsx";
 
-function App() {
+function AppContent() {
+  const { requiresGoogleRegistration, completeGoogleRegistration } = useAuth();
+
+  const handleGoogleRegistrationFinish = () => {
+    completeGoogleRegistration();
+  };
+
   return (
-      <AuthProvider>
+      <>
         <Navbar />
         <Routes>
           {/* Rutas públicas */}
@@ -32,6 +41,7 @@ function App() {
           <Route path="/home" element={<Home />} />
           <Route path="/busqueda" element={<Busqueda />} />
           <Route path="/articulo/:id" element={<VistaArticulo />} />
+
           {/* Rutas para clientes autenticados */}
           <Route path="/perfil" element={
             <ProtectedRoute requiredRoles={[Rol.CLIENTE, Rol.ADMIN, Rol.CAJERO, Rol.COCINERO, Rol.DELIVERY]}>
@@ -39,9 +49,7 @@ function App() {
             </ProtectedRoute>
           } />
 
-          <Route path="/carrito" element={
-              <Carrito />
-          } />
+          <Route path="/carrito" element={<Carrito />} />
 
           {/* Rutas para empleados y administradores */}
           <Route path="/manufacturado" element={
@@ -103,13 +111,35 @@ function App() {
               <RegisterEmpleado />
             </ProtectedRoute>
           } />
-
-
         </Routes>
         <Footer />
-      </AuthProvider>
+
+        {/* Modal obligatorio para completar registro de Google */}
+        <Modal
+            show={requiresGoogleRegistration}
+            backdrop="static"
+            keyboard={false}
+            size="lg"
+            centered
+        >
+          <Modal.Header className="modal-header-custom">
+            <img className='logoEmpresa' src={IconoEmpresa} alt="Icono Empresa" style={{ width: '40px', height: '40px' }} />
+            <Modal.Title className="modal-title-custom">EL BUEN SABOR</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <RegisterGoogle onFinish={handleGoogleRegistrationFinish} />
+          </Modal.Body>
+        </Modal>
+      </>
   );
 }
 
+function App() {
+  return (
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+  );
+}
 
 export default App

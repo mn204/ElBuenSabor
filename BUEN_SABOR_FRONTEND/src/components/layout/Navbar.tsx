@@ -85,6 +85,18 @@ function Navbar() {
                                     Mi Perfil
                                 </Dropdown.Item>
                                 <Dropdown.Divider />
+                                {usuario?.rol === "CLIENTE" && (
+                                    <>
+                                        <Dropdown.Item as={Link} to="/domicilios">
+                                            Mis Domicilios
+                                        </Dropdown.Item>
+                                        <Dropdown.Divider />
+                                        <Dropdown.Item as={Link} to="/pedidos">
+                                            Mis Pedidos
+                                        </Dropdown.Item>
+                                        <Dropdown.Divider />
+                                    </>
+                                )}
                                 <Dropdown.Item onClick={handleLogout}>
                                     Cerrar Sesión
                                 </Dropdown.Item>

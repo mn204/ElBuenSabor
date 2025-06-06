@@ -15,8 +15,10 @@ interface AuthContextType {
     cliente: Cliente | null;
     empleado: Empleado | null;
     loading: boolean;
+    requiresGoogleRegistration: boolean;
     login: (email: string, password: string) => Promise<void>;
     logout: () => Promise<void>;
+    completeGoogleRegistration: () => void;
     isAuthenticated: boolean;
     hasRole: (roles: Rol[]) => boolean;
     getUserDisplayName: () => string;
@@ -34,12 +36,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const [cliente, setCliente] = useState<Cliente | null>(null);
     const [empleado, setEmpleado] = useState<Empleado | null>(null);
     const [loading, setLoading] = useState(true);
+    const [requiresGoogleRegistration, setRequiresGoogleRegistration] = useState(false);
 
     // Función para cargar datos del usuario desde el backend
     const loadUserData = async (firebaseUser: User) => {
         try {
+            setLoading(true);
             // Obtener datos del usuario desde el backend
             const usuarioData = await obtenerUsuarioPorFirebaseUid(firebaseUser.uid);
+            
+            if (!usuarioData || !usuarioData.id) {
+                throw new Error('Usuario no encontrado en el backend');
+            }
+            
             setUsuario(usuarioData);
 
             // Dependiendo del rol, cargar datos específicos
@@ -48,6 +57,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                     const clienteData = await obtenerClientePorUsuarioId(usuarioData.id);
                     setCliente(clienteData);
                     setEmpleado(null);
+                    setRequiresGoogleRegistration(false);
                 } catch (error) {
                     console.error('Error al cargar datos del cliente:', error);
                 }
@@ -57,16 +67,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                     const empleadoData = await obtenerEmpleadoPorUsuarioId(usuarioData.id);
                     setEmpleado(empleadoData);
                     setCliente(null);
+                    setRequiresGoogleRegistration(false);
                 } catch (error) {
                     console.error('Error al cargar datos del empleado:', error);
                 }
             }
         } catch (error) {
             console.error('Error al cargar datos del usuario:', error);
-            // Si hay error, limpiar todos los datos
-            setUsuario(null);
-            setCliente(null);
-            setEmpleado(null);
+            
+            // Si es un usuario de Google que no está en el backend, requerir registro
+            if (firebaseUser.providerData[0]?.providerId === 'google.com') {
+                console.log('Usuario de Google nuevo, requiere registro completo');
+                setRequiresGoogleRegistration(true);
+                setUsuario(null);
+                setCliente(null);
+                setEmpleado(null);
+            } else {
+                // Si hay error con usuario normal, limpiar todos los datos
+                setUsuario(null);
+                setCliente(null);
+                setEmpleado(null);
+            }
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -74,23 +97,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
             setUser(firebaseUser);
-
+            
             if (firebaseUser) {
                 await loadUserData(firebaseUser);
             } else {
                 setUsuario(null);
                 setCliente(null);
                 setEmpleado(null);
+                setRequiresGoogleRegistration(false);
+                setLoading(false);
             }
-
-            setLoading(false);
         });
 
         return () => unsubscribe();
     }, []);
 
     const login = async (email: string, password: string) => {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        await signInWithEmailAndPassword(auth, email, password);
         // loadUserData se ejecutará automáticamente por onAuthStateChanged
     };
 
@@ -99,6 +122,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUsuario(null);
         setCliente(null);
         setEmpleado(null);
+        setRequiresGoogleRegistration(false);
+    };
+
+    const completeGoogleRegistration = () => {
+        setRequiresGoogleRegistration(false);
+        // Recargar datos después del registro
+        if (user) {
+            loadUserData(user);
+        }
     };
 
     const hasRole = (roles: Rol[]): boolean => {
@@ -115,6 +147,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         if (usuario) {
             return usuario.email;
         }
+        if (user) {
+            return user.displayName || user.email || 'Usuario';
+        }
         return 'Usuario';
     };
 
@@ -124,8 +159,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         cliente,
         empleado,
         loading,
+        requiresGoogleRegistration,
         login,
         logout,
+        completeGoogleRegistration,
         isAuthenticated: !!user,
         hasRole,
         getUserDisplayName

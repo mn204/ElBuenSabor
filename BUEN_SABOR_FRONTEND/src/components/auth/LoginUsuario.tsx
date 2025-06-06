@@ -50,37 +50,27 @@ const LoginUsuario = ({ onRegisterClick , onClose}: Props) => {
     };
 
     const handleGoogleLogin = async () => {
+        setLoading(true);
+        setError(null);
+
         try {
             const result = await signInWithPopup(auth, googleProvider);
             const user = result.user;
 
-            console.log(JSON.stringify(user));
-           // const token = await user.getIdToken();
+            console.log("Usuario Google logueado:", user);
 
-            //verificamos el cliente en el backend
-           // const res = await fetch(`http://localhost:8080/auth/cliente/uid/${user.uid}`, {
-            //    headers: { Authorization: `Bearer ${token}` }
-           // });
+            // El AuthContext se encargará de detectar si necesita registro o no
+            // Si necesita registro, el App.tsx mostrará el modal automáticamente
 
-            if (false) {
-             //   const cliente = await res.json();
-               // console.log("Cliente ya existe:", cliente);
-                localStorage.removeItem('requiresGoogleRegistration');
-                // Redirigir al home o dashboard si querés
-            } else if (true) {
-                console.log("Cliente nuevo, redirigir a formulario");
-                localStorage.setItem('requiresGoogleRegistration', 'true');
-                window.location.href = "/";
-                // App.tsx se encargará de mostrar el modal
-            } else {
-                throw new Error("Error al verificar el cliente");
-            }
-
+            if (onClose) onClose();
         } catch (err: any) {
             console.error("Error con Google login", err);
             setError("Error al iniciar sesión con Google");
+        } finally {
+            setLoading(false);
         }
     };
+
     const handlePasswordReset = async () => {
         if (!email || !confirmEmail) {
             setError("Por favor completá ambos campos.");
@@ -152,21 +142,23 @@ const LoginUsuario = ({ onRegisterClick , onClose}: Props) => {
 
 
                     <button
-                type="button"
-                className="btn btn-outline-dark w-100 mb-2"
-                onClick={handleGoogleLogin}
-            >
-                <img
-                    src="https://developers.google.com/identity/images/g-logo.png"
-                    alt="Google"
-                    width="20"
-                    className="me-2"
-                />
-                Ingresa con Google
-            </button>
+                        type="button"
+                        className="btn btn-outline-dark w-100 mb-2"
+                        onClick={handleGoogleLogin}
+                        disabled={loading}
+                    >
+                        <img
+                            src="https://developers.google.com/identity/images/g-logo.png"
+                            alt="Google"
+                            width="20"
+                            className="me-2"
+                        />
+                        {loading ? "Conectando..." : "Continuar con Google"}
+                    </button>
 
-            {error && <div className="text-danger text-center mt-2">{error}</div>}
-            {message && <div className="text-success text-center mt-2">{message}</div>}
+
+                    {error && <div className="text-danger text-center mt-2">{error}</div>}
+                    {message && <div className="text-success text-center mt-2">{message}</div>}
                     <div className="text-center mt-2">
                         <Button variant="link" size="sm" onClick={() => setStep(2)}>
                             ¿Olvidaste tu contraseña?
