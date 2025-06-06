@@ -1,8 +1,8 @@
 import {useEffect, useState} from "react";
 import { Button, Form } from "react-bootstrap";
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { createUserWithEmailAndPassword,updateProfile, signOut, signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "./firebase";
-import  Rol  from "../../models/enums/Rol.ts"; // ajusta este import según tu estructura
+import  Rol  from "../../models/enums/Rol.ts";
 import type Empleado from "../../models/Empleado.ts";
 import type Pais from "../../models/Pais.ts";
 import type Provincia from "../../models/Provincia.ts";
@@ -11,6 +11,8 @@ import {obtenerLocalidades, obtenerPaises, obtenerProvincias} from "../../servic
 import {Eye, EyeSlash} from "react-bootstrap-icons";
 import {obtenerUsuarioPorDni, obtenerUsuarioPorEmail} from "../../services/UsuarioService.ts"; // Ajustá según tu estructura
 import {registrarEmpleado} from "../../services/EmpleadoService.ts";
+import { useAuth } from "../../context/AuthContext";
+
 
 const RegisterEmpleado = () => {
     const [showPassword, setShowPassword] = useState(false);
@@ -19,6 +21,7 @@ const RegisterEmpleado = () => {
     const [formError, setFormError] = useState<string | null>(null);
     const [emailError, setEmailError] = useState<string | null>(null);
     const [dniError, setDniError] = useState<string | null>(null);
+    const { user: currentUser } = useAuth();
 
     // Campos
     const [nombre, setNombre] = useState("");
@@ -163,6 +166,16 @@ const RegisterEmpleado = () => {
         setLoading(true);
         setFormError(null);
 
+        // Guardar datos del admin actual
+        const adminEmail = currentUser?.email;
+        const adminPassword = prompt("Por favor, ingresa tu contraseña de administrador para continuar:");
+
+        if (!adminPassword) {
+            setFormError("Se requiere la contraseña del administrador para crear el empleado.");
+            setLoading(false);
+            return;
+        }
+
 
         try {
             const usuarioPorEmail = await obtenerUsuarioPorEmail(email);
@@ -214,7 +227,7 @@ const RegisterEmpleado = () => {
                     firebaseUid: userCredential.user.uid,
                     rol: rolEmpleado,
                     dni: dni.toString(),
-                    providerId: userCredential.user.providerData[0].providerId,
+                    providerId: userCredential.user.providerData[0].providerId || "password",
                     eliminado: false
                 },
                 pedidos: [] // si tu clase no lo requiere aún, podés omitir este campo
@@ -231,16 +244,48 @@ const RegisterEmpleado = () => {
 
             if (!response.ok) throw new Error("Error al registrar empleado en el backend");
 
+            await signOut(auth);
+
+            // Esperar un momento y luego re-loguear al admin
+            setTimeout(async () => {
+                try {
+                    if (adminEmail) {
+                        await signInWithEmailAndPassword(auth, adminEmail, adminPassword);
+                        console.log("Sesión de administrador restaurada")
+                        window.location.href = "/admin/nuevo-empleado";
+                    }
+                } catch (error) {
+                    console.error("Error al restaurar sesión del admin:", error);
+                    alert("Empleado creado exitosamente, pero hubo un problema al restaurar tu sesión. Por favor, inicia sesión nuevamente.");
+                }
+            }, 500);
 
 
-            alert("Registro exitoso!");
+            alert("¡Empleado registrado exitosamente!");
+            setNombre("");
+            setApellido("");
+            setEmail("");
+            setContrasena("");
+            setConfirmarContrasena("");
+            setDni("");
+            setFechaNacimiento("");
+            setTelefono("");
+            setPais("");
+            setProvincia("");
+            setLocalidadId(undefined);
+            setCodigoPostal("");
+            setCalle("");
+            setNumero("");
+            setPiso("");
+            setDepartamento("");
+            setDetalles("");
 
         } catch (error: any) {
             console.error("Error al registrar:", error);
 
             // Eliminar usuario si ya fue creado pero el backend no estaba corriendo
             const currentUser = auth.currentUser;
-            if (currentUser) {
+            if (currentUser && currentUser.email !== adminEmail) {
                 try {
                     await currentUser.delete();
                     console.log("Usuario Firebase eliminado por error en el proceso.");
@@ -249,7 +294,18 @@ const RegisterEmpleado = () => {
                 }
             }
 
-            alert(error.message || "Error desconocido durante el registro.");
+            // Intentar restaurar sesión del admin en caso de error
+            if (adminEmail && adminPassword) {
+                try {
+                    await signInWithEmailAndPassword(auth, adminEmail, adminPassword);
+                } catch (restoreError) {
+                    console.error("Error al restaurar sesión:", restoreError);
+                }
+            }
+
+            setFormError(error.message || "Error desconocido durante el registro.");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -268,6 +324,7 @@ const RegisterEmpleado = () => {
                                 value={nombre}
                                 onChange={(e) => setNombre(e.target.value)}
                                 disabled={loading}
+                                required
                             />
                         </Form.Group>
 
@@ -278,6 +335,7 @@ const RegisterEmpleado = () => {
                                 value={apellido}
                                 onChange={(e) => setApellido(e.target.value)}
                                 disabled={loading}
+                                required
                             />
                         </Form.Group>
 
@@ -289,6 +347,7 @@ const RegisterEmpleado = () => {
                                 onChange={handleEmailChange}
                                 isInvalid={!!emailError}
                                 disabled={loading}
+                                required
                             />
                             <Form.Control.Feedback type="invalid">
                                 {emailError}
@@ -303,6 +362,7 @@ const RegisterEmpleado = () => {
                                     value={contrasena}
                                     onChange={(e) => setContrasena(e.target.value)}
                                     disabled={loading}
+                                    required
                                 />
                                 <Button
                                     variant="outline-secondary"
@@ -325,6 +385,7 @@ const RegisterEmpleado = () => {
                                     value={confirmarContrasena}
                                     onChange={(e) => setConfirmarContrasena(e.target.value)}
                                     disabled={loading}
+                                    required
                                 />
                                 <Button
                                     variant="outline-secondary"
@@ -344,6 +405,7 @@ const RegisterEmpleado = () => {
                                 onChange={handleDniChange}
                                 isInvalid={!!dniError}
                                 disabled={loading}
+                                required
                             />
                             <Form.Control.Feedback type="invalid">
                                 {dniError}
@@ -359,6 +421,7 @@ const RegisterEmpleado = () => {
                                     onChange={(e) => setFechaNacimiento(e.target.value)}
                                     max={new Date().toISOString().split("T")[0]}
                                     disabled={loading}
+                                    required
                                 />
                             </div>
                         </Form.Group>
@@ -371,6 +434,7 @@ const RegisterEmpleado = () => {
                                 value={telefono}
                                 onChange={handleTelefonoChange}
                                 disabled={loading}
+                                required
                             />
                         </Form.Group>
 
@@ -396,7 +460,10 @@ const RegisterEmpleado = () => {
                                 setPais(e.target.value);
                                 setProvincia("");
                                 setLocalidadId(undefined);  // ✅ importante
-                            }}>
+                                }
+                            }
+                         required
+                        >
                                 <option value="">Seleccioná un país...</option>
                                 {paises.map(p => (
                                     <option key={p.id} value={p.nombre}>{p.nombre}</option>
@@ -408,7 +475,9 @@ const RegisterEmpleado = () => {
                             <Form.Select value={provincia} onChange={e => {
                                 setProvincia(e.target.value);
                                 setLocalidadId(undefined);  // ✅ importante
-                            }}>
+                            }}
+                         required
+                        >
                                 <option value="">Seleccioná una provincia...</option>
                                 {provinciasFiltradas.map(p => (
                                     <option key={p.id} value={p.nombre}>{p.nombre}</option>
@@ -439,6 +508,7 @@ const RegisterEmpleado = () => {
                                 value={codigoPostal}
                                 onChange={(e) => setCodigoPostal(e.target.value)}
                                 disabled={loading}
+                                required
                             />
                         </Form.Group>
 
@@ -449,6 +519,7 @@ const RegisterEmpleado = () => {
                                 value={calle}
                                 onChange={(e) => setCalle(e.target.value)}
                                 disabled={loading}
+                                required
                             />
                         </Form.Group>
 
@@ -459,6 +530,7 @@ const RegisterEmpleado = () => {
                                 value={numero}
                                 onChange={handleNumeroChange}
                                 disabled={loading}
+                                required
                             />
                             <Form.Control
                                 type="text"
@@ -473,16 +545,18 @@ const RegisterEmpleado = () => {
                                 value={departamento}
                                 onChange={(e) => setDepartamento(e.target.value)}
                                 disabled={loading}
+                                required
                             />
                         </div>
 
                         <Form.Group controlId="detalles" className="mb-2">
                             <Form.Control
                                 type="text"
-                                placeholder="Detalles Direccion"
+                                placeholder="Detalles adicionales de la dirección"
                                 value={detalles}
                                 onChange={(e) => setDetalles(e.target.value)}
                                 disabled={loading}
+                                required
                             />
                         </Form.Group>
 
@@ -492,7 +566,7 @@ const RegisterEmpleado = () => {
                                 onClick={handleRegister}
                                 disabled={loading}
                             >
-                                {loading ? "Registrando..." : "Registrarse"}
+                                {loading ? "Registrando..." : "Registrar Nuevo Empleado"}
                             </Button>
                         </div>
                     </>

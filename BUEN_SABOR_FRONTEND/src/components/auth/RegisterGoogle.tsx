@@ -12,8 +12,6 @@ import {registrarCliente} from "../../services/ClienteService.ts";
 import {useAuth} from "../../context/AuthContext.tsx";
 
 
-
-
 const RegisterGoogle = ({ onFinish }: { onFinish: () => void }) => {
 
     const [loading, setLoading] = useState(false);
@@ -33,7 +31,7 @@ const RegisterGoogle = ({ onFinish }: { onFinish: () => void }) => {
     const [provincias, setProvincias] = useState<Provincia[]>([]);
     const [localidades, setLocalidades] = useState<Localidad[]>([]);
 
-    const { completeGoogleRegistration } = useAuth();
+    const { completeGoogleRegistration,logout } = useAuth();
 
     // Provincias filtradas por país seleccionado
     const provinciasFiltradas = provincias.filter(p => p.pais.nombre === pais);
@@ -103,6 +101,14 @@ const RegisterGoogle = ({ onFinish }: { onFinish: () => void }) => {
         const value = e.target.value;
         if (/^\d*$/.test(value)) {
             setPiso(value);
+        }
+    };
+
+    const handleLogout = async () => {
+        try {
+            await logout();
+        } catch (error) {
+            console.error('Error al cerrar sesión:', error);
         }
     };
 
@@ -193,7 +199,14 @@ const RegisterGoogle = ({ onFinish }: { onFinish: () => void }) => {
 
     return (
         <div className="p-4">
-            <h3 className="text-center fw-bold">Finaliza el Registro!</h3>
+            <div>
+                <div className="d-flex justify-content-end mb-3">
+                    <Button variant="outline-danger" onClick={handleLogout}>
+                        Cerrar sesión
+                    </Button>
+                </div>
+                <h3 className="text-center fw-bold">Finaliza el Registro!</h3>
+            </div>
             <p className="text-center text-muted mb-4">
                 Para continuar, necesitamos algunos datos adicionales
             </p>
@@ -245,6 +258,7 @@ const RegisterGoogle = ({ onFinish }: { onFinish: () => void }) => {
                                 onChange={(e) => setFechaNacimiento(e.target.value)}
                                 max={new Date().toISOString().split("T")[0]}
                                 disabled={loading}
+                                required
                             />
                         </div>
                     </Form.Group>
@@ -257,6 +271,7 @@ const RegisterGoogle = ({ onFinish }: { onFinish: () => void }) => {
                             value={telefono}
                             onChange={handleTelefonoChange}
                             disabled={loading}
+                            required
                         />
                     </Form.Group>
 
@@ -286,7 +301,8 @@ const RegisterGoogle = ({ onFinish }: { onFinish: () => void }) => {
                     </Form.Group>
 
                     <Form.Group controlId="localidad" className="mb-2">
-                        <Form.Select value={localidadId} onChange={e => setLocalidadId(parseInt(e.target.value))} disabled={!localidadesFiltradas.length}>
+                        <Form.Select value={localidadId} onChange={e => setLocalidadId(parseInt(e.target.value))} disabled={!localidadesFiltradas.length}
+                        required>
                             <option value="">Seleccioná una localidad...</option>
                             {localidadesFiltradas.map(l => (
                                 <option key={l.id} value={l.id}>{l.nombre}</option>
@@ -301,7 +317,7 @@ const RegisterGoogle = ({ onFinish }: { onFinish: () => void }) => {
                             value={codigoPostal}
                             onChange={(e) => setCodigoPostal(e.target.value)}
                             disabled={loading}
-
+                            required
                         />
                     </Form.Group>
 
@@ -312,7 +328,7 @@ const RegisterGoogle = ({ onFinish }: { onFinish: () => void }) => {
                             value={calle}
                             onChange={(e) => setCalle(e.target.value)}
                             disabled={loading}
-
+                            required
                         />
                     </Form.Group>
 
@@ -323,6 +339,7 @@ const RegisterGoogle = ({ onFinish }: { onFinish: () => void }) => {
                             value={numero}
                             onChange={handleNumeroChange}
                             disabled={loading}
+                            required
                         />
                         <Form.Control
                             type="text"
@@ -330,6 +347,7 @@ const RegisterGoogle = ({ onFinish }: { onFinish: () => void }) => {
                             value={piso}
                             onChange={handlePisoChange}
                             disabled={loading}
+                            required
                         />
                         <Form.Control
                             type="text"
@@ -337,16 +355,18 @@ const RegisterGoogle = ({ onFinish }: { onFinish: () => void }) => {
                             value={departamento}
                             onChange={(e) => setDepartamento(e.target.value)}
                             disabled={loading}
+                            required
                         />
                     </div>
 
                     <Form.Group controlId="detalles" className="mb-2">
                         <Form.Control
                             type="text"
-                            placeholder="Detalles Direccion"
+                            placeholder="Detalles adicionales de la dirección"
                             value={detalles}
                             onChange={(e) => setDetalles(e.target.value)}
                             disabled={loading}
+                            required
                         />
                     </Form.Group>
                     <div className="d-flex justify-content-center">

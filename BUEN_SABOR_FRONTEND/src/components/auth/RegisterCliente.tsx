@@ -1,6 +1,6 @@
 import {useEffect, useState} from "react";
 import {Button, Form} from "react-bootstrap";
-import {createUserWithEmailAndPassword, updateProfile} from "firebase/auth";
+import {createUserWithEmailAndPassword, updateProfile, signOut} from "firebase/auth";
 import {auth} from "./firebase";
 import type Cliente from "../../models/Cliente.ts";
 import Rol from "../../models/enums/Rol.ts";
@@ -259,8 +259,12 @@ const RegisterCliente = ({ onBackToLogin }: Props) => {
 
             if (!response.ok) throw new Error("Error al registrar cliente en el backend");
 
-            alert("Registro exitoso!");
+            // IMPORTANTE: Cerrar sesión del cliente recién creado
+            await signOut(auth);
+
+            alert("¡Registro exitoso! Ahora podés iniciar sesión con tu cuenta.");
             onBackToLogin(); // Vuelve al login
+
         } catch (error: any) {
             console.error("Error al registrar:", error);
 
@@ -295,6 +299,7 @@ const RegisterCliente = ({ onBackToLogin }: Props) => {
                                 value={nombre}
                                 onChange={(e) => setNombre(e.target.value)}
                                 disabled={loading}
+                                required
                             />
                         </Form.Group>
 
@@ -305,6 +310,7 @@ const RegisterCliente = ({ onBackToLogin }: Props) => {
                                 value={apellido}
                                 onChange={(e) => setApellido(e.target.value)}
                                 disabled={loading}
+                                required
                             />
                         </Form.Group>
 
@@ -316,6 +322,7 @@ const RegisterCliente = ({ onBackToLogin }: Props) => {
                                 onChange={handleEmailChange}
                                 isInvalid={!!emailError}
                                 disabled={loading}
+                                required
                             />
                             <Form.Control.Feedback type="invalid">
                                 {emailError}
@@ -384,6 +391,7 @@ const RegisterCliente = ({ onBackToLogin }: Props) => {
                                 onChange={handleDniChange}
                                 isInvalid={!!dniError}
                                 disabled={loading}
+                                required
                             />
                             <Form.Control.Feedback type="invalid">
                                 {dniError}
@@ -399,6 +407,7 @@ const RegisterCliente = ({ onBackToLogin }: Props) => {
                                     onChange={(e) => setFechaNacimiento(e.target.value)}
                                     max={new Date().toISOString().split("T")[0]}
                                     disabled={loading}
+                                    required
                                 />
                             </div>
                         </Form.Group>
@@ -412,6 +421,7 @@ const RegisterCliente = ({ onBackToLogin }: Props) => {
                                 value={telefono}
                                 onChange={handleTelefonoChange}
                                 disabled={loading}
+                                required
                             />
                         </Form.Group>
 
@@ -420,7 +430,9 @@ const RegisterCliente = ({ onBackToLogin }: Props) => {
                                 setPais(e.target.value);
                                 setProvincia("");
                                 setLocalidadId("");
-                            }}>
+                            }}
+                            required
+                            >
                                 <option value="">Seleccioná un país...</option>
                                 {paises.map(p => (
                                     <option key={p.id} value={p.nombre}>{p.nombre}</option>
@@ -441,7 +453,8 @@ const RegisterCliente = ({ onBackToLogin }: Props) => {
                         </Form.Group>
 
                         <Form.Group controlId="localidad" className="mb-2">
-                            <Form.Select value={localidadId} onChange={e => setLocalidadId(parseInt(e.target.value))} disabled={!localidadesFiltradas.length}>
+                            <Form.Select value={localidadId} onChange={e => setLocalidadId(parseInt(e.target.value))} disabled={!localidadesFiltradas.length}
+                            required>
                                 <option value="">Seleccioná una localidad...</option>
                                 {localidadesFiltradas.map(l => (
                                     <option key={l.id} value={l.id}>{l.nombre}</option>
@@ -456,6 +469,7 @@ const RegisterCliente = ({ onBackToLogin }: Props) => {
                                 value={codigoPostal}
                                 onChange={(e) => setCodigoPostal(e.target.value)}
                                 disabled={loading}
+                                required
                             />
                         </Form.Group>
 
@@ -466,6 +480,7 @@ const RegisterCliente = ({ onBackToLogin }: Props) => {
                                 value={calle}
                                 onChange={(e) => setCalle(e.target.value)}
                                 disabled={loading}
+                                required
                             />
                         </Form.Group>
 
@@ -476,6 +491,7 @@ const RegisterCliente = ({ onBackToLogin }: Props) => {
                                 value={numero}
                                 onChange={handleNumeroChange}
                                 disabled={loading}
+                                required
                             />
                             <Form.Control
                                 type="text"
@@ -483,6 +499,7 @@ const RegisterCliente = ({ onBackToLogin }: Props) => {
                                 value={piso}
                                 onChange={handlePisoChange}
                                 disabled={loading}
+                                required
                             />
                             <Form.Control
                                 type="text"
@@ -490,16 +507,19 @@ const RegisterCliente = ({ onBackToLogin }: Props) => {
                                 value={departamento}
                                 onChange={(e) => setDepartamento(e.target.value)}
                                 disabled={loading}
+                                required
                             />
                         </div>
 
                         <Form.Group controlId="detalles" className="mb-2">
                             <Form.Control
                                 type="text"
-                                placeholder="Detalles Direccion"
+                                placeholder="Detalles adicionales de la dirección
+"
                                 value={detalles}
                                 onChange={(e) => setDetalles(e.target.value)}
                                 disabled={loading}
+                                required
                             />
                         </Form.Group>
 
