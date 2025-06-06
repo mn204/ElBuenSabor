@@ -36,3 +36,11 @@ export const obtenerUsuarioPorFirebaseUid = async (uid: string): Promise<Usuario
         return null;
     }
 };
+// Obtener todos los usuarios
+export const obtenerUsuarios = async () => {
+    const response = await fetch(BASE_URL);
+    if (!response.ok) {
+        throw new Error('Error al obtener usuarios');
+    }
+    return response.json();
+};

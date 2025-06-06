@@ -2,20 +2,52 @@
 import { signInWithPopup, sendPasswordResetEmail } from "firebase/auth";
 import { auth, googleProvider } from "./firebase.ts"; // Asegurate de usar la ruta correcta
 import { useState } from "react";
-import { Form, Button } from "react-bootstrap";
+import {Form, Button, InputGroup} from "react-bootstrap";
+import {Eye, EyeSlash} from "react-bootstrap-icons";
+import { useAuth } from "../../context/AuthContext.tsx";
 
 // TODO boton de ver la contraseña
 interface Props {
     onRegisterClick: () => void;
+    onClose?: () => void;
 }
 
-const LoginUsuario = ({ onRegisterClick }: Props) => {
+const LoginUsuario = ({ onRegisterClick , onClose}: Props) => {
     const [step, setStep] = useState(1);
     const [email, setEmail] = useState("");
     const [confirmEmail, setConfirmEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [message, setMessage] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false)
+
+    const { login } = useAuth();
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (step !== 1) return;
+
+        if (!email || !password) {
+            setError("Por favor completá todos los campos.");
+            return;
+        }
+
+        setLoading(true);
+        setError(null);
+
+        try {
+            await login(email, password);
+            setMessage("¡Inicio de sesión exitoso!");
+            setTimeout(() => {
+                if (onClose) onClose();
+            }, 1000);
+        } catch (err: any) {
+            console.error("Error en login:", err);
+            setError("Credenciales incorrectas. Verificá tu email y contraseña.");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleGoogleLogin = async () => {
         try {
@@ -71,7 +103,7 @@ const LoginUsuario = ({ onRegisterClick }: Props) => {
     };
 
     return (
-        <Form>
+        <Form onSubmit={handleSubmit}>
             {step === 1 && (
                 <>
                 <Form.Group className="mb-3">
@@ -80,23 +112,46 @@ const LoginUsuario = ({ onRegisterClick }: Props) => {
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
+                        disabled={loading}
+                        required
                     />
                 </Form.Group>
 
-                <Form.Group className="mb-3">
-                    <Form.Label>Contraseña</Form.Label>
-                    <Form.Control
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                    />
-                </Form.Group>
+                    <Form.Group controlId="password" className="mb-3">
+                        <InputGroup>
+                            <Form.Control
+                                type={showPassword ? "text" : "password"}
+                                placeholder="Contraseña"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                                disabled={loading}
+                            />
+                            <Button
+                                variant="outline-secondary"
+                                onClick={() => setShowPassword(!showPassword)}
+                                tabIndex={-1}
+                                disabled={loading}
+                            >
+                                {showPassword ? <EyeSlash /> : <Eye />}
+                            </Button>
+                        </InputGroup>
+                    </Form.Group>
 
-                <Button type="submit" variant="dark" className="w-100 mb-2">
-                    Iniciar Sesión
-                </Button>
+                    {error && <div className="alert alert-danger">{error}</div>}
+                    {message && <div className="alert alert-success">{message}</div>}
 
-            <button
+                    <Button
+                        type="submit"
+                        variant="dark"
+                        className="w-100 mb-2"
+                        disabled={loading}
+                    >
+                        {loading ? "Iniciando sesión..." : "Iniciar Sesión"}
+                    </Button>
+
+
+                    <button
                 type="button"
                 className="btn btn-outline-dark w-100 mb-2"
                 onClick={handleGoogleLogin}

@@ -12,6 +12,7 @@ import java.util.Optional;
 
 @Repository
 public interface EmpleadoRepository extends MasterRepository<Empleado, Long> {
+    Optional<Empleado> findByUsuarioId(Long usuarioId);
 
 /*
     // Buscar por username haciendo join con UsuarioEmpleado

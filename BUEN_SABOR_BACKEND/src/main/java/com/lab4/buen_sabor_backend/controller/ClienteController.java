@@ -7,9 +7,8 @@ import com.lab4.buen_sabor_backend.service.ClienteService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/cliente")
@@ -36,5 +35,13 @@ public class ClienteController extends MasterControllerImpl<Cliente, ClienteDTO,
     @Override
     protected ClienteDTO toDTO(Cliente entity) {
         return clienteMapper.toDTO(entity);
+    }
+
+
+    @GetMapping("/usuario/{usuarioId}")
+    public ResponseEntity<Cliente> getByUsuarioId(@PathVariable Long usuarioId) {
+        return clienteService.findByUsuarioId(usuarioId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 }

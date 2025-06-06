@@ -18,35 +18,98 @@ import { Carrito } from './components/articulos/Carrito.tsx'
 import Busqueda from './components/articulos/Busqueda.tsx'
 import VistaArticulo from './components/articulos/VistaArticulo.tsx'
 import FormInsumos from './components/articulos/FormInsumos.tsx'
+import { AuthProvider } from './context/AuthContext.tsx'
+import ProtectedRoute from './context/ProtectedRoute.tsx'
+import Rol from './models/enums/Rol.ts'
 
 function App() {
-
   return (
-    <>
-        <Navbar/>
+      <AuthProvider>
+        <Navbar />
         <Routes>
+          {/* Rutas públicas */}
           <Route path="/" element={<Home />} />
           <Route path="/home" element={<Home />} />
-          <Route path="/perfil" element={<Perfil />} />
-          <Route path="/manufacturado" element={<FormArticuloManufacturado />} />
-          <Route path="/manufacturados" element={<GrillaArticuloManufacturado />} />
-          <Route path="/categorias" element={<GrillaCategorias />} />
-          <Route path="/articulos" element={<GrillaInsumos />} />
-          <Route path="/unidades" element={<GrillaUnidadMedida />} />
-          <Route path="/imagenes" element={<GrillaImagenArticulo />} />
-          <Route path="/historicocompra" element={<GrillaHistoricoCompra />} />
-          <Route path="/historicoventa" element={<GrillaHistoricoVenta />} />
-          <Route path="/categoria" element={<FormInsumos />} />
-          <Route path="/admin/nuevo-empleado/" element={<RegisterEmpleado/>} />
-          <Route path="/carrito" element={<Carrito />} />
           <Route path="/busqueda" element={<Busqueda />} />
           <Route path="/articulo/:id" element={<VistaArticulo />} />
+          {/* Rutas para clientes autenticados */}
+          <Route path="/perfil" element={
+            <ProtectedRoute requiredRoles={[Rol.CLIENTE, Rol.ADMIN, Rol.CAJERO, Rol.COCINERO, Rol.DELIVERY]}>
+              <Perfil />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/carrito" element={
+              <Carrito />
+          } />
+
+          {/* Rutas para empleados y administradores */}
+          <Route path="/manufacturado" element={
+            <ProtectedRoute requiredRoles={[Rol.ADMIN, Rol.COCINERO]}>
+              <FormArticuloManufacturado />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/manufacturados" element={
+            <ProtectedRoute requiredRoles={[Rol.ADMIN, Rol.COCINERO]}>
+              <GrillaArticuloManufacturado />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/categorias" element={
+            <ProtectedRoute requiredRoles={[Rol.ADMIN]}>
+              <GrillaCategorias />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/articulos" element={
+            <ProtectedRoute requiredRoles={[Rol.ADMIN, Rol.COCINERO]}>
+              <GrillaInsumos />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/unidades" element={
+            <ProtectedRoute requiredRoles={[Rol.ADMIN]}>
+              <GrillaUnidadMedida />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/imagenes" element={
+            <ProtectedRoute requiredRoles={[Rol.ADMIN]}>
+              <GrillaImagenArticulo />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/historicocompra" element={
+            <ProtectedRoute requiredRoles={[Rol.ADMIN, Rol.CAJERO]}>
+              <GrillaHistoricoCompra />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/historicoventa" element={
+            <ProtectedRoute requiredRoles={[Rol.ADMIN, Rol.CAJERO]}>
+              <GrillaHistoricoVenta />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/categoria" element={
+            <ProtectedRoute requiredRoles={[Rol.ADMIN]}>
+              <FormInsumos />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/admin/nuevo-empleado/" element={
+            <ProtectedRoute requiredRoles={[Rol.ADMIN]}>
+              <RegisterEmpleado />
+            </ProtectedRoute>
+          } />
+
 
         </Routes>
-        <Footer/>
-
-    </>
-  )
+        <Footer />
+      </AuthProvider>
+  );
 }
+
 
 export default App

@@ -2,14 +2,14 @@ package com.lab4.buen_sabor_backend.controller;
 
 import com.lab4.buen_sabor_backend.dto.EmpleadoDTO;
 import com.lab4.buen_sabor_backend.mapper.EmpleadoMapper;
+import com.lab4.buen_sabor_backend.model.Cliente;
 import com.lab4.buen_sabor_backend.model.Empleado;
 import com.lab4.buen_sabor_backend.service.EmpleadoService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/empleado")
@@ -36,5 +36,13 @@ public class EmpleadoController extends MasterControllerImpl<Empleado, EmpleadoD
     @Override
     protected EmpleadoDTO toDTO(Empleado entity) {
         return empleadoMapper.toDTO(entity);
+    }
+
+
+    @GetMapping("/usuario/{usuarioId}")
+    public ResponseEntity<Empleado> getByUsuarioId(@PathVariable Long usuarioId) {
+        return empleadoService.findByUsuarioId(usuarioId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 }
