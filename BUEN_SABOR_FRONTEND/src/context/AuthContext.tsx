@@ -1,5 +1,7 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import type { ReactNode } from 'react';
+import type { User } from 'firebase/auth';
+import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { auth } from '../components/auth/firebase';
 import Usuario from '../models/Usuario';
 import Cliente from '../models/Cliente';
@@ -13,7 +15,9 @@ interface AuthContextType {
     user: User | null;
     usuario: Usuario | null;
     cliente: Cliente | null;
+    setCliente: (cliente: Cliente | null) => void;
     empleado: Empleado | null;
+    setEmpleado: (empleado: Empleado | null) => void;
     loading: boolean;
     requiresGoogleRegistration: boolean;
     login: (email: string, password: string) => Promise<void>;
@@ -44,11 +48,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             setLoading(true);
             // Obtener datos del usuario desde el backend
             const usuarioData = await obtenerUsuarioPorFirebaseUid(firebaseUser.uid);
-            
+
             if (!usuarioData || !usuarioData.id) {
                 throw new Error('Usuario no encontrado en el backend');
             }
-            
+
             setUsuario(usuarioData);
 
             // Dependiendo del rol, cargar datos específicos
@@ -74,7 +78,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             }
         } catch (error) {
             console.error('Error al cargar datos del usuario:', error);
-            
+
             // Si es un usuario de Google que no está en el backend, requerir registro
             if (firebaseUser.providerData[0]?.providerId === 'google.com') {
                 console.log('Usuario de Google nuevo, requiere registro completo');
@@ -97,7 +101,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
             setUser(firebaseUser);
-            
+
             if (firebaseUser) {
                 await loadUserData(firebaseUser);
             } else {
@@ -157,7 +161,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         user,
         usuario,
         cliente,
+        setCliente,
         empleado,
+        setEmpleado,
         loading,
         requiresGoogleRegistration,
         login,

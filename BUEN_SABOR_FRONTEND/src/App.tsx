@@ -27,6 +27,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 
 import RegisterGoogle from "./components/auth/RegisterGoogle.tsx";
 import PanelAdmin from "./components/empleados/PanelAdmin.tsx";
+import Domicilios from "./components/clientes/Domicilios.tsx";
 
 function AppContent() {
   const { requiresGoogleRegistration, completeGoogleRegistration } = useAuth();
@@ -49,6 +50,12 @@ function AppContent() {
           <Route path="/perfil" element={
             <ProtectedRoute requiredRoles={[Rol.CLIENTE, Rol.ADMIN, Rol.CAJERO, Rol.COCINERO, Rol.DELIVERY]}>
               <Perfil />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/domicilios" element={
+            <ProtectedRoute requiredRoles={[Rol.CLIENTE]}>
+             <Domicilios />
             </ProtectedRoute>
           } />
 

@@ -198,3 +198,8 @@ nav .homeNav{
     top: 16px;
     filter: invert(1);
 }
+@media screen and (max-width: 768px) {
+    #dropdown-user span {
+        display: none !important;
+    }
+}

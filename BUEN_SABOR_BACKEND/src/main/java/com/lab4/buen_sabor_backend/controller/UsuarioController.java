@@ -3,6 +3,7 @@ package com.lab4.buen_sabor_backend.controller;
 import com.lab4.buen_sabor_backend.dto.UsuarioDTO;
 import com.lab4.buen_sabor_backend.mapper.UsuarioMapper;
 import com.lab4.buen_sabor_backend.model.Usuario;
+import com.lab4.buen_sabor_backend.service.FirebaseUserService;
 import com.lab4.buen_sabor_backend.service.UsuarioService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,4 +60,21 @@ public class UsuarioController extends MasterControllerImpl<Usuario, UsuarioDTO,
     protected UsuarioDTO toDTO(Usuario entity) {
         return usuarioMapper.toDTO(entity);
     }
+
+    @Autowired
+    private FirebaseUserService firebaseUserService;
+
+    @PutMapping("/{uid}/email")
+    public String actualizarEmail(
+            @PathVariable String uid,
+            @RequestParam String nuevoEmail
+    ) {
+        try {
+            firebaseUserService.actualizarEmail(uid, nuevoEmail);
+            return "Email actualizado correctamente en Firebase";
+        } catch (Exception e) {
+            return "Error al actualizar email: " + e.getMessage();
+        }
+    }
+
 }

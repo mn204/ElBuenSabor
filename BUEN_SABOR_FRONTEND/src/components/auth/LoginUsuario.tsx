@@ -6,7 +6,6 @@ import {Form, Button, InputGroup} from "react-bootstrap";
 import {Eye, EyeSlash} from "react-bootstrap-icons";
 import { useAuth } from "../../context/AuthContext.tsx";
 
-// TODO boton de ver la contraseña
 interface Props {
     onRegisterClick: () => void;
     onClose?: () => void;

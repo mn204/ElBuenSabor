@@ -67,3 +67,44 @@ export const actualizarDatosUsuario = async (id: number, datosActualizados: Usua
         return null;
     }
 };
+// Actualizar email por Firebase UID
+export const actualizarEmailPorFirebaseUid = async (firebaseUid: string, nuevoEmail: string): Promise<boolean> => {
+    try {
+        const response = await fetch(`${BASE_URL}/${firebaseUid}/email?nuevoEmail=${encodeURIComponent(nuevoEmail)}`, {
+            method: "PUT"
+        });
+
+        return response.ok;
+    } catch (error) {
+        console.error("Error al actualizar el email:", error);
+        return false;
+    }
+};
+
+// Actualizar usuario con nuevo email (en base al ID)
+export const actualizarEmailEnUsuario = async (usuario: Usuario, nuevoEmail: string): Promise<Usuario | null> => {
+    try {
+        const usuarioActualizado = {
+            ...usuario,
+            email: nuevoEmail,
+        };
+
+        const response = await fetch(`${BASE_URL}/${usuario.id}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(usuarioActualizado),
+        });
+
+        if (!response.ok) {
+            console.error("Error al actualizar el email en el usuario:", response.statusText);
+            return null;
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error("Error al actualizar email:", error);
+        return null;
+    }
+};

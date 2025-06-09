@@ -31,3 +31,26 @@ export const obtenerClientePorId = async (id: number) => {
     }
     return response.json();
 };
+
+export const actualizarCliente = async (id: number, cliente: Cliente): Promise<Cliente | null> => {
+    try {
+        const response = await fetch(`http://localhost:8080/api/cliente/${id}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(cliente),
+        });
+
+        if (!response.ok) {
+            console.error("Error al actualizar el cliente:", response.statusText);
+            return null;
+        }
+
+        const clienteActualizado: Cliente = await response.json();
+        return clienteActualizado;
+    } catch (error) {
+        console.error("Error en la solicitud PUT:", error);
+        return null;
+    }
+};
