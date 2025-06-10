@@ -34,7 +34,7 @@ export const obtenerClientePorId = async (id: number) => {
 
 export const actualizarCliente = async (id: number, cliente: Cliente): Promise<Cliente | null> => {
     try {
-        const response = await fetch(`http://localhost:8080/api/cliente/${id}`, {
+        const response = await fetch(`${API_URL}/${id}`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",

@@ -13,7 +13,6 @@ import GrillaUnidadMedida from "./components/articulos/GrillaUnidadMedida";
 import GrillaImagenArticulo from "./components/articulos/GrillaImagenArticulo";
 import GrillaHistoricoCompra from "./components/articulos/GrillaHistoricoCompra";
 import GrillaHistoricoVenta from "./components/articulos/GrillaHistoricoVenta";
-import FormCategoria from './components/articulos/FormCategoria'
 import RegisterEmpleado from "./components/auth/RegisterEmpleado.tsx";
 import { Carrito } from './components/articulos/Carrito.tsx'
 import Busqueda from './components/articulos/Busqueda.tsx'
@@ -27,10 +26,10 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 
 import RegisterGoogle from "./components/auth/RegisterGoogle.tsx";
 import PanelAdmin from "./components/empleados/PanelAdmin.tsx";
-import Domicilios from "./components/clientes/Domicilios.tsx";
+import DomiciliosCliente from "./components/clientes/DomiciliosCliente.tsx";
 
 function AppContent() {
-  const { requiresGoogleRegistration, completeGoogleRegistration } = useAuth();
+  const { requiresGoogleRegistration, completeGoogleRegistration, isAuthenticated, usuario } = useAuth();
 
   const handleGoogleRegistrationFinish = () => {
     completeGoogleRegistration();
@@ -55,7 +54,7 @@ function AppContent() {
 
           <Route path="/domicilios" element={
             <ProtectedRoute requiredRoles={[Rol.CLIENTE]}>
-             <Domicilios />
+              <DomiciliosCliente />
             </ProtectedRoute>
           } />
 
@@ -130,7 +129,8 @@ function AppContent() {
             </ProtectedRoute>
           } />
         </Routes>
-        <Footer />
+        {(!isAuthenticated || usuario?.rol === "CLIENTE") && (
+        <Footer />)}
 
         {/* Modal obligatorio para completar registro de Google */}
         <Modal

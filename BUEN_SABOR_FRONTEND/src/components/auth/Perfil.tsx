@@ -12,14 +12,11 @@ import {Button, Col, Container, Form, Modal, Row} from "react-bootstrap";
 import {useState} from "react";
 import FormDatosCliente from "../clientes/FormDatosCliente.tsx";
 import FormDatosEmpleado from "../empleados/FormDatosEmpleado.tsx";
-//TODO implementar el apartado de domicilios de los clientes
-
 
 function Perfil() {
 
     const [showEmailModal, setShowEmailModal] = useState(false);
     const [showImagenModal, setShowImagenModal] = useState(false);
-    const [showDatosModal, setShowDatosModal] = useState(false);
     const [showFormDatos, setShowFormDatos] = useState(false);
 
     const [nuevaImagen, setNuevaImagen] = useState<File | null>(null);
@@ -30,8 +27,7 @@ function Perfil() {
     const handleAbrirModalEmail = () => setShowEmailModal(true);
     const handleCerrarModalEmail = () => setShowEmailModal(false);
 
-    const handleAbrirModalDatos = () => setShowDatosModal(true);
-    const handleCerrarModalDatos = () => setShowDatosModal(false);
+
 
     const [newEmail1, setNewEmail1] = useState('');
     const [newEmail2, setNewEmail2] = useState('');
@@ -52,6 +48,7 @@ function Perfil() {
     const apellido = esEmpleado ? empleado?.apellido : cliente?.apellido;
     const telefono = esEmpleado ? empleado?.telefono : cliente?.telefono;
     const fechaNacimiento = esEmpleado ? empleado?.fechaNacimiento : cliente?.fechaNacimiento;
+    // @ts-ignore
     const fechaFormateada = fechaNacimiento?.split('-').reverse().join('/');
     const dni = usuario?.dni;
     const email = usuario?.email;

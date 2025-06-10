@@ -7,7 +7,7 @@ export default class Domicilio {
     codigoPostal: string = "";
     localidad?: Localidad;
     piso?: string;
-    departamento!: string;
+    nroDepartamento!: string;
     detalles?: string;
     eliminado!: boolean;
 }
