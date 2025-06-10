@@ -54,6 +54,17 @@ insert  into `usuario`(`id`,`eliminado`,`dni`,`email`,`firebase_uid`,`photo_url`
 
 -- DOMICILIO (al menos 4)
 insert  into `domicilio`(`id`,`eliminado`,`calle`,`codigo_postal`,`detalles`,`nro_departamento`,`numero`,`piso`,`localidad_id`) values (1,'\0','Baez',5500,'detalles','23',209,'1',3),(2,'\0','Lar',5503,'depto','',122,'',2),(3,'\0','San Martín',5515,'casa',NULL,154,NULL,5),(4,'\0','Belgrano',5501,NULL,'B',301,'3',7),(5,'\0','Peru',5500,'Casa',NULL,123,'',1),(6,'\0','Chile',5500,'Casa',NULL,209,'',1),(7,'\0','Mitre',5500,'Depto','26',300,'1',1),(8,'\0','Massa',5508,'Casa vieja',NULL,232,'',4),(9,'\0','Rivadavia',5502,'Depto',NULL,208,'1',2);
+-- Insertar el domicilio para la sucursal (usando id 10 como se especificó)
+-- Asegúrate de que la `localidad_id` exista en tu tabla `localidad`
+INSERT INTO `domicilio` (`id`, `eliminado`, `calle`, `codigo_postal`, `detalles`, `nro_departamento`, `numero`, `piso`, `localidad_id`) VALUES
+    (10, b'0', 'Av. Libertador', 5500, 'Frente a la plaza', NULL, 1234, NULL, 1); -- Reemplaza 1 con un ID de localidad válido
+-- Insertar la empresa 'El Buen Sabor'
+INSERT INTO `empresa` (`id`, `eliminado`, `cuil`, `nombre`, `razon_social`) VALUES
+    (1, b'0', 20304050607, 'El Buen Sabor', 'El Buen Sabor S.A.');
+
+-- Insertar la sucursal para 'El Buen Sabor'
+INSERT INTO `sucursal` (`id`, `eliminado`, `casa_matriz`, `horario_apertura`, `horario_cierre`, `nombre`, `domicilio_id`, `empresa_id`) VALUES
+    (1, b'0', b'1', '20:00:00', '00:00:00', 'Casa Central', 9, 1);
 
 -- EMPLEADO
 INSERT INTO EMPLEADO VALUES
