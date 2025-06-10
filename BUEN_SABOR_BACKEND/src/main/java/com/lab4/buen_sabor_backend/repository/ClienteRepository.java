@@ -12,6 +12,9 @@ import java.util.Optional;
 
 @Repository
 public interface ClienteRepository extends MasterRepository<Cliente, Long> {
+
+    Optional<Cliente> findByUsuarioId(Long usuarioId);
+
 /*
     // Buscar cliente por email, haciendo join con UsuarioCliente
     @Query("SELECT c FROM Cliente c WHERE c.usuarioCliente.email = :email AND c.eliminado = false")

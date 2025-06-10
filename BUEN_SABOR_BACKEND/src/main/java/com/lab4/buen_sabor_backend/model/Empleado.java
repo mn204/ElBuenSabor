@@ -19,15 +19,8 @@ public class Empleado extends Master{
     private String nombre;
     private String apellido;
     private String telefono;
-    private String email;
     private LocalDate fechaNacimiento;
-    private Integer dni;
 
-
-    // Relación 1:1 con ImagenEmpleado
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "imagen_empleado_id")
-    private ImagenUsuario imagenEmpleado;
 
     // Relación 1:1 con UsuarioEmpleado
     @OneToOne(cascade = CascadeType.ALL)
@@ -35,7 +28,7 @@ public class Empleado extends Master{
     private Usuario usuario;
 
     // Relación ManyToOne con Domicilio
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "domicilio_id")
     private Domicilio domicilio;
 

@@ -19,6 +19,14 @@ public class Usuario extends Master {
     @Column(nullable = false, unique = true)
     private String firebaseUid;
 
+    @Column(unique = true)
+    private String dni;
+
+
     @Enumerated(EnumType.STRING)
     private Rol rol; // CLIENTE, ADMINISTRADOR, COCINERO, etc.
+
+    private String providerId;
+
+    private String photoUrl;
 }
