@@ -1,7 +1,6 @@
 import DetallePromocion from "./DetallePromocion";
 import type  TipoPromocion from "./enums/TipoPromocion";
-import Imagen from "./ImagenPromocion";
-
+import type ImagenPromocion from "./ImagenPromocion";
 export default class Promocion {
     id?: number;
     denominacion: string = "";
@@ -11,8 +10,8 @@ export default class Promocion {
     horaHasta: Date = new Date();
     descripcionDescuento: string = "";
     precioPromocional: number = 0;
-    tipo!: TipoPromocion;
-    imagenes: Imagen[] = [];
+    tipoPromocion!: TipoPromocion;
+    imagenes: ImagenPromocion[] = [];
     detalle: DetallePromocion[] = [];
     activa: boolean = false;
     eliminado!: boolean;

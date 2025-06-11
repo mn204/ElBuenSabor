@@ -12,9 +12,9 @@ import java.util.*;
 @AllArgsConstructor
 public class SucursalInsumo extends Master {
 
-    private Integer stockMinimo;
-    private Integer stockActual;
-    private Integer stockMaximo;
+    private Double stockMinimo;
+    private Double stockActual;
+    private Double stockMaximo;
 
     @ManyToOne
     @JoinColumn(name = "sucursal_id")

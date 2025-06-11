@@ -1,11 +1,10 @@
-import Existencia from "./Existencia";
-import ArticuloInsumo from "./ArticuloInsumo";
+import type Sucursal from "./Sucursal";
 
 export default class SucursalInsumo {
     id?: number;
     stockMinimo: number = 0;
     stockMaximo: number = 0;
-    existencias: Existencia[] = [];
-    articulosInsumo: ArticuloInsumo[] = [];
+    stockActual: number = 0;
+    sucursal!: Sucursal;
     eliminado!: boolean;
 }

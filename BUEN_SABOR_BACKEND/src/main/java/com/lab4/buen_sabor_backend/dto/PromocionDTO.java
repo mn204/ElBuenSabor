@@ -20,6 +20,7 @@ public class PromocionDTO extends MasterDTO {
     private String descripcionDescuento;
     private Double precioPromocional;
     private TipoPromocion tipoPromocion;
+    private Boolean activa;
 
     private Set<SucursalDTO> sucursales = new HashSet<>();
 
