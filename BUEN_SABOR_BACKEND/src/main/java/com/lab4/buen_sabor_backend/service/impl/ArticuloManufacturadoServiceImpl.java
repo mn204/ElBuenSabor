@@ -42,9 +42,6 @@ public class ArticuloManufacturadoServiceImpl extends MasterServiceImpl<Articulo
             throw new IllegalArgumentException("Ya existe un producto con la denominación: " + entity.getDenominacion());
         }
 
-        for (HistoricoPrecioVenta historico : entity.getHistoricosPrecioVenta()) {
-            historico.setArticulo(entity);
-        }
 
         logger.info("Guardando ArticuloManufacturado: {}", entity.getDenominacion());
         return super.save(entity);
@@ -66,9 +63,7 @@ public class ArticuloManufacturadoServiceImpl extends MasterServiceImpl<Articulo
         for(DetalleArticuloManufacturado detalle : entity.getDetalles()) {
             detalle.setArticuloManufacturado(entity);
         }
-        for (HistoricoPrecioVenta historico : entity.getHistoricosPrecioVenta()) {
-            historico.setArticulo(entity);
-        }
+
         for(ImagenArticulo imagen : entity.getImagenes()) {
             imagen.setArticulo(entity);
         }

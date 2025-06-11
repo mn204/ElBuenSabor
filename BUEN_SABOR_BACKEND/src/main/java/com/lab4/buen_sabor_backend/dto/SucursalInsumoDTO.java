@@ -10,6 +10,7 @@ import java.util.Set;
 @AllArgsConstructor
 public class SucursalInsumoDTO extends MasterDTO {
     private Integer stockMinimo;
+    private Integer stockActual;
     private Integer stockMaximo;
     private SucursalDTO sucursal;
 }

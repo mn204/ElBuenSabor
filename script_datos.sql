@@ -68,11 +68,11 @@ INSERT INTO `sucursal` (`id`, `eliminado`, `casa_matriz`, `horario_apertura`, `h
 
 -- EMPLEADO
 INSERT INTO EMPLEADO VALUES
-                         (1, FALSE, 'Gómez', '1990-05-12', 'Ana', '2611111111', 1, 1),
-                         (2, FALSE, 'Pérez', '1985-03-20', 'Luis', '2612222222', 2, 2),
-                         (3, FALSE, 'Rodríguez', '1992-08-30', 'Marta', '2613333333', 3, 3),
-                         (4, FALSE, 'Fernández', '1995-11-11', 'Carlos', '2614444444', 4, 4),
-                         (5, FALSE,  'Diaz','2009-02-11','Franco','124115',5, 6);
+                         (1, FALSE, 'Gómez', '1990-05-12', 'Ana', '2611111111', 1, 1, 1),
+                         (2, FALSE, 'Pérez', '1985-03-20', 'Luis', '2612222222', 2, 1, 2),
+                         (3, FALSE, 'Rodríguez', '1992-08-30', 'Marta', '2613333333', 3, 1,3),
+                         (4, FALSE, 'Fernández', '1995-11-11', 'Carlos', '2614444444', 4, 1, 4),
+                         (5, FALSE,  'Diaz','2009-02-11','Franco','124115',5, 1, 6);
 
 -- CLIENTE
 insert  into `cliente`(`id`,`eliminado`,`apellido`,`fecha_nacimiento`,`nombre`,`telefono`,`usuario_id`) values (1,'\0','Ramírez','2000-01-01','Juan','2615555555',5),(2,'\0','Diz','1999-06-09','Luis','121233223213',7),(3,'\0','Power','2000-02-03','Max','214214224',8);

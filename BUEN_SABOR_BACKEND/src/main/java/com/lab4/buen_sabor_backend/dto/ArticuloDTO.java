@@ -14,8 +14,6 @@ import java.util.Set;
 public class ArticuloDTO extends MasterDTO {
     private String denominacion;
     private Double precioVenta;
-    private Set<HistoricoPrecioVentaDTO> historicosPrecioVenta = new HashSet<>();
-    private Set<HistoricoPrecioCompraDTO> historicosPrecioCompra = new HashSet<>();
     private Set<ImagenArticuloDTO> imagenes = new HashSet<>();
     private UnidadMedidaDTO unidadMedida;
     private CategoriaDTO categoria;

@@ -16,6 +16,7 @@ public class EmpleadoDTO extends MasterDTO {
     private LocalDate fechaNacimiento;
     private DomicilioDTO domicilio;
     private UsuarioDTO usuario;
+    private SucursalDTO sucursal;
     private Boolean eliminado;
 }
 

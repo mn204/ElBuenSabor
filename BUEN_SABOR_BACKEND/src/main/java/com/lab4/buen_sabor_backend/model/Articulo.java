@@ -28,11 +28,6 @@ public class Articulo extends Master {
     private String denominacion;
     private Double precioVenta;
 
-    @OneToMany(mappedBy = "articulo", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<HistoricoPrecioVenta> historicosPrecioVenta;
-
-    @OneToMany(mappedBy = "articulo", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<HistoricoPrecioCompra> historicosPrecioCompra;
 
     @OneToMany(mappedBy = "articulo", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ImagenArticulo> imagenes;

@@ -13,6 +13,7 @@ import java.util.*;
 public class SucursalInsumo extends Master {
 
     private Integer stockMinimo;
+    private Integer stockActual;
     private Integer stockMaximo;
 
     @ManyToOne
@@ -20,8 +21,6 @@ public class SucursalInsumo extends Master {
     @JsonIgnore
     private Sucursal sucursal;
 
-    @OneToMany(mappedBy = "sucursalInsumo", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Existencia> existencias = new HashSet<>();
 
     @OneToMany(mappedBy = "sucursalInsumo", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ArticuloInsumo> articulosInsumo = new HashSet<>();
