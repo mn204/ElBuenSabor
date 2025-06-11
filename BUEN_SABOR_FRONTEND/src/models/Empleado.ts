@@ -1,6 +1,7 @@
 import Domicilio from "./Domicilio";
 import Pedido from "./Pedido";
 import  Usuario from "./Usuario.ts";
+import type Sucursal from "./Sucursal.ts";
 
 export default class Empleado {
     id?: number;
@@ -11,5 +12,6 @@ export default class Empleado {
     usuario!: Usuario;
     domicilio?: Domicilio;
     pedidos: Pedido[] = [];
+    sucursal?: Sucursal;
     eliminado!: boolean;
 }

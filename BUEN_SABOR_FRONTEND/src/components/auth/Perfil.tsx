@@ -211,6 +211,7 @@ function Perfil() {
                             <p className="perfilInfoText">DNI: {dni}</p>
                             <p className="perfilInfoText">Fecha de nacimiento: {fechaFormateada}</p>
                             {esEmpleado && <p className="perfilInfoText">Rol: {rol}</p>}
+                            {esEmpleado && <p className="perfilInfoText">Sucursal: {empleado?.sucursal?.nombre}</p>}
                             <p className="perfilInfoText">Email: {email}</p>
                             <p className="perfilInfoText">Teléfono: {telefono}</p>
                             {esEmpleado && domicilio && (

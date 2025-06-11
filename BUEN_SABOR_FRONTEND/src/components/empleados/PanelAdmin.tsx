@@ -14,9 +14,11 @@ import Usuario from '../../assets/svgAdmin/usuario-black.svg';
 import GrillaArticuloManufacturado from "../articulos/GrillaArticuloManufacturado.tsx";
 import GrillaCliente from "./GrillaCliente.tsx";
 import GrillaEmpleado from "./GrillaEmpleado.tsx";
+import {useAuth} from "../../context/AuthContext.tsx";
 
 function PanelAdmin() {
     const [selected, setSelected] = useState('Dashboard');
+    const{ usuario, user, empleado} = useAuth();
 
     const renderContent = () => {
         switch (selected) {

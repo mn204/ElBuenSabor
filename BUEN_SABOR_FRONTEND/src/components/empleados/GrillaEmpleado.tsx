@@ -228,6 +228,7 @@ const GrillaEmpleado = () => {
                                 <p><b>Teléfono:</b> {empleadoSeleccionado.telefono}</p>
                                 <p><b>Email:</b> {empleadoSeleccionado.usuario.email}</p>
                                 <p><b>Rol:</b> {empleadoSeleccionado.usuario.rol}</p>
+                                <p><b>Sucursal:</b> {empleadoSeleccionado.sucursal?.nombre}</p>
                                 <p><b>Proveedor:</b> Contraseña</p>
                                 <p><b>Fecha Nacimiento:</b> {empleadoSeleccionado.fechaNacimiento.split('-').reverse().join('/')}</p>
                                 <p><b>Domicilio:</b> <b>{empleadoSeleccionado.domicilio.detalles || "Sin referencia"}:</b>{" "}

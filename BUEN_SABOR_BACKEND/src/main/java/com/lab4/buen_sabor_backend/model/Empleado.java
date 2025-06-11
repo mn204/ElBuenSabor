@@ -35,7 +35,7 @@ public class Empleado extends Master{
     @OneToMany(mappedBy = "empleado", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Pedido> pedidos = new ArrayList<>();
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "sucursal_id")
     private Sucursal sucursal;
 }

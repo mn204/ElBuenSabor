@@ -14,7 +14,7 @@ function Navbar() {
     const [isLoginView, setIsLoginView] = useState(true); // nuevo estado
     const [busqueda, setBusqueda] = useState(""); // Estado para el input del buscador
     const navigate = useNavigate(); // <--- Agrega esto
-    const { isAuthenticated, getUserDisplayName, logout, usuario , user} = useAuth();
+    const { isAuthenticated, getUserDisplayName, logout, usuario , user, empleado} = useAuth();
 
     const handleOpenLogin = () => {
         setIsLoginView(true);
@@ -61,14 +61,19 @@ function Navbar() {
                     </div>
 
                     <div className="navCenter">
-                        {(!isAuthenticated || usuario?.rol === "CLIENTE") && (
+                        {(!isAuthenticated || usuario?.rol === "CLIENTE") ? (
                             <Buscador
                                 onBuscar={handleBuscar}
                                 valorInicial={busqueda}
                                 setValor={setBusqueda}
                             />
+                        ) : (
+                            empleado?.sucursal?.nombre && (
+                                <span className="homeNav">Sucursal: {empleado.sucursal.nombre}</span>
+                            )
                         )}
                     </div>
+
 
                     <div className="navRight navButtons">
                         {isAuthenticated ? (

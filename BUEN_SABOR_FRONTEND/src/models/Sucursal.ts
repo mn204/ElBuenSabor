@@ -6,13 +6,14 @@ import SucursalInsumo from "./SucursalInsumo";
 
 export default class Sucursal {
     id?: number;
+    nombre!: string;
     horarioApertura!: string;
     horarioCierre!: string;
     casaMatriz!: boolean;
     empresa!: Empresa;
     domicilio!: Domicilio;
     categorias: Categoria[] = [];
-    promociones: Promocion[] = [];
-    insumos: SucursalInsumo[] = [];
+    promociones?: Promocion[] = [];
+    insumos?: SucursalInsumo[] = [];
     eliminado!: boolean;
 }
