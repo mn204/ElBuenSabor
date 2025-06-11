@@ -21,6 +21,7 @@ const FormDatosEmpleado = ({ show, onHide, empleado, onEmpleadoActualizado }: Pr
     const [dniError, setDniError] = useState<string | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
+
     // Estados del formulario - datos personales
     const [nombre, setNombre] = useState("");
     const [apellido, setApellido] = useState("");
@@ -320,6 +321,7 @@ const FormDatosEmpleado = ({ show, onHide, empleado, onEmpleadoActualizado }: Pr
                             required
                         />
                     </Form.Group>
+
 
                     <h5 className="mb-3 mt-4">Domicilio</h5>
 

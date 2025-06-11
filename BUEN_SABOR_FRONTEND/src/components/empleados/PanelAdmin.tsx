@@ -12,6 +12,8 @@ import Productos from '../../assets/svgAdmin/productos.svg';
 import Estadisticas from '../../assets/svgAdmin/estadisticas.svg';
 import Usuario from '../../assets/svgAdmin/usuario-black.svg';
 import GrillaArticuloManufacturado from "../articulos/GrillaArticuloManufacturado.tsx";
+import GrillaCliente from "./GrillaCliente.tsx";
+import GrillaEmpleado from "./GrillaEmpleado.tsx";
 
 function PanelAdmin() {
     const [selected, setSelected] = useState('Dashboard');
@@ -21,7 +23,7 @@ function PanelAdmin() {
             case 'Productos':
                 return <GrillaArticuloManufacturado/>;
             case 'Clientes':
-                return <div>Componente Clientes</div>;
+                return <GrillaCliente/>;
             case 'Pedidos':
                 return <div>Componente Pedidos</div>;
             case 'Cocina':
@@ -33,7 +35,7 @@ function PanelAdmin() {
             case 'Estadísticas':
                 return <div>Componente Estadísticas</div>;
             case 'Empleados':
-                return <div>Componente Empleados</div>;
+                return <GrillaEmpleado/>;
             case 'Categorias':
                 return <div>Componente Categorias</div>;
             default:
