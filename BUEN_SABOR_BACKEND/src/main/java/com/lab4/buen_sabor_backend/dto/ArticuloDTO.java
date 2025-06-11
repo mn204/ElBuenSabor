@@ -19,3 +19,4 @@ public class ArticuloDTO extends MasterDTO {
     private CategoriaDTO categoria;
     private boolean eliminado;
 }
+

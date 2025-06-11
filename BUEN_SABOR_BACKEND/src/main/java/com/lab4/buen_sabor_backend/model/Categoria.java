@@ -17,7 +17,6 @@ public class Categoria extends Master {
 
     @ManyToOne
     @JoinColumn(name = "categoria_padre_id")
-    @JsonIgnore
     private Categoria categoriaPadre;
 
     @OneToMany(mappedBy = "categoriaPadre", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -27,7 +26,6 @@ public class Categoria extends Master {
     private Set<Articulo> articulos = new HashSet<>();
 
     @ManyToMany(mappedBy = "categorias")
-    @JsonIgnore
     private Set<Sucursal> sucursales = new HashSet<>();
 }
 

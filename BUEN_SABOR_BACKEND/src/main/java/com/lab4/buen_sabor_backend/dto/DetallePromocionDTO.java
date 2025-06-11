@@ -7,6 +7,6 @@ import lombok.*;
 @AllArgsConstructor
 public class DetallePromocionDTO extends MasterDTO {
     private Integer cantidad;
-    private PromocionDTO promocion;
+
     private ArticuloDTO articulo;
 }

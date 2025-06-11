@@ -18,6 +18,5 @@ public class Empresa extends Master {
     private Long cuil;
 
     @OneToMany(mappedBy = "empresa", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
     private Set<Sucursal> sucursales;
 }

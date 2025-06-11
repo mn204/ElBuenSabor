@@ -1,6 +1,5 @@
 package com.lab4.buen_sabor_backend.mapper;
 
-import com.lab4.buen_sabor_backend.dto.EmpleadoRegistroDTO;
 import com.lab4.buen_sabor_backend.model.Empleado;
 import org.mapstruct.Mapper;
 

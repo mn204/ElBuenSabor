@@ -18,7 +18,6 @@ public class SucursalInsumo extends Master {
 
     @ManyToOne
     @JoinColumn(name = "sucursal_id")
-    @JsonIgnore
     private Sucursal sucursal;
 
 

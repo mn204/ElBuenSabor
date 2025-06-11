@@ -23,6 +23,5 @@ public class Factura extends Master{
 
     @OneToOne
     @JoinColumn(name = "pedido_id")
-    @JsonIgnore
     private Pedido pedido;
 }

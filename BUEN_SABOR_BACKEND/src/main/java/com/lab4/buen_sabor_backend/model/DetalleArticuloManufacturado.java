@@ -15,7 +15,6 @@ public class DetalleArticuloManufacturado extends Master {
 
     @ManyToOne
     @JoinColumn(name = "articulo_manufacturado_id")
-    @JsonIgnore
     private ArticuloManufacturado articuloManufacturado;
 
     @ManyToOne
