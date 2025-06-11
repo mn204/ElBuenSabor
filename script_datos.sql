@@ -58,6 +58,14 @@ insert  into `domicilio`(`id`,`eliminado`,`calle`,`codigo_postal`,`detalles`,`nr
 -- Asegúrate de que la `localidad_id` exista en tu tabla `localidad`
 INSERT INTO `domicilio` (`id`, `eliminado`, `calle`, `codigo_postal`, `detalles`, `nro_departamento`, `numero`, `piso`, `localidad_id`) VALUES
     (10, b'0', 'Av. Libertador', 5500, 'Frente a la plaza', NULL, 1234, NULL, 1); -- Reemplaza 1 con un ID de localidad válido
+-- Insertar nuevo domicilio con id 11
+INSERT INTO `domicilio` (
+    `id`, `eliminado`, `calle`, `codigo_postal`, `detalles`,
+    `nro_departamento`, `numero`, `piso`, `localidad_id`
+) VALUES (
+             11, b'0', 'Espejo', 5501, 'Entrada lateral', NULL, 456, NULL, 2
+         );
+
 -- Insertar la empresa 'El Buen Sabor'
 INSERT INTO `empresa` (`id`, `eliminado`, `cuil`, `nombre`, `razon_social`) VALUES
     (1, b'0', 20304050607, 'El Buen Sabor', 'El Buen Sabor S.A.');
@@ -65,7 +73,13 @@ INSERT INTO `empresa` (`id`, `eliminado`, `cuil`, `nombre`, `razon_social`) VALU
 -- Insertar la sucursal para 'El Buen Sabor'
 INSERT INTO `sucursal` (`id`, `eliminado`, `casa_matriz`, `horario_apertura`, `horario_cierre`, `nombre`, `domicilio_id`, `empresa_id`) VALUES
     (1, b'0', b'1', '20:00:00', '00:00:00', 'Casa Central', 9, 1);
-
+-- Insertar nueva sucursal que usa el domicilio 11
+INSERT INTO `sucursal` (
+    `id`, `eliminado`, `casa_matriz`, `horario_apertura`,
+    `horario_cierre`, `nombre`, `domicilio_id`, `empresa_id`
+) VALUES (
+             2, b'0', b'0', '10:00:00', '18:00:00', 'Sucursal Este', 11, 1
+         );
 -- EMPLEADO
 INSERT INTO EMPLEADO VALUES
                          (1, FALSE, 'Gómez', '1990-05-12', 'Ana', '2611111111', 1, 1, 1),
