@@ -4,6 +4,7 @@ import type  Estado  from "./enums/Estado";
 import type  FormaPago  from "./enums/FormaPago";
 import type TipoEnvio  from "./enums/TipoEnvio";
 import type Factura from "./Factura";
+import type Sucursal from "./Sucursal";
 
 export default class Pedido {
     id?: number;
@@ -18,4 +19,5 @@ export default class Pedido {
     factura?: Factura;
     detalles: DetallePedido[] = [];
     eliminado!: boolean;
+    sucursal!: Sucursal;
 }

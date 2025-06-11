@@ -4,6 +4,7 @@ import Articulo from "../models/Articulo";
 import Pedido from "../models/Pedido";
 import PedidoDetalle from "../models/DetallePedido";
 import PedidoService from "../services/PedidoService";
+import Estado from "../models/enums/Estado";
 
 interface CarritoContextProps {
   pedido: Pedido;
@@ -25,6 +26,7 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
     nuevoPedido.fechaPedido = soloFecha;
     nuevoPedido.detalles = [];
     nuevoPedido.total = 0;
+    nuevoPedido.estado = Estado.PENDIENTE;
     return nuevoPedido;
   });
 
