@@ -44,4 +44,30 @@ public class ClienteController extends MasterControllerImpl<Cliente, ClienteDTO,
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
+
+    // Nuevo endpoint para desasociar domicilio
+    @DeleteMapping("/{clienteId}/domicilio/{domicilioId}")
+    public ResponseEntity<Void> removeDomicilioFromCliente(
+            @PathVariable Long clienteId,
+            @PathVariable Long domicilioId) {
+
+        logger.info("Desasociando domicilio {} del cliente {}", domicilioId, clienteId);
+
+        try {
+            boolean removed = clienteService.removeDomicilioFromCliente(clienteId, domicilioId);
+
+            if (removed) {
+                logger.info("Domicilio {} desasociado exitosamente del cliente {}", domicilioId, clienteId);
+                return ResponseEntity.ok().build();
+            } else {
+                logger.warn("No se pudo desasociar el domicilio {} del cliente {}", domicilioId, clienteId);
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            logger.error("Error al desasociar domicilio {} del cliente {}: {}", domicilioId, clienteId, e.getMessage());
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+
 }

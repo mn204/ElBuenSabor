@@ -73,6 +73,18 @@ export const actualizarCliente = async (id: number, cliente: Cliente): Promise<C
     }
 };
 
+//eliminar domicilios del cliente
+export const eliminarDomiciliosCliente = async (idCliente: number, idDomicilio: number): Promise<void> => {
+    const response = await fetch(`${API_URL}/${idCliente}/domicilio/${idDomicilio}`, {
+        method: "DELETE",
+    });
+    if (!response.ok) {
+        throw new Error("Error al eliminar el domicilio");
+    }
+
+}
+
+
 // DELETE - Baja lógica del cliente
 export const eliminarCliente = async (id: number): Promise<void> => {
     const response = await fetch(`${API_URL}/${id}`, {
