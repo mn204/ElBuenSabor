@@ -16,7 +16,8 @@ import { Modal } from "react-bootstrap";
 import {darDeAltaUsuario, eliminarUsuario} from "../../services/UsuarioService.ts";
 import BotonModificar from "../layout/BotonModificar.tsx";
 import { useNavigate } from "react-router-dom";
-
+import Sucursal from "../../models/Sucursal"; // asegurate de tener este modelo
+import { obtenerSucursales } from "../../services/SucursalService"; // importá el servicio
 import FormDatosEmpleado from "./FormDatosEmpleado";
 //TODO cambiar los roles del empleado
 
@@ -31,14 +32,31 @@ const GrillaEmpleado = () => {
     const [empleadoSeleccionado, setEmpleadoSeleccionado] = useState<Empleado | null>(null);
     const [showModal, setShowModal] = useState(false);
     const [showEditar, setShowEditar] = useState(false);
+    const [sucursales, setSucursales] = useState<Sucursal[]>([]);
+    const [sucursalFiltro, setSucursalFiltro] = useState("todas");
+
 
     useEffect(() => {
         cargarEmpleados();
     }, []);
 
     useEffect(() => {
+        const cargarSucursales = async () => {
+            try {
+                const data = await obtenerSucursales();
+                setSucursales(data);
+            } catch (error) {
+                console.error("Error al cargar sucursales", error);
+            }
+        };
+
+        cargarSucursales();
+    }, []);
+
+    useEffect(() => {
         filtrarEmpleados();
-    }, [empleados, search, estado, rolFiltro, ordenAsc]);
+    }, [empleados, search, estado, rolFiltro, ordenAsc, sucursalFiltro]);
+
 
     const cargarEmpleados = async () => {
         try {
@@ -84,7 +102,9 @@ const GrillaEmpleado = () => {
                 e.usuario?.rol?.toLowerCase().includes(texto)
             );
         }
-
+        if (sucursalFiltro !== "todas") {
+            filtrados = filtrados.filter(e => e.sucursal?.id?.toString() === sucursalFiltro);
+        }
         filtrados.sort((a, b) => {
             const nombreA = `${a.nombre} ${a.apellido}`.toLowerCase();
             const nombreB = `${b.nombre} ${b.apellido}`.toLowerCase();
@@ -145,6 +165,11 @@ const GrillaEmpleado = () => {
             render: (_: any, row: Empleado) => row.usuario?.rol,
         },
         {
+            key: "sucursal",
+            label: "Sucursal",
+            render: (_: any, row: Empleado) => row.sucursal?.nombre,
+        },
+        {
             key: "estado",
             label: "Estado",
             render: (_: any, row: Empleado) => (row.eliminado ? "Inactivo" : "Activo"),
@@ -201,10 +226,18 @@ const GrillaEmpleado = () => {
                     <option value="DELIVERY">Delivery</option>
                 </Form.Select>
 
+                <Form.Select value={sucursalFiltro} onChange={(e) => setSucursalFiltro(e.target.value)}>
+                    <option value="todas">Todas las sucursales</option>
+                    {sucursales.map(s => (
+                        <option key={s.id} value={s.id}>{s.nombre}</option>
+                    ))}
+                </Form.Select>
+
                 <Button variant="outline-secondary" onClick={() => setOrdenAsc(!ordenAsc)}>
                     Orden: {ordenAsc ? "A-Z" : "Z-A"}
                 </Button>
             </div>
+
             <Modal show={showModal} onHide={handleCloseModal} centered size="lg">
                 <Modal.Header closeButton>
                     <Modal.Title>Empleado # {empleadoSeleccionado?.id}</Modal.Title>
