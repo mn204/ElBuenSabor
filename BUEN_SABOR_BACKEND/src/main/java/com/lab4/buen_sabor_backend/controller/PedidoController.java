@@ -9,8 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.format.annotation.*;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -67,20 +66,18 @@ public class PedidoController extends MasterControllerImpl<Pedido, PedidoDTO, Lo
     }
 
     // GET para obtener el PDF de un pedido del cliente
-
-    /*
     @GetMapping("/cliente/{clienteId}/pedido/{id}/factura")
     public ResponseEntity<byte[]> getFacturaPdf(@PathVariable Long clienteId, @PathVariable Long id) {
-        Pedido pedido = pedidoService.findByIdAndCliente(id, clienteId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pedido no encontrado o no pertenece al cliente"));
+        byte[] pdf = pedidoService.generarFacturaPDF(id, clienteId);
 
-        byte[] pdf = pdfService.generarFacturaPedido(pedido);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_PDF);
-        headers.setContentDisposition(ContentDisposition.attachment().filename("factura_pedido_" + pedido.getId() + ".pdf").build());
+        headers.setContentDisposition(ContentDisposition
+                .attachment()
+                .filename("factura_pedido_" + id + ".pdf")
+                .build());
 
         return new ResponseEntity<>(pdf, headers, HttpStatus.OK);
     }
 
-     */
 }

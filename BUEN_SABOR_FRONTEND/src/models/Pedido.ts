@@ -6,10 +6,11 @@ import type  FormaPago  from "./enums/FormaPago";
 import type TipoEnvio  from "./enums/TipoEnvio";
 import type Factura from "./Factura";
 import type Sucursal from "./Sucursal";
+import type Domicilio from "./Domicilio.ts";
 
 export default class Pedido {
     id?: number;
-    horaEstimadaFinalizacion: String = "";
+    horaEstimadaFinalizacion: string = "";
     total: number = 0;
     totalCosto: number = 0;
     estado!: Estado;
@@ -18,6 +19,7 @@ export default class Pedido {
     fechaPedido: Date = new Date();
     sucursal!: Sucursal;
     cliente!: Cliente;
+    domicilio!: Domicilio;
     empleado!: Empleado;
     factura?: Factura;
     detalles: DetallePedido[] = [];
