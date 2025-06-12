@@ -10,6 +10,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.*;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
@@ -57,6 +59,23 @@ public class PedidoController extends MasterControllerImpl<Pedido, PedidoDTO, Lo
     ) {
         Page<Pedido> pedidos = pedidoService.findPedidosByClienteWithFilters(clienteId, sucursal, estado, desde, hasta, articulo, pageable);
         Page<PedidoDTO> result = pedidos.map(pedidoMapper::toDTO);
+        return ResponseEntity.ok(result);
+    }
+
+    //GET de pedidos con filtros para una sucursal específica
+    @GetMapping("/filtrados")
+    public ResponseEntity<Page<PedidoDTO>> obtenerPedidosFiltrados(
+            @RequestParam Long idSucursal,
+            @RequestParam(required = false) Estado estado,
+            @RequestParam(required = false) String clienteNombre,
+            @RequestParam(required = false) Long idPedido,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fechaDesde,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fechaHasta,
+            @PageableDefault(size = 20, sort = "fechaPedido", direction = Sort.Direction.DESC) Pageable pageable
+    ) {
+        Page <Pedido> pedidos = pedidoService.buscarPedidosFiltrados(idSucursal, estado, clienteNombre, idPedido, fechaDesde, fechaHasta, pageable);
+        Page<PedidoDTO> result = pedidos.map(pedidoMapper::toDTO);
+
         return ResponseEntity.ok(result);
     }
 

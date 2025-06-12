@@ -1,5 +1,6 @@
 package com.lab4.buen_sabor_backend.service.impl;
 
+import com.lab4.buen_sabor_backend.dto.PedidoDTO;
 import com.lab4.buen_sabor_backend.model.*;
 import com.lab4.buen_sabor_backend.service.impl.specification.PedidoSpecification;
 import static com.lab4.buen_sabor_backend.service.impl.specification.PedidoSpecification.*;
@@ -12,7 +13,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -67,6 +70,26 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
                 .and(fechaBetween(desde, hasta))
                 .and(contieneArticulo(nombreArticulo));
 
+        return pedidoRepository.findAll(spec, pageable);
+    }
+
+    //Buscar pedidos con filtros para Administrador y Cajero
+    @Override
+    public Page<Pedido> buscarPedidosFiltrados(
+            Long idSucursal,
+            Estado estado,
+            String clienteNombre,
+            Long idPedido,
+            LocalDateTime fechaDesde,
+            LocalDateTime fechaHasta,
+            Pageable pageable
+    ) {
+        Specification<Pedido> spec = Specification
+                .where(PedidoSpecification.sucursalIdEquals(idSucursal))
+                .and(PedidoSpecification.estadoEquals(estado))
+                .and(PedidoSpecification.clienteNombreContains(clienteNombre))
+                .and(PedidoSpecification.idEquals(idPedido))
+                .and(PedidoSpecification.fechaBetween(fechaDesde, fechaHasta));
         return pedidoRepository.findAll(spec, pageable);
     }
 
