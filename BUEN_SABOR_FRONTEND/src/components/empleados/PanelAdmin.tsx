@@ -14,6 +14,7 @@ import GrillaArticuloManufacturado from "../articulos/GrillaArticuloManufacturad
 import GrillaCliente from "./GrillaCliente.tsx";
 import GrillaEmpleado from "./GrillaEmpleado.tsx";
 import {useAuth} from "../../context/AuthContext.tsx"
+import { useSucursal } from "../../context/SucursalContextEmpleado.tsx";
 
 import {useLocation} from "react-router-dom";
 import {useNavigate} from "react-router-dom";
@@ -21,6 +22,7 @@ import {useNavigate} from "react-router-dom";
 function PanelAdmin() {
 
     const{ usuario, user, empleado} = useAuth();
+    const { sucursalActual } = useSucursal();
     const location = useLocation();
     const navigate = useNavigate();
 
@@ -50,30 +52,98 @@ function PanelAdmin() {
         if (!botonActual || !botonActual.rolesPermitidos.includes(usuario?.rol)) {
             return <div>No tenés permiso para ver esta sección.</div>;
         }
+        // Para módulos que requieren contexto de sucursal (todos excepto Clientes y Empleados)
+        const requiereContextoSucursal = !['clientes', 'empleados'].includes(botonActual.path);
+
+        if (requiereContextoSucursal && !sucursalActual) {
+            return (
+                <div className="text-center p-4">
+                    <p>Cargando información de la sucursal...</p>
+                </div>
+            );
+        }
 
         switch (botonActual.nombre) {
+            case 'Dashboard':
+                return (
+                    <div>
+                        <h4>Dashboard - {sucursalActual?.nombre}</h4>
+                        <p>Bienvenido al panel de administración</p>
+                        {sucursalActual && (
+                            <div className="mt-3">
+                                <strong>Sucursal Actual:</strong> {sucursalActual.nombre}<br/>
+                                <strong>Horario:</strong> {sucursalActual.horarioApertura} - {sucursalActual.horarioCierre}<br/>
+                                <strong>Dirección:</strong> {sucursalActual.domicilio?.calle} {sucursalActual.domicilio?.numero}
+                            </div>
+                        )}
+                    </div>
+                );
             case 'Productos':
-                return <GrillaArticuloManufacturado />;
+                return (
+                    <div>
+                        <h4>Productos - {sucursalActual?.nombre}</h4>
+                        <GrillaArticuloManufacturado />
+                    </div>
+                );
             case 'Clientes':
-                return <GrillaCliente />;
+                return (
+                    <div>
+                        <GrillaCliente />
+                    </div>
+                );
             case 'Pedidos':
-                return <div>Componente Pedidos</div>;
+                return (
+                    <div>
+                        <h4>Pedidos - {sucursalActual?.nombre}</h4>
+                        <p>Componente Pedidos para la sucursal {sucursalActual?.nombre}</p>
+                    </div>
+                );
             case 'Cocina':
-                return <div>Componente Cocina</div>;
+                return (
+                    <div>
+                        <h4>Cocina - {sucursalActual?.nombre}</h4>
+                        <p>Componente Cocina para la sucursal {sucursalActual?.nombre}</p>
+                    </div>
+                );
             case 'Delivery':
-                return <div>Componente Delivery</div>;
+                return (
+                    <div>
+                        <h4>Delivery - {sucursalActual?.nombre}</h4>
+                        <p>Componente Delivery para la sucursal {sucursalActual?.nombre}</p>
+                    </div>
+                );
             case 'Facturación':
-                return <div>Componente Facturación</div>;
+                return (
+                    <div>
+                        <h4>Facturación - {sucursalActual?.nombre}</h4>
+                        <p>Componente Facturación para la sucursal {sucursalActual?.nombre}</p>
+                    </div>
+                );
             case 'Estadísticas':
-                return <div>Componente Estadísticas</div>;
+                return (
+                    <div>
+                        <h4>Estadísticas - {sucursalActual?.nombre}</h4>
+                        <p>Componente Estadísticas para la sucursal {sucursalActual?.nombre}</p>
+                    </div>
+                );
             case 'Empleados':
-                return <GrillaEmpleado />;
+                return (
+                    <div>
+                        <GrillaEmpleado />
+                    </div>
+                );
             case 'Categorias':
-                return <div>Componente Categorias</div>;
+                return (
+                    <div>
+                        <h4>Categorías - {sucursalActual?.nombre}</h4>
+                        <p>Componente Categorías para la sucursal {sucursalActual?.nombre}</p>
+                    </div>
+                );
             default:
                 return <div>Bienvenido al panel de administración</div>;
         }
     };
+
     return (
         <Container fluid className="panel-admin-container p-0">
             <Row className="g-0">
@@ -83,6 +153,13 @@ function PanelAdmin() {
                         <img src={Computadora} alt="Icono Computadora" style={{ height: 40, width: 40 }} />
                         <h6 className="mt-2 mb-0">Panel de Administración</h6>
                         <small>El Buen Sabor</small>
+                        {sucursalActual && usuario?.rol !== 'ADMINISTRADOR' && (
+                            <div className="mt-2">
+                                <small className="text-muted">
+                                    <strong>{sucursalActual.nombre}</strong>
+                                </small>
+                            </div>
+                        )}
                     </div>
 
                     <Nav className="flex-column">
@@ -104,7 +181,6 @@ function PanelAdmin() {
                             </Nav.Link>
                         ))}
                     </Nav>
-
                 </Col>
 
                 {/* Main content */}
@@ -113,6 +189,7 @@ function PanelAdmin() {
                 </Col>
             </Row>
         </Container>
+
     );
 }
 

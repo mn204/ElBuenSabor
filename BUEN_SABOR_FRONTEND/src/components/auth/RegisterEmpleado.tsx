@@ -347,9 +347,19 @@ const RegisterEmpleado = () => {
 
 
     return (
-        <div className="p-4" style={{width: "500px", margin: "0 auto", border: "1px solid #ccc", borderRadius: "10px"}}>
-            <h3 className="text-center fw-bold">Nuevo Empleado</h3>
-            <hr style={{ width: "150px", borderTop: "3px solid orange", margin: "0 auto 20px" }} />
+        <div className="p-4" style={{width: "600px", margin: "0 auto", border: "1px solid #ccc", borderRadius: "10px"}}>
+            <div className="d-flex align-items-center justify-content-between mb-5">
+                <button
+                    className="btn btn-outline-secondary"
+                    onClick={() => window.location.href = "/empleado/empleados"}
+                >
+                    Volver
+                </button>
+
+                <h3 className="text-center flex-grow-1 fw-bold m-0" style={{ marginRight: "48px" }}>
+                    Nuevo Empleado
+                </h3>
+            </div>
 
             <Form>
                     <>

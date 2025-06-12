@@ -19,7 +19,6 @@ import { useNavigate } from "react-router-dom";
 import Sucursal from "../../models/Sucursal"; // asegurate de tener este modelo
 import { obtenerSucursales } from "../../services/SucursalService"; // importá el servicio
 import FormDatosEmpleado from "./FormDatosEmpleado";
-//TODO cambiar los roles del empleado
 
 const GrillaEmpleado = () => {
     const [empleados, setEmpleados] = useState<Empleado[]>([]);
@@ -285,6 +284,7 @@ const GrillaEmpleado = () => {
                     show={showEditar}
                     onHide={() => setShowEditar(false)}
                     empleado={empleadoSeleccionado}
+                    editableAdmin={true} // <--- ACÁ
                     onEmpleadoActualizado={(empleadoActualizado) => {
                         setEmpleados(prev =>
                             prev.map(e => e.id === empleadoActualizado.id ? empleadoActualizado : e)

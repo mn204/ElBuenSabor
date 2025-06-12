@@ -2,38 +2,41 @@ import '../../styles/navbar.css'
 import IconoEmpresa from '../../assets/IconoEmpresa.jpg';
 import Vector from '../../assets/Carrito.svg';
 import Buscador from './Buscador';
-import  { useState } from 'react';
-import {Dropdown, Modal } from 'react-bootstrap';
+import { useState } from 'react';
+import { Dropdown, Modal, Form } from 'react-bootstrap'; // <- Agregado Form aquí
 import LoginUsuario from '../auth/LoginUsuario.tsx';
 import { Link, useNavigate } from 'react-router-dom';
 import RegisterCliente from '../auth/RegisterCliente.tsx';
-import {useAuth} from "../../context/AuthContext.tsx";
+import { useAuth } from "../../context/AuthContext.tsx";
+import { useSucursal } from "../../context/SucursalContextEmpleado.tsx";
 
 function Navbar() {
     const [showModal, setShowModal] = useState(false);
-    const [isLoginView, setIsLoginView] = useState(true); // nuevo estado
-    const [busqueda, setBusqueda] = useState(""); // Estado para el input del buscador
-    const navigate = useNavigate(); // <--- Agrega esto
-    const { isAuthenticated, getUserDisplayName, logout, usuario , user, empleado} = useAuth();
+    const [isLoginView, setIsLoginView] = useState(true);
+    const [busqueda, setBusqueda] = useState("");
+    const navigate = useNavigate();
+    const { isAuthenticated, getUserDisplayName, logout, usuario, user, empleado } = useAuth();
+    const { sucursalActual, sucursales, cambiarSucursal } = useSucursal();
 
     const handleOpenLogin = () => {
         setIsLoginView(true);
         setShowModal(true);
     };
+
     const handleOpenRegister = () => {
         setIsLoginView(false);
         setShowModal(true);
     };
-
 
     const handleClose = () => setShowModal(false);
 
     function handleBuscar(nuevaBusqueda: string) {
         if (nuevaBusqueda.trim() !== "") {
             navigate(`/busqueda?q=${encodeURIComponent(nuevaBusqueda)}`);
-            setBusqueda(""); // Limpiar el input después de buscar
+            setBusqueda("");
         }
     }
+
     const handleLogout = async () => {
         try {
             await logout();
@@ -42,6 +45,13 @@ function Navbar() {
         }
     };
 
+    const handleCambiarSucursal = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        const sucursalId = parseInt(event.target.value);
+        const sucursalSeleccionada = sucursales.find(s => s.id === sucursalId);
+        if (sucursalSeleccionada) {
+            cambiarSucursal(sucursalSeleccionada);
+        }
+    };
 
     return (
         <>
@@ -68,12 +78,37 @@ function Navbar() {
                                 setValor={setBusqueda}
                             />
                         ) : (
-                            empleado?.sucursal?.nombre && (
-                                <span className="homeNav">Sucursal: {empleado.sucursal.nombre}</span>
-                            )
+                            <>
+                                {usuario?.rol === "ADMINISTRADOR" ? (
+                                    // Select para administradores
+                                    <div className="d-flex align-items-center">
+                                        <label htmlFor="sucursal-select" className="me-2 text-white">
+                                            Sucursal:
+                                        </label>
+                                        <Form.Select
+                                            id="sucursal-select"
+                                            value={sucursalActual?.id || ""}
+                                            onChange={handleCambiarSucursal}
+                                            style={{ width: 'auto', minWidth: '200px' }}
+                                        >
+                                            {sucursales.map(sucursal => (
+                                                <option key={sucursal.id} value={sucursal.id}>
+                                                    {sucursal.nombre}
+                                                </option>
+                                            ))}
+                                        </Form.Select>
+                                    </div>
+                                ) : (
+                                    // Mostrar sucursal fija para empleados regulares
+                                    empleado?.sucursal?.nombre && (
+                                        <span className="homeNav text-white">
+                                            Sucursal: {empleado.sucursal.nombre}
+                                        </span>
+                                    )
+                                )}
+                            </>
                         )}
                     </div>
-
 
                     <div className="navRight navButtons">
                         {isAuthenticated ? (
@@ -145,9 +180,6 @@ function Navbar() {
                 </div>
             </nav>
 
-
-
-
             <Modal show={showModal} onHide={handleClose} centered>
                 <Modal.Header closeButton className="modal-header-custom">
                     <img className='logoEmpresa' src={IconoEmpresa} alt="Icono Empresa" />
@@ -164,7 +196,6 @@ function Navbar() {
                         <RegisterCliente onBackToLogin={handleOpenLogin} />
                     )}
                 </Modal.Body>
-
             </Modal>
         </>
     );
