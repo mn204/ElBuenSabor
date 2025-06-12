@@ -30,23 +30,23 @@ public class UsuarioController extends MasterControllerImpl<Usuario, UsuarioDTO,
 
 
     @GetMapping("/firebase/{firebaseUid}")
-    public ResponseEntity<Usuario> getByFirebaseUid(@PathVariable String firebaseUid) {
+    public ResponseEntity<UsuarioDTO> getByFirebaseUid(@PathVariable String firebaseUid) {
         return usuarioService.findByFirebaseUid(firebaseUid)
-                .map(ResponseEntity::ok)
+                .map(usuario -> ResponseEntity.ok(usuarioMapper.toDTO(usuario)))
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/dni/{dni}")
-    public ResponseEntity<Usuario> getByDni(@PathVariable String dni) {
+    public ResponseEntity<UsuarioDTO> getByDni(@PathVariable String dni) {
         return usuarioService.findByDni(dni)
-                .map(ResponseEntity::ok)
+                .map(usuario -> ResponseEntity.ok(usuarioMapper.toDTO(usuario)))
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/email/{email}")
-    public ResponseEntity<Usuario> getByEmail(@PathVariable String email) {
+    public ResponseEntity<UsuarioDTO> getByEmail(@PathVariable String email) {
         return usuarioService.findByEmail(email)
-                .map(ResponseEntity::ok)
+                .map(usuario -> ResponseEntity.ok(usuarioMapper.toDTO(usuario)))
                 .orElse(ResponseEntity.notFound().build());
     }
 
