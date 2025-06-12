@@ -1,6 +1,7 @@
 package com.lab4.buen_sabor_backend.mapper;
 
 import com.lab4.buen_sabor_backend.dto.PedidoDTO;
+import com.lab4.buen_sabor_backend.dto.PedidoResumenDTO;
 import com.lab4.buen_sabor_backend.model.Pedido;
 import org.mapstruct.*;
 
