@@ -11,7 +11,8 @@ import org.springframework.stereotype.Service;
 
 import java.awt.*;
 import java.io.ByteArrayOutputStream;
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Service
 public class PdfServiceImpl implements PdfService {
@@ -23,6 +24,12 @@ public class PdfServiceImpl implements PdfService {
             PdfWriter.getInstance(document, out);
             document.open();
 
+            // Debugging opcional
+            System.out.println("Cliente: " + pedido.getCliente());
+            System.out.println("Domicilio: " + pedido.getDomicilio());
+            System.out.println("Sucursal: " + pedido.getSucursal());
+            System.out.println("Fecha: " + pedido.getFechaPedido());
+
             Font titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18);
             Font normalFont = FontFactory.getFont(FontFactory.HELVETICA, 12);
 
@@ -32,12 +39,13 @@ public class PdfServiceImpl implements PdfService {
             document.add(title);
             document.add(new Paragraph(" ")); // espacio
 
-            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+            // Fecha formateada
+            String fechaFormateada = formatearFecha(pedido.getFechaPedido());
 
             // Datos generales del pedido
-            document.add(new Paragraph("Fecha: " + sdf.format(pedido.getFechaPedido()), normalFont));
+            document.add(new Paragraph("Fecha: " + fechaFormateada, normalFont));
             document.add(new Paragraph("Cliente: " + pedido.getCliente().getNombre() + " " + pedido.getCliente().getApellido(), normalFont));
-            document.add(new Paragraph("Domicilio: " + pedido.getDomicilio().getLocalidad() + ", " + pedido.getDomicilio().getCalle() + ", " + pedido.getDomicilio().getNumero(), normalFont));
+            document.add(new Paragraph("Domicilio: " + pedido.getDomicilio().getLocalidad().getNombre() + ", " + pedido.getDomicilio().getCalle() + ", " + pedido.getDomicilio().getNumero(), normalFont));
             document.add(new Paragraph("Sucursal: " + pedido.getSucursal().getNombre(), normalFont));
             document.add(new Paragraph("Forma de entrega: " + pedido.getTipoEnvio(), normalFont));
             document.add(new Paragraph("Forma de pago: " + pedido.getFormaPago(), normalFont));
@@ -50,32 +58,33 @@ public class PdfServiceImpl implements PdfService {
 
             addTableHeader(table, "Artículo", "Cantidad", "Precio", "Subtotal");
 
-            for (DetallePedido detalle : pedido.getDetalles()) {
-                Articulo articulo = detalle.getArticulo();
-                String nombreArticulo = articulo.getDenominacion();
-                Double precioUnitario = articulo.getPrecioVenta();
-                Integer cantidad = detalle.getCantidad();
-                Double subtotal = detalle.getSubTotal();
+            if (pedido.getDetalles() != null) {
+                for (DetallePedido detalle : pedido.getDetalles()) {
+                    Articulo articulo = detalle.getArticulo();
+                    String nombreArticulo = articulo.getDenominacion();
+                    Double precioUnitario = articulo.getPrecioVenta();
+                    Integer cantidad = detalle.getCantidad();
+                    Double subtotal = detalle.getSubTotal();
 
-                table.addCell(nombreArticulo);
-                table.addCell(cantidad.toString());
-                table.addCell("$" + String.format("%.2f", precioUnitario));
-                table.addCell("$" + String.format("%.2f", subtotal));
+                    table.addCell(nombreArticulo);
+                    table.addCell(cantidad.toString());
+                    table.addCell("$" + String.format("%.2f", precioUnitario));
+                    table.addCell("$" + String.format("%.2f", subtotal));
+                }
             }
 
             document.add(table);
             document.add(new Paragraph(" "));
 
             // Totales
-            //document.add(new Paragraph("Subtotal: $" + calcularSubtotal(pedido), normalFont));
-            //document.add(new Paragraph("Descuento: $" + calcularDescuento(pedido), normalFont));
-            document.add(new Paragraph("Total: $" + pedido.getTotal(), normalFont));
+            document.add(new Paragraph("Total: $" + String.format("%.2f", pedido.getTotal()), normalFont));
 
             document.close();
             return out.toByteArray();
 
         } catch (Exception e) {
-            throw new RuntimeException("Error al generar la factura PDF", e);
+            e.printStackTrace();
+            throw new RuntimeException("Error al generar la factura PDF: " + e.getMessage(), e);
         }
     }
 
@@ -85,6 +94,30 @@ public class PdfServiceImpl implements PdfService {
             cell.setBackgroundColor(Color.LIGHT_GRAY);
             cell.setHorizontalAlignment(Element.ALIGN_CENTER);
             table.addCell(cell);
+        }
+    }
+
+    private String formatearFecha(Object fecha) {
+        if (fecha == null) {
+            return "Fecha no disponible";
+        }
+
+        try {
+            if (fecha instanceof LocalDateTime) {
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+                return ((LocalDateTime) fecha).format(formatter);
+            } else if (fecha instanceof java.util.Date) {
+                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm");
+                return sdf.format((java.util.Date) fecha);
+            } else if (fecha instanceof java.sql.Timestamp) {
+                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm");
+                return sdf.format((java.sql.Timestamp) fecha);
+            } else {
+                return fecha.toString();
+            }
+        } catch (Exception e) {
+            System.err.println("Error al formatear fecha: " + e.getMessage());
+            return fecha.toString();
         }
     }
 }

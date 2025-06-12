@@ -41,7 +41,8 @@ class PedidoService {
         params.append("page", page.toString());
         params.append("size", size.toString());
 
-        const response = await fetch(`/api/pedidos/cliente/${clienteId}?${params.toString()}`);
+        // FIX: Usar la misma base URL que los otros métodos
+        const response = await fetch(`${API_URL}/cliente/${clienteId}?${params.toString()}`);
         if (!response.ok) {
             throw new Error("Error al obtener pedidos del cliente");
         }
