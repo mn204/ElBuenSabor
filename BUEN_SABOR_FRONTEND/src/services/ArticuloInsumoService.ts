@@ -37,6 +37,20 @@ class ArticuloInsumoService {
         }
     }
 
+    //Busqueda de Stock bajo
+    async obtenerArticulosConStockBajo(idSucursal: number): Promise<ArticuloInsumo[]> {
+        try {
+            const response = await fetch(`${API_URL}/stock-bajo/${idSucursal}`);
+            if (!response.ok) {
+                throw new Error("Error al obtener artículos con stock bajo");
+            }
+            return await response.json();
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    };
+
     async changeEliminado(id: number): Promise<void> {
         try {
             const res = await fetch(`${API_URL}/darAlta/${id}`, {
