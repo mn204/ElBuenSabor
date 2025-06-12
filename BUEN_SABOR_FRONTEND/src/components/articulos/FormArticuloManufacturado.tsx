@@ -10,7 +10,6 @@ import DetalleInsumosTable from "./DetalleInsumosTable";
 import FormArticuloFields from "./FormArticuloFields";
 import "../../styles/ArticuloManufacturado.css";
 import Button from "react-bootstrap/Button";
-import HistoricoPrecioVenta from "../../models/HistoricoPrecioVenta.ts";
 import { useManufacturado } from "../../hooks/useManufactuado.ts";
 import { useCargaDatosIniciales } from "../../hooks/useCargarDatosIinicales.ts";
 import { useModal } from "../../hooks/useModal.ts";
