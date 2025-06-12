@@ -11,6 +11,8 @@ import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -48,14 +50,16 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
         return super.save(entity);
     }
 
+    //Buscar pedidos con filtros para Cliente
     @Override
-    public List<Pedido> findPedidosByClienteWithFilters(
+    public Page<Pedido> findPedidosByClienteWithFilters(
             Long clienteId,
             String sucursalNombre,
             Estado estado,
             LocalDateTime desde,
             LocalDateTime hasta,
-            String nombreArticulo
+            String nombreArticulo,
+            Pageable pageable
     ) {
         Specification<Pedido> spec = Specification.where(clienteIdEquals(clienteId))
                 .and(sucursalNombreContains(sucursalNombre))
@@ -63,14 +67,16 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
                 .and(fechaBetween(desde, hasta))
                 .and(contieneArticulo(nombreArticulo));
 
-        return pedidoRepository.findAll(spec);
+        return pedidoRepository.findAll(spec, pageable);
     }
 
+    //Buscar el detalle del pedido para Cliente.
     @Override
     public Optional<Pedido> findByIdAndCliente(Long idPedido, Long clienteId) {
         return pedidoRepository.findByIdAndClienteId(idPedido, clienteId);
     }
 
+    //Generar PDF para el Cliente.
     @Override
     @Transactional
     public byte[] generarFacturaPDF(Long pedidoId, Long clienteId) {

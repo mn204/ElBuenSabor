@@ -8,6 +8,8 @@ import com.lab4.buen_sabor_backend.service.PedidoService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.*;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
@@ -42,18 +44,19 @@ public class PedidoController extends MasterControllerImpl<Pedido, PedidoDTO, Lo
         return pedidoMapper.toDTO(entity);
     }
 
-    // GET con filtros para un cliente específico
+    // GET de pedidos con filtros para un cliente específico
     @GetMapping("/cliente/{clienteId}")
-    public ResponseEntity<List<PedidoDTO>> getPedidosDelCliente(
+    public ResponseEntity<Page<PedidoDTO>> getPedidosDelCliente(
             @PathVariable Long clienteId,
             @RequestParam(required = false) String sucursal,
             @RequestParam(required = false) Estado estado,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime desde,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime hasta,
-            @RequestParam(required = false) String articulo
+            @RequestParam(required = false) String articulo,
+            Pageable pageable
     ) {
-        List<Pedido> pedidos = pedidoService.findPedidosByClienteWithFilters(clienteId, sucursal, estado, desde, hasta, articulo);
-        List<PedidoDTO> result = pedidos.stream().map(pedidoMapper::toDTO).toList();
+        Page<Pedido> pedidos = pedidoService.findPedidosByClienteWithFilters(clienteId, sucursal, estado, desde, hasta, articulo, pageable);
+        Page<PedidoDTO> result = pedidos.map(pedidoMapper::toDTO);
         return ResponseEntity.ok(result);
     }
 
