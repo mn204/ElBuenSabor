@@ -26,6 +26,13 @@ public class ArticuloInsumoServiceImpl extends MasterServiceImpl<ArticuloInsumo,
         this.articuloInsumoRepository = articuloInsumoRepository;
     }
 
+    //Busqueda de Stock bajo
+    @Override
+    public List<ArticuloInsumo> obtenerConStockBajo(Long idSucursal) {
+        return articuloInsumoRepository.findArticulosConStockBajo(idSucursal);
+    }
+
+
     @Override
     @Transactional
     public Optional<ArticuloInsumo> obtenerRecetaCompleta(Long id) {
@@ -126,6 +133,8 @@ public class ArticuloInsumoServiceImpl extends MasterServiceImpl<ArticuloInsumo,
         logger.info("Actualizando ArticuloInsumo id: {} con nueva denominación: {}", id, entity.getDenominacion());
         return super.update(id, entity);
     }
+
+
 
 
 }
