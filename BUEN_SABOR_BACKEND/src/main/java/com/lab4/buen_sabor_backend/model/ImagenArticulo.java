@@ -9,7 +9,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ImagenArticulo extends Master{
-    @Lob
+
     private String denominacion;
 
     @ManyToOne

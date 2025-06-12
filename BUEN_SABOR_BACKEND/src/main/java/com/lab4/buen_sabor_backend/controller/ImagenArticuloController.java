@@ -1,6 +1,5 @@
 package com.lab4.buen_sabor_backend.controller;
 
-import com.lab4.buen_sabor_backend.dto.HistoricoPrecioVentaDTO;
 import com.lab4.buen_sabor_backend.dto.ImagenArticuloDTO;
 import com.lab4.buen_sabor_backend.mapper.ImagenArticuloMapper;
 import com.lab4.buen_sabor_backend.model.ImagenArticulo;

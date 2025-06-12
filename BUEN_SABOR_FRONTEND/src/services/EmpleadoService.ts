@@ -15,6 +15,24 @@ export const registrarEmpleado = async (empleado: Empleado): Promise<Response> =
     return response;
 };
 
+// Obtener todos los empleados
+export const obtenerTodosLosEmpleados = async (): Promise<Empleado[]> => {
+    const response = await fetch(API_URL);
+    if (!response.ok) {
+        throw new Error("Error al obtener los empleados");
+    }
+    return await response.json();
+};
+
+// Obtener solo empleados que no están eliminados
+export const obtenerEmpleadosNoEliminados = async (): Promise<Empleado[]> => {
+    const response = await fetch(`${API_URL}/noEliminado`);
+    if (!response.ok) {
+        throw new Error("Error al obtener los empleados no eliminados");
+    }
+    return await response.json();
+};
+
 export const obtenerEmpleadoPorUsuarioId = async (usuarioId: number) => {
     const response = await fetch(`${API_URL}/usuario/${usuarioId}`);
     if (!response.ok) {
@@ -55,3 +73,23 @@ export const actualizarEmpleado = async (id: number, empleado: Empleado): Promis
         return null;
     }
 };
+
+//eliminar empleado
+export const eliminarEmpleado = async (id: number): Promise<void> => {
+    const response = await fetch(`${API_URL}/${id}`, {
+        method: "DELETE",
+    });
+    if (!response.ok) {
+        throw new Error("Error al eliminar el empleado");
+    }
+}
+
+//dar de alta empleado eliminado
+export const darDeAltaEmpleado = async (id: number): Promise<void> => {
+    const response = await fetch(`${API_URL}/darAlta/${id}`, {
+        method: "PUT",
+    });
+    if (!response.ok) {
+        throw new Error("Error al dar de alta el empleado");
+    }
+}

@@ -13,7 +13,7 @@ import java.util.Optional;
 public interface ArticuloInsumoRepository extends MasterRepository<ArticuloInsumo, Long> {
 
     // Buscar receta completa de un producto (usualmente por ID)
-    @Query("SELECT a FROM ArticuloInsumo a LEFT JOIN FETCH a.sucursalInsumo si LEFT JOIN FETCH si.existencias WHERE a.id = :id")
+    @Query("SELECT a FROM ArticuloInsumo a LEFT JOIN FETCH a.sucursalInsumo si  WHERE a.id = :id")
     Optional<ArticuloInsumo> obtenerRecetaCompleta(@Param("id") Long id);
 
     // Buscar ingrediente por nombre exacto (case insensitive)
@@ -30,12 +30,10 @@ public interface ArticuloInsumoRepository extends MasterRepository<ArticuloInsum
     List<ArticuloInsumo> findAllEsParaElaborar();
 
     // Consultar y controlar el stock actual (sumando existencias por insumo)
-    //TODO HAY QUE VER SI ESTA BIEN ESTE TODO
     @Query("""
-           SELECT a, SUM(e.cantidad)
+           SELECT a, SUM(si.stockActual)
            FROM ArticuloInsumo a
            JOIN a.sucursalInsumo si
-           JOIN si.existencias e
            WHERE a.eliminado = false
            GROUP BY a
            """)

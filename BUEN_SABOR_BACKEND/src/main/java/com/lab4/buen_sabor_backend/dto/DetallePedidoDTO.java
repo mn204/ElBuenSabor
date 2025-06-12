@@ -8,7 +8,6 @@ import lombok.*;
 public class DetallePedidoDTO extends MasterDTO {
     private Integer cantidad;
     private Double subTotal;
-    private PedidoDTO pedido;
     private ArticuloDTO articulo;
     private boolean eliminado;
 }

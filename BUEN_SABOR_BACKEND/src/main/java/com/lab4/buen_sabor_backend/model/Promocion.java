@@ -27,6 +27,8 @@ public class Promocion extends Master {
     @Enumerated(EnumType.STRING)
     private TipoPromocion tipoPromocion;
 
+    private Boolean activa = false;
+
     @ManyToMany
     @JoinTable(
             name = "promocion_sucursal",

@@ -30,7 +30,6 @@ public class Sucursal extends Master {
     private Domicilio domicilio;
 
     @OneToMany(mappedBy = "sucursal", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore
     private Set<Pedido> pedidos = new HashSet<>();
 
     @ManyToMany(mappedBy = "sucursales")

@@ -53,7 +53,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 throw new Error('Usuario no encontrado en el backend');
             }
 
+            if (usuarioData.eliminado) {
+                alert("Tu cuenta está inactiva. Si creés que esto es un error, escribinos a buensabor@gmail.com");
+                await signOut(auth);
+                setUser(null);
+                setUsuario(null);
+                setCliente(null);
+                setEmpleado(null);
+                setRequiresGoogleRegistration(false);
+                return;
+            }
             setUsuario(usuarioData);
+
 
             // Dependiendo del rol, cargar datos específicos
             if (usuarioData.rol === Rol.CLIENTE) {
@@ -117,9 +128,33 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }, []);
 
     const login = async (email: string, password: string) => {
-        await signInWithEmailAndPassword(auth, email, password);
-        // loadUserData se ejecutará automáticamente por onAuthStateChanged
+        const credential = await signInWithEmailAndPassword(auth, email, password);
+        const firebaseUser = credential.user;
+
+        const usuarioData = await obtenerUsuarioPorFirebaseUid(firebaseUser.uid);
+        if (!usuarioData || !usuarioData.id) {
+            throw new Error("Usuario no encontrado");
+        }
+
+        if (usuarioData.eliminado) {
+            await signOut(auth);
+            throw new Error("inactivo");
+        }
+
+        setUser(firebaseUser);
+        setUsuario(usuarioData);
+
+        if (usuarioData.rol === Rol.CLIENTE) {
+            const clienteData = await obtenerClientePorUsuarioId(usuarioData.id);
+            setCliente(clienteData);
+            setEmpleado(null);
+        } else {
+            const empleadoData = await obtenerEmpleadoPorUsuarioId(usuarioData.id);
+            setEmpleado(empleadoData);
+            setCliente(null);
+        }
     };
+
 
     const logout = async () => {
         await signOut(auth);

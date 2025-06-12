@@ -7,19 +7,24 @@ import type Localidad from "../../models/Localidad.ts";
 import { obtenerUsuarioPorDni } from "../../services/UsuarioService";
 import { actualizarEmpleado } from "../../services/EmpleadoService.ts";
 import { obtenerPaises, obtenerProvincias, obtenerLocalidades } from "../../services/LocalizacionService";
+import {obtenerSucursales} from "../../services/SucursalService.ts"
+import  Rol  from "../../models/enums/Rol.ts";
+
 
 interface Props {
     show: boolean;
     onHide: () => void;
     empleado: Empleado;
     onEmpleadoActualizado: (empleadoActualizado: Empleado) => void;
+    editableAdmin?: boolean;
 }
 
-const FormDatosEmpleado = ({ show, onHide, empleado, onEmpleadoActualizado }: Props) => {
+const FormDatosEmpleado = ({ show, onHide, empleado, onEmpleadoActualizado, editableAdmin = false }: Props) => {
     const [loading, setLoading] = useState(false);
     const [formError, setFormError] = useState<string | null>(null);
     const [dniError, setDniError] = useState<string | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
 
     // Estados del formulario - datos personales
     const [nombre, setNombre] = useState("");
@@ -27,6 +32,10 @@ const FormDatosEmpleado = ({ show, onHide, empleado, onEmpleadoActualizado }: Pr
     const [dni, setDni] = useState("");
     const [fechaNacimiento, setFechaNacimiento] = useState("");
     const [telefono, setTelefono] = useState("");
+
+    const [rolEmpleado, setRolEmpleado] = useState<Rol>(empleado.usuario.rol);
+    const [sucursalSeleccionadaId, setSucursalSeleccionadaId] = useState<number | null>(empleado.sucursal?.id || null);
+    const [sucursales, setSucursales] = useState<Sucursal[]>([]);
 
     // Estados del formulario - domicilio
     const [calle, setCalle] = useState("");
@@ -68,6 +77,12 @@ const FormDatosEmpleado = ({ show, onHide, empleado, onEmpleadoActualizado }: Pr
         cargarDatos();
     }, []);
 
+    useEffect(() => {
+        if (editableAdmin) {
+            obtenerSucursales().then(setSucursales).catch(console.error);
+        }
+    }, [editableAdmin]);
+
     // Cargar datos iniciales del empleado
     useEffect(() => {
         if (empleado && show) {
@@ -99,6 +114,12 @@ const FormDatosEmpleado = ({ show, onHide, empleado, onEmpleadoActualizado }: Pr
                     setProvincia(empleado.domicilio.localidad.provincia?.nombre || "");
                     setPais(empleado.domicilio.localidad.provincia?.pais?.nombre || "");
                 }
+            }
+
+            // Rol y sucursal (solo si lo usa el admin)
+            if (editableAdmin) {
+                setRolEmpleado(empleado.usuario?.rol || Rol.CAJERO);
+                setSucursalSeleccionadaId(empleado.sucursal?.id || null);
             }
         }
     }, [empleado, show]);
@@ -205,7 +226,8 @@ const FormDatosEmpleado = ({ show, onHide, empleado, onEmpleadoActualizado }: Pr
                 fechaNacimiento: new Date(fechaNacimiento),
                 usuario: {
                     ...empleado.usuario!,
-                    dni: dni.trim()
+                    dni: dni.trim(),
+                    ...(editableAdmin && { rol: rolEmpleado }) // ← solo si es editable
                 },
                 domicilio: {
                     ...empleado.domicilio!,
@@ -216,7 +238,8 @@ const FormDatosEmpleado = ({ show, onHide, empleado, onEmpleadoActualizado }: Pr
                     nroDepartamento: departamento.trim(),
                     detalles: detalles.trim(),
                     localidad: localidadSeleccionada
-                }
+                },
+                ...(editableAdmin && { sucursal: sucursales.find(s => s.id === sucursalSeleccionadaId) })
             };
 
             const response = await actualizarEmpleado(empleado.id!, empleadoActualizado);
@@ -320,6 +343,39 @@ const FormDatosEmpleado = ({ show, onHide, empleado, onEmpleadoActualizado }: Pr
                             required
                         />
                     </Form.Group>
+
+                    {editableAdmin && (
+                        <>
+                            <Form.Group controlId="sucursalEmpleado" className="mb-3">
+                                <Form.Label>Sucursal:</Form.Label>
+                                <Form.Select
+                                    value={sucursalSeleccionadaId ?? ""}
+                                    onChange={(e) => setSucursalSeleccionadaId(Number(e.target.value))}
+                                    required
+                                >
+                                    <option value="">Seleccioná una sucursal...</option>
+                                    {sucursales.map((s) => (
+                                        <option key={s.id} value={s.id}>{s.nombre}</option>
+                                    ))}
+                                </Form.Select>
+                            </Form.Group>
+
+                            <Form.Group controlId="rolEmpleado" className="mb-3">
+                                <Form.Label>Rol:</Form.Label>
+                                <Form.Select
+                                    value={rolEmpleado}
+                                    onChange={e => setRolEmpleado(e.target.value as Rol)}
+                                    required
+                                >
+                                    {Object.values(Rol)
+                                        .filter(rol => rol !== Rol.CLIENTE)
+                                        .map((rol) => (
+                                            <option key={rol} value={rol}>{rol}</option>
+                                        ))}
+                                </Form.Select>
+                            </Form.Group>
+                        </>
+                    )}
 
                     <h5 className="mb-3 mt-4">Domicilio</h5>
 

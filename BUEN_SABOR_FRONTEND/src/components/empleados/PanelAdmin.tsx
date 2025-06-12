@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Container, Row, Col, Nav } from 'react-bootstrap';
 import '../../styles/panelAdmin.css';
 
@@ -12,47 +11,138 @@ import Productos from '../../assets/svgAdmin/productos.svg';
 import Estadisticas from '../../assets/svgAdmin/estadisticas.svg';
 import Usuario from '../../assets/svgAdmin/usuario-black.svg';
 import GrillaArticuloManufacturado from "../articulos/GrillaArticuloManufacturado.tsx";
+import GrillaCliente from "./GrillaCliente.tsx";
+import GrillaEmpleado from "./GrillaEmpleado.tsx";
+import {useAuth} from "../../context/AuthContext.tsx"
+import { useSucursal } from "../../context/SucursalContextEmpleado.tsx";
+
+import {useLocation} from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 
 function PanelAdmin() {
-    const [selected, setSelected] = useState('Dashboard');
+
+    const{ usuario, user, empleado} = useAuth();
+    const { sucursalActual } = useSucursal();
+    const location = useLocation();
+    const navigate = useNavigate();
+
+
+    const botones = [
+        { nombre: 'Dashboard', icono: Dashboard, path: 'dashboard', rolesPermitidos: ['ADMINISTRADOR'] },
+        { nombre: 'Pedidos', icono: Pedidos, path: 'pedidos', rolesPermitidos: ['ADMINISTRADOR', 'CAJERO'] },
+        { nombre: 'Cocina', icono: Cocina, path: 'cocina', rolesPermitidos: ['ADMINISTRADOR', 'CAJERO', 'COCINERO'] },
+        { nombre: 'Delivery', icono: Delivery, path: 'delivery', rolesPermitidos: ['ADMINISTRADOR', 'DELIVERY'] },
+        { nombre: 'Facturación', icono: Facturacion, path: 'facturacion', rolesPermitidos: ['ADMINISTRADOR', 'CAJERO'] },
+        { nombre: 'Clientes', icono: Usuario, path: 'clientes', rolesPermitidos: ['ADMINISTRADOR'] },
+        { nombre: 'Productos', icono: Productos, path: 'productos', rolesPermitidos: ['ADMINISTRADOR'] },
+        { nombre: 'Categorias', icono: Productos, path: 'categorias', rolesPermitidos: ['ADMINISTRADOR'] },
+        { nombre: 'Estadísticas', icono: Estadisticas, path: 'estadisticas', rolesPermitidos: ['ADMINISTRADOR'] },
+        { nombre: 'Empleados', icono: Usuario, path: 'empleados', rolesPermitidos: ['ADMINISTRADOR'] },
+    ];
+
+    const botonesVisibles = botones.filter(btn =>
+        btn.rolesPermitidos.includes(usuario?.rol)
+    );
+
+    // Obtener la ruta activa desde la URL (ej: 'cocina')
+    const rutaActual = location.pathname.split("/")[2] || "dashboard";
+    const botonActual = botones.find(btn => btn.path === rutaActual);
 
     const renderContent = () => {
-        switch (selected) {
+        if (!botonActual || !botonActual.rolesPermitidos.includes(usuario?.rol)) {
+            return <div>No tenés permiso para ver esta sección.</div>;
+        }
+        // Para módulos que requieren contexto de sucursal (todos excepto Clientes y Empleados)
+        const requiereContextoSucursal = !['clientes', 'empleados'].includes(botonActual.path);
+
+        if (requiereContextoSucursal && !sucursalActual) {
+            return (
+                <div className="text-center p-4">
+                    <p>Cargando información de la sucursal...</p>
+                </div>
+            );
+        }
+
+        switch (botonActual.nombre) {
+            case 'Dashboard':
+                return (
+                    <div>
+                        <h4>Dashboard - {sucursalActual?.nombre}</h4>
+                        <p>Bienvenido al panel de administración</p>
+                        {sucursalActual && (
+                            <div className="mt-3">
+                                <strong>Sucursal Actual:</strong> {sucursalActual.nombre}<br/>
+                                <strong>Horario:</strong> {sucursalActual.horarioApertura} - {sucursalActual.horarioCierre}<br/>
+                                <strong>Dirección:</strong> {sucursalActual.domicilio?.calle} {sucursalActual.domicilio?.numero}
+                            </div>
+                        )}
+                    </div>
+                );
             case 'Productos':
-                return <GrillaArticuloManufacturado/>;
+                return (
+                    <div>
+                        <h4>Productos - {sucursalActual?.nombre}</h4>
+                        <GrillaArticuloManufacturado />
+                    </div>
+                );
             case 'Clientes':
-                return <div>Componente Clientes</div>;
+                return (
+                    <div>
+                        <GrillaCliente />
+                    </div>
+                );
             case 'Pedidos':
-                return <div>Componente Pedidos</div>;
+                return (
+                    <div>
+                        <h4>Pedidos - {sucursalActual?.nombre}</h4>
+                        <p>Componente Pedidos para la sucursal {sucursalActual?.nombre}</p>
+                    </div>
+                );
             case 'Cocina':
-                return <div>Componente Cocina</div>;
+                return (
+                    <div>
+                        <h4>Cocina - {sucursalActual?.nombre}</h4>
+                        <p>Componente Cocina para la sucursal {sucursalActual?.nombre}</p>
+                    </div>
+                );
             case 'Delivery':
-                return <div>Componente Delivery</div>;
+                return (
+                    <div>
+                        <h4>Delivery - {sucursalActual?.nombre}</h4>
+                        <p>Componente Delivery para la sucursal {sucursalActual?.nombre}</p>
+                    </div>
+                );
             case 'Facturación':
-                return <div>Componente Facturación</div>;
+                return (
+                    <div>
+                        <h4>Facturación - {sucursalActual?.nombre}</h4>
+                        <p>Componente Facturación para la sucursal {sucursalActual?.nombre}</p>
+                    </div>
+                );
             case 'Estadísticas':
-                return <div>Componente Estadísticas</div>;
+                return (
+                    <div>
+                        <h4>Estadísticas - {sucursalActual?.nombre}</h4>
+                        <p>Componente Estadísticas para la sucursal {sucursalActual?.nombre}</p>
+                    </div>
+                );
             case 'Empleados':
-                return <div>Componente Empleados</div>;
+                return (
+                    <div>
+                        <GrillaEmpleado />
+                    </div>
+                );
             case 'Categorias':
-                return <div>Componente Categorias</div>;
+                return (
+                    <div>
+                        <h4>Categorías - {sucursalActual?.nombre}</h4>
+                        <p>Componente Categorías para la sucursal {sucursalActual?.nombre}</p>
+                    </div>
+                );
             default:
                 return <div>Bienvenido al panel de administración</div>;
         }
     };
-
-    const botones = [
-        { nombre: 'Dashboard', icono: Dashboard },
-        { nombre: 'Pedidos', icono: Pedidos },
-        { nombre: 'Cocina', icono: Cocina },
-        { nombre: 'Delivery', icono: Delivery },
-        { nombre: 'Facturación', icono: Facturacion },
-        { nombre: 'Clientes', icono: Usuario },
-        { nombre: 'Productos', icono: Productos },
-        { nombre: 'Categorias', icono: Productos },
-        { nombre: 'Estadísticas', icono: Estadisticas },
-        { nombre: 'Empleados', icono: Usuario },
-    ];
 
     return (
         <Container fluid className="panel-admin-container p-0">
@@ -63,18 +153,25 @@ function PanelAdmin() {
                         <img src={Computadora} alt="Icono Computadora" style={{ height: 40, width: 40 }} />
                         <h6 className="mt-2 mb-0">Panel de Administración</h6>
                         <small>El Buen Sabor</small>
+                        {sucursalActual && usuario?.rol !== 'ADMINISTRADOR' && (
+                            <div className="mt-2">
+                                <small className="text-muted">
+                                    <strong>{sucursalActual.nombre}</strong>
+                                </small>
+                            </div>
+                        )}
                     </div>
 
                     <Nav className="flex-column">
-                        {botones.map((btn) => (
+                        {botonesVisibles.map((btn) => (
                             <Nav.Link
                                 key={btn.nombre}
-                                onClick={() => setSelected(btn.nombre)}
-                                className={`d-flex align-items-center mb-2 ${selected === btn.nombre ? 'fw-bold active' : ''}`}
+                                onClick={() => navigate(`/empleado/${btn.path}`)}
+                                className={`d-flex align-items-center mb-2 ${rutaActual === btn.path ? 'fw-bold active' : ''}`}
                                 style={{
                                     cursor: 'pointer',
                                     color: '#000',
-                                    backgroundColor: selected === btn.nombre ? '#e0e0e0' : 'transparent',
+                                    backgroundColor: rutaActual === btn.path ? '#e0e0e0' : 'transparent',
                                     borderRadius: '8px',
                                     padding: '8px 12px',
                                 }}
@@ -92,6 +189,7 @@ function PanelAdmin() {
                 </Col>
             </Row>
         </Container>
+
     );
 }
 

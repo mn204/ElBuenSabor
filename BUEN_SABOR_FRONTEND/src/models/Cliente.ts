@@ -1,7 +1,5 @@
 import Usuario from "./Usuario";
 import Domicilio from "./Domicilio";
-import Pedido from "./Pedido";
-
 export default class Cliente {
     id?: number;
     nombre: string = "";
@@ -10,6 +8,5 @@ export default class Cliente {
     fechaNacimiento: Date = new Date();
     usuario!: Usuario;
     domicilios: Domicilio[] = [];
-    pedidos: Pedido[] = [];
     eliminado!: boolean;
 }

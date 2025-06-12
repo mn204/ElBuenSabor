@@ -36,17 +36,14 @@ public class Pedido extends Master{
 
     @ManyToOne
     @JoinColumn(name = "sucursal_id")
-    @JsonIgnore
     private Sucursal sucursal;
 
     @ManyToOne
-    @JoinColumn(name = "empleado_id")
-    @JsonIgnore
+    @JoinColumn(name = "empleado_delibery_id")
     private Empleado empleado;
 
     @ManyToOne
     @JoinColumn(name = "cliente_id")
-    @JsonIgnore
     private Cliente cliente;
 
     @OneToOne(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)

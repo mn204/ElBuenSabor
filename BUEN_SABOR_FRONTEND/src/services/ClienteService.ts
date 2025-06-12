@@ -15,6 +15,24 @@ export const registrarCliente = async (cliente: Cliente): Promise<Response> => {
 
     return response;
 };
+
+// Obtener todos los clientes
+export const obtenerTodosLosClientes = async (): Promise<Cliente[]> => {
+    const response = await fetch(API_URL);
+    if (!response.ok) {
+        throw new Error("Error al obtener los clientes");
+    }
+    return await response.json();
+};
+
+// Obtener solo clientes que no están eliminados
+export const obtenerClientesNoEliminados = async (): Promise<Cliente[]> => {
+    const response = await fetch(`${API_URL}/noEliminado`);
+    if (!response.ok) {
+        throw new Error("Error al obtener los clientes no eliminados");
+    }
+    return await response.json();
+};
 export const obtenerClientePorUsuarioId = async (usuarioId: number) => {
     const response = await fetch(`${API_URL}/usuario/${usuarioId}`);
     if (!response.ok) {
@@ -52,5 +70,37 @@ export const actualizarCliente = async (id: number, cliente: Cliente): Promise<C
     } catch (error) {
         console.error("Error en la solicitud PUT:", error);
         return null;
+    }
+};
+
+//eliminar domicilios del cliente
+export const eliminarDomiciliosCliente = async (idCliente: number, idDomicilio: number): Promise<void> => {
+    const response = await fetch(`${API_URL}/${idCliente}/domicilio/${idDomicilio}`, {
+        method: "DELETE",
+    });
+    if (!response.ok) {
+        throw new Error("Error al eliminar el domicilio");
+    }
+
+}
+
+
+// DELETE - Baja lógica del cliente
+export const eliminarCliente = async (id: number): Promise<void> => {
+    const response = await fetch(`${API_URL}/${id}`, {
+        method: "DELETE",
+    });
+    if (!response.ok) {
+        throw new Error("Error al eliminar el cliente");
+    }
+};
+
+// PUT - Dar de alta a un cliente eliminado
+export const darDeAltaCliente = async (id: number): Promise<void> => {
+    const response = await fetch(`${API_URL}/darAlta/${id}`, {
+        method: "PUT",
+    });
+    if (!response.ok) {
+        throw new Error("Error al dar de alta el cliente");
     }
 };

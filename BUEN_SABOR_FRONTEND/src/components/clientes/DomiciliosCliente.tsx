@@ -5,6 +5,7 @@ import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
 import { useAuth } from "../../context/AuthContext";
 import Domicilio from "../../models/Domicilio";
 import ModalDomicilio from "./ModalDomicilio";
+import { eliminarDomiciliosCliente } from "../../services/ClienteService.ts";
 
 const DomiciliosCliente = () => {
     const { cliente, setCliente } = useAuth();
@@ -23,10 +24,29 @@ const DomiciliosCliente = () => {
         setModalVisible(true);
     };
 
-    const handleEliminar = (domicilio: Domicilio) => {
-        console.log("Eliminar domicilio", domicilio);
-        // Se implementará más adelante
+    const handleEliminar = async (domicilio: Domicilio) => {
+        if (!cliente || !domicilio.id) return;
+
+        const confirmacion = window.confirm("¿Estás seguro que querés eliminar este domicilio?");
+        if (!confirmacion) return;
+
+        try {
+            await eliminarDomiciliosCliente(cliente.id, domicilio.id);
+
+            // Filtrar domicilio eliminado del estado actual del cliente
+            const nuevosDomicilios = cliente.domicilios?.filter(d => d.id !== domicilio.id) || [];
+
+            // Actualizar cliente sin el domicilio eliminado
+            setCliente({
+                ...cliente,
+                domicilios: nuevosDomicilios
+            });
+        } catch (error) {
+            console.error("Error al eliminar domicilio:", error);
+            alert("Ocurrió un error al intentar eliminar el domicilio.");
+        }
     };
+
 
     const handleModalSubmit = (clienteActualizado: any) => {
         setCliente(clienteActualizado);

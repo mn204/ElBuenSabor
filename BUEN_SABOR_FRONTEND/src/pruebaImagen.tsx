@@ -37,3 +37,11 @@ const ImageUpload = () => {
 };
 
 export default ImageUpload;
+
+
+// stock histtoricos eliminarlos
+
+//manejo de sucursales que lo muestre el carrito para elegir el cliente
+
+// filtrar por sucursal
+

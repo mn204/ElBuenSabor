@@ -23,10 +23,12 @@ import ProtectedRoute from './context/ProtectedRoute.tsx'
 import Rol from './models/enums/Rol.ts'
 import {Modal} from "react-bootstrap";
 import 'bootstrap-icons/font/bootstrap-icons.css';
-
+import Redireccion from './components/auth/Redireccion.tsx';
 import RegisterGoogle from "./components/auth/RegisterGoogle.tsx";
 import PanelAdmin from "./components/empleados/PanelAdmin.tsx";
 import DomiciliosCliente from "./components/clientes/DomiciliosCliente.tsx";
+import { SucursalProvider } from './context/SucursalContextEmpleado.tsx'
+
 
 function AppContent() {
   const { requiresGoogleRegistration, completeGoogleRegistration, isAuthenticated, usuario } = useAuth();
@@ -38,6 +40,7 @@ function AppContent() {
   return (
       <>
         <Navbar />
+        <Redireccion/>
         <Routes>
           {/* Rutas públicas */}
           <Route path="/" element={<Home />} />
@@ -68,6 +71,11 @@ function AppContent() {
             </ProtectedRoute>
           } />
 
+          <Route path="/empleado/:modulo?" element={
+            <ProtectedRoute requiredRoles={[Rol.ADMIN, Rol.CAJERO, Rol.COCINERO, Rol.DELIVERY]}>
+              <PanelAdmin />
+            </ProtectedRoute>
+          } />
 
           <Route path="/manufacturado" element={
             <ProtectedRoute requiredRoles={[Rol.ADMIN, Rol.COCINERO]}>
@@ -155,7 +163,9 @@ function AppContent() {
 function App() {
   return (
       <AuthProvider>
+        <SucursalProvider>
         <AppContent />
+         </SucursalProvider>
       </AuthProvider>
   );
 }

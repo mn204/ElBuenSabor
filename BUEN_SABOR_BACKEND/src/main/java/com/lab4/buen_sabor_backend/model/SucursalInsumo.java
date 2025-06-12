@@ -12,16 +12,14 @@ import java.util.*;
 @AllArgsConstructor
 public class SucursalInsumo extends Master {
 
-    private Integer stockMinimo;
-    private Integer stockMaximo;
+    private Double stockMinimo;
+    private Double stockActual;
+    private Double stockMaximo;
 
     @ManyToOne
     @JoinColumn(name = "sucursal_id")
-    @JsonIgnore
     private Sucursal sucursal;
 
-    @OneToMany(mappedBy = "sucursalInsumo", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Existencia> existencias = new HashSet<>();
 
     @OneToMany(mappedBy = "sucursalInsumo", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ArticuloInsumo> articulosInsumo = new HashSet<>();
