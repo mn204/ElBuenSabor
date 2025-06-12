@@ -27,6 +27,8 @@ import Redireccion from './components/auth/Redireccion.tsx';
 import RegisterGoogle from "./components/auth/RegisterGoogle.tsx";
 import PanelAdmin from "./components/empleados/PanelAdmin.tsx";
 import DomiciliosCliente from "./components/clientes/DomiciliosCliente.tsx";
+import { SucursalProvider } from './context/SucursalContextEmpleado.tsx'
+
 
 function AppContent() {
   const { requiresGoogleRegistration, completeGoogleRegistration, isAuthenticated, usuario } = useAuth();
@@ -161,7 +163,9 @@ function AppContent() {
 function App() {
   return (
       <AuthProvider>
+        <SucursalProvider>
         <AppContent />
+         </SucursalProvider>
       </AuthProvider>
   );
 }
