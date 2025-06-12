@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Container, Row, Col, Nav } from 'react-bootstrap';
 import '../../styles/panelAdmin.css';
 
@@ -14,16 +13,49 @@ import Usuario from '../../assets/svgAdmin/usuario-black.svg';
 import GrillaArticuloManufacturado from "../articulos/GrillaArticuloManufacturado.tsx";
 import GrillaCliente from "./GrillaCliente.tsx";
 import GrillaEmpleado from "./GrillaEmpleado.tsx";
+import {useAuth} from "../../context/AuthContext.tsx"
+
+import {useLocation} from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 
 function PanelAdmin() {
-    const [selected, setSelected] = useState('Dashboard');
+
+    const{ usuario, user, empleado} = useAuth();
+    const location = useLocation();
+    const navigate = useNavigate();
+
+
+    const botones = [
+        { nombre: 'Dashboard', icono: Dashboard, path: 'dashboard', rolesPermitidos: ['ADMINISTRADOR'] },
+        { nombre: 'Pedidos', icono: Pedidos, path: 'pedidos', rolesPermitidos: ['ADMINISTRADOR', 'CAJERO'] },
+        { nombre: 'Cocina', icono: Cocina, path: 'cocina', rolesPermitidos: ['ADMINISTRADOR', 'CAJERO', 'COCINERO'] },
+        { nombre: 'Delivery', icono: Delivery, path: 'delivery', rolesPermitidos: ['ADMINISTRADOR', 'DELIVERY'] },
+        { nombre: 'Facturación', icono: Facturacion, path: 'facturacion', rolesPermitidos: ['ADMINISTRADOR', 'CAJERO'] },
+        { nombre: 'Clientes', icono: Usuario, path: 'clientes', rolesPermitidos: ['ADMINISTRADOR'] },
+        { nombre: 'Productos', icono: Productos, path: 'productos', rolesPermitidos: ['ADMINISTRADOR'] },
+        { nombre: 'Categorias', icono: Productos, path: 'categorias', rolesPermitidos: ['ADMINISTRADOR'] },
+        { nombre: 'Estadísticas', icono: Estadisticas, path: 'estadisticas', rolesPermitidos: ['ADMINISTRADOR'] },
+        { nombre: 'Empleados', icono: Usuario, path: 'empleados', rolesPermitidos: ['ADMINISTRADOR'] },
+    ];
+
+    const botonesVisibles = botones.filter(btn =>
+        btn.rolesPermitidos.includes(usuario?.rol)
+    );
+
+    // Obtener la ruta activa desde la URL (ej: 'cocina')
+    const rutaActual = location.pathname.split("/")[2] || "dashboard";
+    const botonActual = botones.find(btn => btn.path === rutaActual);
 
     const renderContent = () => {
-        switch (selected) {
+        if (!botonActual || !botonActual.rolesPermitidos.includes(usuario?.rol)) {
+            return <div>No tenés permiso para ver esta sección.</div>;
+        }
+
+        switch (botonActual.nombre) {
             case 'Productos':
-                return <GrillaArticuloManufacturado/>;
+                return <GrillaArticuloManufacturado />;
             case 'Clientes':
-                return <GrillaCliente/>;
+                return <GrillaCliente />;
             case 'Pedidos':
                 return <div>Componente Pedidos</div>;
             case 'Cocina':
@@ -35,27 +67,13 @@ function PanelAdmin() {
             case 'Estadísticas':
                 return <div>Componente Estadísticas</div>;
             case 'Empleados':
-                return <GrillaEmpleado/>;
+                return <GrillaEmpleado />;
             case 'Categorias':
                 return <div>Componente Categorias</div>;
             default:
                 return <div>Bienvenido al panel de administración</div>;
         }
     };
-
-    const botones = [
-        { nombre: 'Dashboard', icono: Dashboard },
-        { nombre: 'Pedidos', icono: Pedidos },
-        { nombre: 'Cocina', icono: Cocina },
-        { nombre: 'Delivery', icono: Delivery },
-        { nombre: 'Facturación', icono: Facturacion },
-        { nombre: 'Clientes', icono: Usuario },
-        { nombre: 'Productos', icono: Productos },
-        { nombre: 'Categorias', icono: Productos },
-        { nombre: 'Estadísticas', icono: Estadisticas },
-        { nombre: 'Empleados', icono: Usuario },
-    ];
-
     return (
         <Container fluid className="panel-admin-container p-0">
             <Row className="g-0">
@@ -68,15 +86,15 @@ function PanelAdmin() {
                     </div>
 
                     <Nav className="flex-column">
-                        {botones.map((btn) => (
+                        {botonesVisibles.map((btn) => (
                             <Nav.Link
                                 key={btn.nombre}
-                                onClick={() => setSelected(btn.nombre)}
-                                className={`d-flex align-items-center mb-2 ${selected === btn.nombre ? 'fw-bold active' : ''}`}
+                                onClick={() => navigate(`/empleado/${btn.path}`)}
+                                className={`d-flex align-items-center mb-2 ${rutaActual === btn.path ? 'fw-bold active' : ''}`}
                                 style={{
                                     cursor: 'pointer',
                                     color: '#000',
-                                    backgroundColor: selected === btn.nombre ? '#e0e0e0' : 'transparent',
+                                    backgroundColor: rutaActual === btn.path ? '#e0e0e0' : 'transparent',
                                     borderRadius: '8px',
                                     padding: '8px 12px',
                                 }}
@@ -86,6 +104,7 @@ function PanelAdmin() {
                             </Nav.Link>
                         ))}
                     </Nav>
+
                 </Col>
 
                 {/* Main content */}

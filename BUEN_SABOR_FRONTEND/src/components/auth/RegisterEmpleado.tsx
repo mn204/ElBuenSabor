@@ -12,6 +12,9 @@ import {Eye, EyeSlash} from "react-bootstrap-icons";
 import {obtenerUsuarioPorDni, obtenerUsuarioPorEmail} from "../../services/UsuarioService.ts"; // Ajustá según tu estructura
 import {registrarEmpleado} from "../../services/EmpleadoService.ts";
 import { useAuth } from "../../context/AuthContext";
+import type Sucursal from "../../models/Sucursal.ts";
+import { obtenerSucursales } from "../../services/SucursalService";
+
 
 
 const RegisterEmpleado = () => {
@@ -34,6 +37,8 @@ const RegisterEmpleado = () => {
     const [fechaNacimiento, setFechaNacimiento] = useState("");
     const [rolEmpleado, setRolEmpleado] = useState<Rol>(Rol.CAJERO);
     const [telefono, setTelefono] = useState("");
+    const [sucursales, setSucursales] = useState<Sucursal[]>([]);
+    const [sucursalSeleccionadaId, setSucursalSeleccionadaId] = useState<number | undefined>(undefined);
 
     const [pais, setPais] = useState("");
     const [provincia, setProvincia] = useState("");
@@ -58,14 +63,16 @@ const RegisterEmpleado = () => {
 
     useEffect(() => {
         const cargarDatos = async () => {
-            const [paisesData, provinciasData, localidadesData] = await Promise.all([
+            const [paisesData, provinciasData, localidadesData,sucursaleData] = await Promise.all([
                 obtenerPaises(),
                 obtenerProvincias(),
-                obtenerLocalidades()
+                obtenerLocalidades(),
+                obtenerSucursales()
             ]);
             setPaises(paisesData);
             setProvincias(provinciasData);
             setLocalidades(localidadesData);
+            setSucursales(sucursaleData);
         };
 
         cargarDatos();
@@ -150,7 +157,7 @@ const RegisterEmpleado = () => {
     };
 
     const handleRegister = async () => {
-        if (!nombre || !apellido || !email || !contrasena || !confirmarContrasena || !dni || !fechaNacimiento || !telefono || !pais || !provincia || !localidadId || !codigoPostal || !calle || !numero || !detalles || !rolEmpleado) {
+        if (!nombre || !apellido || !email || !contrasena || !confirmarContrasena || !dni || !fechaNacimiento || !telefono || !pais || !provincia || !localidadId || !codigoPostal || !calle || !numero || !detalles || !rolEmpleado || !sucursalSeleccionadaId) {
             setFormError("Por favor completá todos los campos.");
             return;
         }
@@ -255,8 +262,11 @@ const RegisterEmpleado = () => {
                     photoUrl: fotoUrl,
                     eliminado: false
                 },
-                pedidos: [] // si tu clase no lo requiere aún, podés omitir este campo
-            };
+                pedidos: [], // si tu clase no lo requiere aún, podés omitir este campo
+                sucursal: {
+                    id: sucursalSeleccionadaId,
+                }
+        };
             console.log("Empleado a enviar:", JSON.stringify(empleado, null, 2));
 
             const response = await registrarEmpleado(empleado);
@@ -295,6 +305,7 @@ const RegisterEmpleado = () => {
             setDni("");
             setFechaNacimiento("");
             setTelefono("");
+            setSucursales("")
             setPais("");
             setProvincia("");
             setLocalidadId(undefined);
@@ -488,6 +499,23 @@ const RegisterEmpleado = () => {
                                 accept="image/*"
                                 onChange={(e) => setImagenEmpleado(e.target.files?.[0] || null)}
                             />
+                            </div>
+                        </Form.Group>
+                        <Form.Group controlId="sucursalEmpleado" className="mb-3">
+                            <div className="d-flex gap-4 p-1 align-items-end" style={{ width: "100%" }}>
+                                <Form.Label>Sucursal:</Form.Label>
+                                <Form.Select
+                                    value={sucursalSeleccionadaId ?? ""}
+                                    onChange={(e) => setSucursalSeleccionadaId(Number(e.target.value))}
+                                    required
+                                >
+                                    <option value="">Seleccioná una sucursal...</option>
+                                    {sucursales.map((s) => (
+                                        <option key={s.id} value={s.id}>
+                                            {s.nombre}
+                                        </option>
+                                    ))}
+                                </Form.Select>
                             </div>
                         </Form.Group>
 
