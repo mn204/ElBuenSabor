@@ -68,7 +68,7 @@ function Navbar() {
                                 setValor={setBusqueda}
                             />
                         ) : (
-                            empleado?.sucursal?.nombre && (
+                             usuario?.rol !== "ADMINISTRADOR" && empleado?.sucursal?.nombre && (
                                 <span className="homeNav">Sucursal: {empleado.sucursal.nombre}</span>
                             )
                         )}
