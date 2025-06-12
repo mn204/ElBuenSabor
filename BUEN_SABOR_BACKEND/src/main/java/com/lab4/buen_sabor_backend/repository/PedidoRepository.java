@@ -16,7 +16,10 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface PedidoRepository extends MasterRepository<Pedido, Long> {
+public interface PedidoRepository extends MasterRepository<Pedido, Long>, JpaSpecificationExecutor<Pedido> {
+
+    //búsqueda para los pedidos por cliente.
+    Optional<Pedido> findByIdAndClienteId(Long id, Long clienteId);
 
 /*
     // Buscar pedidos por cliente o estado
