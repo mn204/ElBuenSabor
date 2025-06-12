@@ -37,13 +37,13 @@ public class ClienteController extends MasterControllerImpl<Cliente, ClienteDTO,
         return clienteMapper.toDTO(entity);
     }
 
-
     @GetMapping("/usuario/{usuarioId}")
-    public ResponseEntity<Cliente> getByUsuarioId(@PathVariable Long usuarioId) {
+    public ResponseEntity<ClienteDTO> getByUsuarioId(@PathVariable Long usuarioId) {
         return clienteService.findByUsuarioId(usuarioId)
-                .map(ResponseEntity::ok)
+                .map(cliente -> ResponseEntity.ok(clienteMapper.toDTO(cliente)))
                 .orElse(ResponseEntity.notFound().build());
     }
+
 
     // Nuevo endpoint para desasociar domicilio
     @DeleteMapping("/{clienteId}/domicilio/{domicilioId}")

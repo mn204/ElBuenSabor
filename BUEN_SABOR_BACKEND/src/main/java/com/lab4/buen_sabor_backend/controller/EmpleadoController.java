@@ -40,9 +40,10 @@ public class EmpleadoController extends MasterControllerImpl<Empleado, EmpleadoD
 
 
     @GetMapping("/usuario/{usuarioId}")
-    public ResponseEntity<Empleado> getByUsuarioId(@PathVariable Long usuarioId) {
+    public ResponseEntity<EmpleadoDTO> getByUsuarioId(@PathVariable Long usuarioId) {
         return empleadoService.findByUsuarioId(usuarioId)
-                .map(ResponseEntity::ok)
+                .map(empleado -> ResponseEntity.ok(empleadoMapper.toDTO(empleado)))
                 .orElse(ResponseEntity.notFound().build());
     }
+
 }
