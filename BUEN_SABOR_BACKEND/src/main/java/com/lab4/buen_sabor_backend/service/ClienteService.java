@@ -8,5 +8,6 @@ import java.util.Optional;
 public interface ClienteService extends MasterService<Cliente, Long>{
 
     public Optional<Cliente> findByUsuarioId(Long usuarioId);
+    boolean removeDomicilioFromCliente(Long clienteId, Long domicilioId);
 
 }

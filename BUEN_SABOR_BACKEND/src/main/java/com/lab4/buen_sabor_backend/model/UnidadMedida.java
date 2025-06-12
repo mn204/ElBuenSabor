@@ -16,6 +16,5 @@ public class UnidadMedida extends Master{
     private String denominacion;
 
     @OneToMany(mappedBy = "unidadMedida")
-    @JsonIgnore
     private Set<Articulo> articulos;
 }

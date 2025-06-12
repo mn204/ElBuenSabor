@@ -1,4 +1,3 @@
-import Pedido from "./Pedido";
 
 export default class Factura {
     id?: number;
@@ -8,6 +7,5 @@ export default class Factura {
     mpPreferenceId?: string;
     mpPaymentType?: string;
     totalVenta: number = 0;
-    pedido!: Pedido;
     eliminado!: boolean;
 }

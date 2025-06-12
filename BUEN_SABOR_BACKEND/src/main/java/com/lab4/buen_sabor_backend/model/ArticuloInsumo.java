@@ -17,7 +17,6 @@ public class ArticuloInsumo extends Articulo {
 
     @ManyToOne
     @JoinColumn(name = "sucursal_insumo_id")
-    @JsonIgnore
     private SucursalInsumo sucursalInsumo;
 }
 

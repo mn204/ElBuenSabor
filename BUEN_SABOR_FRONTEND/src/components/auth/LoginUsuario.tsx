@@ -1,6 +1,6 @@
 // LoginUsuario.tsx
 import { signInWithPopup, sendPasswordResetEmail } from "firebase/auth";
-import { auth, googleProvider } from "./firebase.ts"; // Asegurate de usar la ruta correcta
+import { auth, googleProvider } from "./firebase.ts";
 import { useState } from "react";
 import {Form, Button, InputGroup} from "react-bootstrap";
 import {Eye, EyeSlash} from "react-bootstrap-icons";
@@ -42,8 +42,13 @@ const LoginUsuario = ({ onRegisterClick , onClose}: Props) => {
             }, 1000);
         } catch (err: any) {
             console.error("Error en login:", err);
-            setError("Credenciales incorrectas. Verificá tu email y contraseña.");
-        } finally {
+            if (err.message === "inactivo") {
+                setError("Tu cuenta está inactiva. Si creés que esto es un error, escribinos a buensabor@gmail.com");
+            } else {
+                setError("Credenciales incorrectas. Verificá tu email y contraseña.");
+            }
+        }
+        finally {
             setLoading(false);
         }
     };

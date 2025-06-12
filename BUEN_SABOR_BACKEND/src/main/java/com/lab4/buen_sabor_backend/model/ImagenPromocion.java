@@ -15,6 +15,5 @@ public class ImagenPromocion extends Master {
 
     @ManyToOne
     @JoinColumn(name = "promocion_id")
-    @JsonIgnore
     private Promocion promocion;
 }

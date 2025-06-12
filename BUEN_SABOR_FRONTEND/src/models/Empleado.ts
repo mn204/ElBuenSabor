@@ -1,5 +1,5 @@
 import Domicilio from "./Domicilio";
-import Pedido from "./Pedido";
+import type Sucursal from "./Sucursal.ts";
 import  Usuario from "./Usuario.ts";
 
 export default class Empleado {
@@ -10,6 +10,5 @@ export default class Empleado {
     fechaNacimiento: Date = new Date();
     usuario!: Usuario;
     domicilio?: Domicilio;
-    pedidos: Pedido[] = [];
-    eliminado!: boolean;
+    sucursal!: Sucursal;
 }

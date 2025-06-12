@@ -108,3 +108,23 @@ export const actualizarEmailEnUsuario = async (usuario: Usuario, nuevoEmail: str
         return null;
     }
 };
+
+//eliminar usuario
+export const eliminarUsuario = async (id: number): Promise<void> => {
+    const response = await fetch(`${BASE_URL}/${id}`, {
+        method: "DELETE",
+    });
+    if (!response.ok) {
+        throw new Error("Error al eliminar el usuario");
+    }
+}
+
+//dar de alta usuario eliminado
+export const darDeAltaUsuario = async (id: number): Promise<void> => {
+    const response = await fetch(`${BASE_URL}/darAlta/${id}`, {
+        method: "PUT",
+    });
+    if (!response.ok) {
+        throw new Error("Error al dar de alta el usuario");
+    }
+}
