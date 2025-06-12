@@ -43,35 +43,38 @@ public class PedidoController extends MasterControllerImpl<Pedido, PedidoDTO, Lo
         return pedidoMapper.toDTO(entity);
     }
 
-    @GetMapping("/cliente")
+    // GET con filtros para un cliente específico
+    @GetMapping("/cliente/{clienteId}")
     public ResponseEntity<List<PedidoDTO>> getPedidosDelCliente(
+            @PathVariable Long clienteId,
             @RequestParam(required = false) String sucursal,
             @RequestParam(required = false) Estado estado,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime desde,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime hasta,
             @RequestParam(required = false) String articulo
     ) {
-        Long clienteId = getClienteIdAutenticado(); // implementalo según tu seguridad
         List<Pedido> pedidos = pedidoService.findPedidosByClienteWithFilters(clienteId, sucursal, estado, desde, hasta, articulo);
         List<PedidoDTO> result = pedidos.stream().map(pedidoMapper::toDTO).toList();
         return ResponseEntity.ok(result);
     }
 
-    @GetMapping("/cliente/{id}")
-    public ResponseEntity<PedidoDTO> getDetallePedidoCliente(@PathVariable Long id) {
-        Long clienteId = getClienteIdAutenticado();
+    // GET de detalle de un pedido de un cliente
+    @GetMapping("/cliente/{clienteId}/pedido/{id}")
+    public ResponseEntity<PedidoDTO> getDetallePedidoCliente(@PathVariable Long clienteId, @PathVariable Long id) {
         Pedido pedido = pedidoService.findByIdAndCliente(id, clienteId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pedido no encontrado o no pertenece al cliente"));
         return ResponseEntity.ok(pedidoMapper.toDTO(pedido));
     }
+
+    // GET para obtener el PDF de un pedido del cliente
+
     /*
-    @GetMapping("/cliente/{id}/factura")
-    public ResponseEntity<byte[]> getFacturaPdf(@PathVariable Long id) {
-        Long clienteId = getClienteIdAutenticado();
+    @GetMapping("/cliente/{clienteId}/pedido/{id}/factura")
+    public ResponseEntity<byte[]> getFacturaPdf(@PathVariable Long clienteId, @PathVariable Long id) {
         Pedido pedido = pedidoService.findByIdAndCliente(id, clienteId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pedido no encontrado o no pertenece al cliente"));
 
-        byte[] pdf = pdfService.generarFacturaPedido(pedido); // métodos a implementar en PdfService
+        byte[] pdf = pdfService.generarFacturaPedido(pedido);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_PDF);
         headers.setContentDisposition(ContentDisposition.attachment().filename("factura_pedido_" + pedido.getId() + ".pdf").build());
@@ -80,12 +83,4 @@ public class PedidoController extends MasterControllerImpl<Pedido, PedidoDTO, Lo
     }
 
      */
-
-
-    private Long getClienteIdAutenticado() {
-        // Este métodos debe extraer el ID del cliente autenticado (ej: desde JWT o Spring Security)
-        // Ejemplo:
-        // return ((UsuarioPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClienteId();
-        throw new UnsupportedOperationException("Implementar según seguridad");
-    }
 }
