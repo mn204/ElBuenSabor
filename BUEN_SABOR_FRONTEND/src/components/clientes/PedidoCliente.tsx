@@ -3,7 +3,7 @@ import {  Button, Form, Row, Col, Spinner } from "react-bootstrap";
 import Pedido from "../../models/Pedido";
 import pedidoService from "../../services/PedidoService";
 import { useAuth } from "../../context/AuthContext";
-import PedidoDetalleModal from "../articulos/PedidoDetalleModal";
+import PedidoDetalleModal from "../empleados/pedidos/PedidoDetalleModal.tsx";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import Estado from "../../models/enums/Estado";

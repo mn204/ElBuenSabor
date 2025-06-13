@@ -1,9 +1,9 @@
 import React from "react";
 import { Modal, Button, Table } from "react-bootstrap";
-import Pedido from "../../models/Pedido";
-import {formatFechaConOffset} from "../../funciones/formatFecha.ts";
+import Pedido from "../../../models/Pedido.ts";
+import {formatFechaConOffset} from "../../../funciones/formatFecha.ts";
 import { Badge } from "react-bootstrap";
-import Estado from "../../models/enums/Estado";
+import Estado from "../../../models/enums/Estado.ts";
 
 interface Props {
   show: boolean;
