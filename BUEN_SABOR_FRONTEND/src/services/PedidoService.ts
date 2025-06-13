@@ -37,6 +37,63 @@ class PedidoService {
             const resultado: Pedido = await res.json(); // Ahora es un Pedido
             console.log("Pedido creado:", resultado);
             
+            if (!resultado) {
+                alert(`Stock Insuficiente`);
+                return resultado; // Retorna el pedido completo con ID
+            } else {
+                try{
+                    const res = await fetch(`${API_URL}/ultimo/cliente/${pedido.cliente.id}`, {
+                        method: "GET",
+                        headers: { "Content-Type": "application/json" },
+                    });
+
+                    if (!res.ok) {
+                        if (res.status === 400) {
+                            alert("No se pudo procesar el pedido. Verifique el stock disponible.");
+                        } else {
+                            alert("Error interno del servidor. Intente nuevamente.");
+                        }
+                        return null;
+                    }
+                    const resultado: Pedido = await res.json(); // Ahora es un Pedido
+                    return resultado;
+                }catch (error){
+                    console.log(error)
+                }
+            }
+            
+        } catch (error) {
+            console.log(JSON.stringify(pedido));
+            console.error("Error:", error);
+            alert("Error de conexión. Intente nuevamente.");
+            return null;
+        }
+    }
+
+    async verificarStock(pedido: Pedido): Promise<Pedido | null | undefined> {
+        try {
+            console.log(JSON.stringify(pedido));
+            const res = await fetch(`${API_URL}/verificar-stock`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(pedido)
+            });
+            
+            console.log("Status:", res.status);
+            console.log("OK:", res.ok);
+            
+            if (!res.ok) {
+                if (res.status === 400) {
+                    alert("No se pudo procesar el pedido. Verifique el stock disponible.");
+                } else {
+                    alert("Error interno del servidor. Intente nuevamente.");
+                }
+                return null;
+            }
+
+            const resultado: Pedido = await res.json(); // Ahora es un Pedido
+            console.log("Pedido creado:", resultado);
+            
             if (resultado && resultado.id) {
                 alert(`Pedido guardado exitosamente con ID: ${resultado.id}`);
                 return resultado; // Retorna el pedido completo con ID

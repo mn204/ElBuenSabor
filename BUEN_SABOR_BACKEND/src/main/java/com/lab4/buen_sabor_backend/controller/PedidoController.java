@@ -123,6 +123,17 @@ public class PedidoController extends MasterControllerImpl<Pedido, PedidoDTO, Lo
         }
     }
 
+    @PostMapping("/verificar-stock")
+    public ResponseEntity<?> verificarStockPedido(@RequestBody Pedido pedido) {
+        try {
+            boolean resultado = pedidoService.verificarStockPedido(pedido);
+            return ResponseEntity.ok(resultado);
+        } catch (Exception e) {
+            logger.error("Error en controlador: ", e);
+            return ResponseEntity.ok(false); // Devuelve false en caso de error
+        }
+    }
+
     @PostMapping("/create_preference_mp")
     public PreferenceMP crearPreferenciaMercadoPago(@RequestBody Pedido pedido) {
         return mercadoPagoService.getPreferenciaIdMercadoPago(pedido);

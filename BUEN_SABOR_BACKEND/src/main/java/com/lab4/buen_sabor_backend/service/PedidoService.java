@@ -33,6 +33,6 @@ public interface PedidoService extends MasterService<Pedido, Long> {
     byte[] generarFacturaPDF(Long pedidoId, Long clienteId);
     //byte[] generarFacturaPDF(Long pedidoId, Long clienteId);
     boolean verificarYDescontarStockPedido(Pedido pedido);
-
+    boolean verificarStockPedido(Pedido pedido);
     Pedido findFirstByClienteIdOrderByIdDesc(Long clienteId);
 }

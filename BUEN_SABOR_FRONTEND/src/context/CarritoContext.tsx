@@ -1,4 +1,4 @@
-import { createContext, useState } from "react";
+import { createContext, useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import Articulo from "../models/Articulo";
 import Pedido from "../models/Pedido";
@@ -26,12 +26,25 @@ export const carritoContext = createContext<CarritoContextProps | undefined>(und
 
 export function CarritoProvider({ children }: { children: ReactNode }) {
   const [pedido, setPedido] = useState<Pedido>(() => {
-    const nuevoPedido = new Pedido();
-    nuevoPedido.detalles = [];
-    nuevoPedido.total = 0;
-    nuevoPedido.estado = Estado.PENDIENTE;
-    return nuevoPedido;
-  });
+  const pedidoGuardado = localStorage.getItem("carritoPedido");
+  if (pedidoGuardado) {
+    const json = JSON.parse(pedidoGuardado);
+    const pedido = Object.assign(new Pedido(), json);
+    pedido.detalles = (json.detalles || []).map((detalle: any) =>
+      Object.assign(new PedidoDetalle(), {
+        ...detalle,
+        articulo: Object.assign(new Articulo(), detalle.articulo),
+      })
+    );
+    return pedido;
+  }
+
+  const nuevoPedido = new Pedido();
+  nuevoPedido.detalles = [];
+  nuevoPedido.total = 0;
+  nuevoPedido.estado = Estado.PENDIENTE;
+  return nuevoPedido;
+});
   const [preferenceId, setIdPreference ] = useState<string>("");
 
   const AgregarPreferenceId = (id: string) => {
@@ -90,7 +103,9 @@ const obtenerFechaArgentina = () => {
   // Formatear de vuelta a string ISO
   return fecha.toISOString().slice(0, 19);
 };
-
+useEffect(() => {
+  localStorage.setItem("carritoPedido", JSON.stringify(pedido));
+}, [pedido]);
 const obtenerHoraArgentina = () => {
   const fechaArgentina = new Date(new Date().toLocaleString("en-US", {timeZone: "America/Argentina/Buenos_Aires"}));
   return fechaArgentina.toTimeString().split(' ')[0];
@@ -135,6 +150,7 @@ const restarDelCarrito = (idArticulo: number) => {
     nuevoPedido.detalles = [];
     nuevoPedido.total = 0;
     setPedido(nuevoPedido);
+    localStorage.removeItem("carritoPedido");
   };
 
   const enviarPedido = async () => {

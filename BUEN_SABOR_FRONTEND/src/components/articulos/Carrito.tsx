@@ -65,6 +65,8 @@ export function Carrito() {
 
   const handleProceedToStep2 = () => {
     setCurrentStep(2);
+    setTipoEnvio(null)
+    setFormaPago(null)
   };
 
   const handleTipoEnvioChange = (tipo: 'DELIVERY' | 'TAKEAWAY') => {
@@ -74,6 +76,7 @@ export function Carrito() {
       pedido.tipoEnvio = TipoEnvio.DELIVERY;
     } else {
       pedido.tipoEnvio = TipoEnvio.TAKEAWAY;
+      setDomicilioSeleccionado(undefined)
     }
   };
 
@@ -314,7 +317,7 @@ export function Carrito() {
               </div>
             </div>
             {tipoEnvio == 'TAKEAWAY' && 
-              <SelectorSucursal tipoEnvio={tipoEnvio}/>
+              <SelectorSucursal tipoEnvio={tipoEnvio} pedido={pedido}/>
             }
             <div className="d-grid gap-2">
               {pedidoGuardado && 
