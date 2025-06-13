@@ -14,6 +14,7 @@ import Usuario from '../../assets/svgAdmin/usuario-black.svg';
 import GrillaArticuloManufacturado from "../articulos/GrillaArticuloManufacturado.tsx";
 import GrillaCliente from "./GrillaCliente.tsx";
 import GrillaEmpleado from "./GrillaEmpleado.tsx";
+import GrillaPedidos from './GrillaPedidos.tsx';
 import { useAuth } from "../../context/AuthContext.tsx"
 import { useSucursal } from "../../context/SucursalContextEmpleado.tsx";
 import ArticuloInsumoService from "../../services/ArticuloInsumoService";
@@ -150,6 +151,7 @@ function PanelAdmin() {
                 return (
                     <div>
                         <h4>Pedidos - {sucursalActual?.nombre}</h4>
+                        <GrillaPedidos />
                     </div>
                 );
             case 'Cocina':

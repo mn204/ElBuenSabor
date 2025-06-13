@@ -25,11 +25,15 @@ public interface PedidoService extends MasterService<Pedido, Long> {
                                   Pageable pageable);
 
     //Cambiar Estado del Pedido
-    //Pedido cambiarEstado(Long idPedido, Estado nuevoEstado);
+    void cambiarEstadoPedido(Pedido pedido);
 
     Optional<Pedido> findByIdAndCliente(Long idPedido, Long clienteId);
 
-    byte[] generarFacturaPDF(Long pedidoId, Long clienteId);
     //byte[] generarFacturaPDF(Long pedidoId, Long clienteId);
+    byte[] generarFacturaPDF(Long pedidoId, Long clienteId);
+
     boolean verificarYDescontarStockPedido(Pedido pedido);
+
+    // Generacion de Excel para pedidos
+    byte[] exportarPedidosAExcel(List<Pedido> pedidos);
 }

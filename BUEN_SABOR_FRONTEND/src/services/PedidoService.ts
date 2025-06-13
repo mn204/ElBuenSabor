@@ -29,9 +29,9 @@ class PedidoService {
 
             const resultado = await res.json(); // Debería ser true o false
             console.log("OK:", resultado);
-            if(resultado){
+            if (resultado) {
                 alert("Pedido guardado exitosamente");
-            }else{
+            } else {
                 alert("No se pudo procesar el pedido. Verifique el stock disponible.");
             }
             return resultado;
@@ -72,6 +72,71 @@ class PedidoService {
         const res = await fetch(`${API_URL}/cliente/${clienteId}/pedido/${pedidoId}/factura`);
         if (!res.ok) throw new Error("Error al descargar la factura");
         return await res.blob();
+    }
+
+    async getPedidosFiltrados(
+        idSucursal: number,
+        filtros: {
+            estado?: string;
+            clienteNombre?: string;
+            idPedido?: number;
+            fechaDesde?: string; // Formato ISO, ej: '2025-06-13T00:00:00'
+            fechaHasta?: string;
+        },
+        page: number = 0,
+        size: number = 10
+    ): Promise<{ content: Pedido[]; totalPages: number }> {
+        const params = new URLSearchParams();
+
+        params.append("idSucursal", idSucursal.toString());
+
+        if (filtros.estado) params.append("estado", filtros.estado);
+        if (filtros.clienteNombre) params.append("clienteNombre", filtros.clienteNombre);
+        if (filtros.idPedido !== undefined) params.append("idPedido", filtros.idPedido.toString());
+        if (filtros.fechaDesde) params.append("fechaDesde", filtros.fechaDesde);
+        if (filtros.fechaHasta) params.append("fechaHasta", filtros.fechaHasta);
+
+        params.append("page", page.toString());
+        params.append("size", size.toString());
+
+        const response = await fetch(`${API_URL}/filtrados?${params.toString()}`);
+        if (!response.ok) {
+            throw new Error("Error al obtener pedidos filtrados");
+        }
+
+        return await response.json();
+    }
+
+    async cambiarEstadoPedido(pedido: Pedido): Promise<void> {
+        const response = await fetch(`${API_URL}/estado`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(pedido),
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error("Error al cambiar el estado del pedido: " + errorText);
+        }
+    }
+
+    async exportarPedidos(pedidosSeleccionados: Pedido[]): Promise<Blob> {
+        const response = await fetch(`${API_URL}/excel`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(pedidosSeleccionados),
+        });
+
+        if (!response.ok) {
+            throw new Error("Error al exportar pedidos");
+        }
+
+        const blob = await response.blob();
+        return blob;
     }
 }
 

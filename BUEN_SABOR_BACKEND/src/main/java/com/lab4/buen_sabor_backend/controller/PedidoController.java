@@ -46,6 +46,8 @@ public class PedidoController extends MasterControllerImpl<Pedido, PedidoDTO, Lo
         return pedidoMapper.toDTO(entity);
     }
 
+    protected List<Pedido> toEntity(List<PedidoDTO> dtoList) {return pedidoMapper.toEntitiesList(dtoList);}
+
     // GET de pedidos con filtros para un cliente específico
     @GetMapping("/cliente/{clienteId}")
     public ResponseEntity<Page<PedidoDTO>> getPedidosDelCliente(
@@ -71,7 +73,7 @@ public class PedidoController extends MasterControllerImpl<Pedido, PedidoDTO, Lo
             @RequestParam(required = false) Long idPedido,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fechaDesde,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fechaHasta,
-            @PageableDefault(size = 20, sort = "fechaPedido", direction = Sort.Direction.DESC) Pageable pageable
+            Pageable pageable
     ) {
         Page <Pedido> pedidos = pedidoService.buscarPedidosFiltrados(idSucursal, estado, clienteNombre, idPedido, fechaDesde, fechaHasta, pageable);
         Page<PedidoDTO> result = pedidos.map(pedidoMapper::toDTO);
@@ -102,6 +104,13 @@ public class PedidoController extends MasterControllerImpl<Pedido, PedidoDTO, Lo
         return new ResponseEntity<>(pdf, headers, HttpStatus.OK);
     }
 
+    //Cambiar estado del pedido
+    @PutMapping("/estado")
+    public ResponseEntity<Void> cambiarEstadoPedido(@RequestBody PedidoDTO pedidoDTO) {
+        pedidoService.cambiarEstadoPedido(pedidoMapper.toEntity(pedidoDTO));
+        return ResponseEntity.ok().build();
+    }
+
     @PostMapping("/verificar-y-procesar")
     public ResponseEntity<?> verificarYProcesar(@RequestBody Pedido pedido) {
         try {
@@ -111,5 +120,16 @@ public class PedidoController extends MasterControllerImpl<Pedido, PedidoDTO, Lo
             logger.error("Error en controlador: ", e);
             return ResponseEntity.ok(false); // Devuelve false en caso de error
         }
+    }
+
+    @PostMapping("/excel")
+    public ResponseEntity<byte[]> exportarPedidosExcel(@RequestBody List<PedidoDTO> pedidosDTO) {
+        byte[] excel = pedidoService.exportarPedidosAExcel(pedidoMapper.toEntitiesList(pedidosDTO));
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        headers.setContentDisposition(ContentDisposition.attachment().filename("pedidos.xlsx").build());
+
+        return new ResponseEntity<>(excel, headers, HttpStatus.OK);
     }
 }

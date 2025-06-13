@@ -12,14 +12,22 @@ interface Props {
     onDescargarFactura: (pedidoId: number) => void;
 }
 
-const getColorEstado = (estado: Estado) => {
+const getColorEstado = (estado: Estado): string => {
     switch (estado) {
-        case Estado.PENDIENTE: return "warning";
-        case Estado.ENTREGADO: return "success";
-        case Estado.PREPARACION: return "info";
-        case Estado.CANCELADO: return "secondary";
-        case Estado.RECHAZADO: return "danger";
-        default: return "light";
+        case Estado.PENDIENTE:
+            return "warning";
+        case Estado.PREPARACION:
+            return "info";
+        case Estado.LISTO:
+            return "primary";
+        case Estado.EN_DELIVERY:
+            return "secondary";
+        case Estado.ENTREGADO:
+            return "success";
+        case Estado.CANCELADO: 
+            return "danger";
+        default:
+            return "light";
     }
 };
 

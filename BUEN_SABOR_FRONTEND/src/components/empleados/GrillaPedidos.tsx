@@ -1,0 +1,508 @@
+import React, { useEffect, useState } from "react";
+import { Button, Form, Row, Col, Spinner, Card } from "react-bootstrap";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import Pedido from "../../models/Pedido";
+import Estado from "../../models/enums/Estado";
+import PedidoDetalleModal from "./pedidos/PedidoDetalleModal";
+import pedidoService from "../../services/PedidoService";
+import { ReusableTable } from "../Tabla";
+import { ChevronLeft, ChevronRight } from "react-bootstrap-icons";
+import Cliente from "../../models/Cliente";
+import { formatFechaConOffset } from "../../funciones/formatFecha.ts";
+import { useAuth } from "../../context/AuthContext";
+import { useSucursal } from "../../context/SucursalContextEmpleado.tsx";
+import { obtenerSucursales } from "../../services/SucursalService.ts";
+import type Sucursal from "../../models/Sucursal.ts";
+
+interface Props {
+    cliente?: Cliente;
+}
+
+const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
+    const { sucursalActual } = useSucursal();
+    const { empleado, usuario } = useAuth();
+
+    const getColorEstado = (estado: Estado): string => {
+        switch (estado) {
+            case Estado.PENDIENTE: return "warning";
+            case Estado.PREPARACION: return "info";
+            case Estado.LISTO: return "primary";
+            case Estado.EN_DELIVERY: return "secondary";
+            case Estado.ENTREGADO: return "success";
+            case Estado.CANCELADO: return "danger";
+            default: return "light";
+        }
+    };
+
+    const [pedidos, setPedidos] = useState<Pedido[]>([]);
+    const [totalPages, setTotalPages] = useState(0);
+    const [page, setPage] = useState(0);
+    const [size] = useState(10);
+    const [loading, setLoading] = useState(false);
+    const [detallePedido, setDetallePedido] = useState<Pedido | null>(null);
+    const [showDetalleModal, setShowDetalleModal] = useState(false);
+    const [estadoSeleccionado, setEstadoSeleccionado] = useState<Record<number, Estado>>({});
+    const [sucursales, setSucursales] = useState<Sucursal[]>([]);
+
+    // Estados para exportación a Excel (solo admin)
+    const [pedidosSeleccionados, setPedidosSeleccionados] = useState<Map<number, Pedido>>(new Map());
+    const [modoSeleccion, setModoSeleccion] = useState(false);
+
+    const [filtros, setFiltros] = useState({
+        sucursalId: "",
+        estado: "",
+        desde: null as Date | null,
+        hasta: null as Date | null,
+        idPedido: undefined as number | undefined,
+        clienteNombre: ""
+    });
+
+    const fetchPedidos = async () => {
+        // Para admin, usar sucursal del filtro o la actual; para otros, solo la actual
+        const sucursalId = usuario?.rol === 'ADMINISTRADOR' && filtros.sucursalId
+            ? parseInt(filtros.sucursalId)
+            : sucursalActual?.id;
+
+        if (!sucursalId) {
+            console.error("No hay sucursal seleccionada");
+            return;
+        }
+
+        try {
+            setLoading(true);
+            const filtrosConvertidos = {
+                estado: filtros.estado || undefined,
+                clienteNombre: cliente ? `${cliente.nombre} ${cliente.apellido}` : (filtros.clienteNombre || undefined),
+                idPedido: filtros.idPedido,
+                fechaDesde: filtros.desde ? filtros.desde.toISOString() : undefined,
+                fechaHasta: filtros.hasta ? filtros.hasta.toISOString() : undefined
+            };
+
+            const result = await pedidoService.getPedidosFiltrados(
+                sucursalId,
+                filtrosConvertidos,
+                page,
+                size
+            );
+            setPedidos(result.content);
+            setTotalPages(result.totalPages);
+        } catch (error) {
+            console.error("Error al obtener pedidos:", error);
+            alert("Error al obtener pedidos");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+    const fetchSucursales = async () => {
+        if (usuario?.rol === 'ADMINISTRADOR') {
+            try {
+                const sucursalesData = await obtenerSucursales();
+                setSucursales(sucursalesData);
+            } catch (error) {
+                console.error("Error al cargar sucursales:", error);
+            }
+        }
+    };
+
+    if (usuario) {
+        fetchSucursales();
+    }
+}, [usuario]);
+
+    useEffect(() => {
+        if (sucursalActual?.id) {
+            fetchPedidos();
+        }
+    }, [page, sucursalActual?.id, filtros.estado, filtros.desde, filtros.hasta, filtros.idPedido, filtros.clienteNombre, filtros.sucursalId]);
+
+    const handleVerDetalle = async (pedidoId: number) => {
+        try {
+            let detalle;
+            if (cliente?.id) {
+                detalle = await pedidoService.getDetallePedido(cliente.id, pedidoId);
+            } else {
+                const pedido = pedidos.find(p => p.id === pedidoId);
+                if (pedido?.cliente?.id) {
+                    detalle = await pedidoService.getDetallePedido(pedido.cliente.id, pedidoId);
+                } else {
+                    throw new Error("No se pudo determinar el cliente del pedido");
+                }
+            }
+            setDetallePedido(detalle);
+            setShowDetalleModal(true);
+        } catch (error) {
+            console.error("Error al obtener detalle:", error);
+            alert("Error al obtener detalle del pedido");
+        }
+    };
+
+    const handleCambiarEstado = async (pedidoId: number, nuevoEstado: Estado) => {
+        try {
+            const pedido = pedidos.find(p => p.id === pedidoId);
+            if (!pedido) {
+                alert("Pedido no encontrado");
+                return;
+            }
+
+            if (!empleado) {
+                alert("No se pudo obtener información del empleado");
+                return;
+            }
+
+            const pedidoActualizado = {
+                ...pedido,
+                estado: nuevoEstado,
+                empleado: empleado
+            };
+
+            await pedidoService.cambiarEstadoPedido(pedidoActualizado);
+
+            // Actualizar el estado local
+            setPedidos(prev => prev.map(p =>
+                p.id === pedidoId ? { ...p, estado: nuevoEstado, empleado: empleado } : p
+            ));
+
+            // Limpiar la selección de estado
+            setEstadoSeleccionado(prev => {
+                const newState = { ...prev };
+                delete newState[pedidoId];
+                return newState;
+            });
+        } catch (error) {
+            console.error("Error al cambiar estado:", error);
+            alert("Error al cambiar el estado del pedido");
+        }
+    };
+
+    const handleDescargarFactura = async (pedidoId: number) => {
+        try {
+            let clienteId;
+            if (cliente?.id) {
+                clienteId = cliente.id;
+            } else {
+                const pedido = pedidos.find(p => p.id === pedidoId);
+                clienteId = pedido?.cliente?.id;
+            }
+
+            if (!clienteId) {
+                throw new Error("No se pudo determinar el cliente del pedido");
+            }
+
+            const blob = await pedidoService.descargarFactura(clienteId, pedidoId);
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `factura_pedido_${pedidoId}.pdf`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error("Error al descargar factura:", error);
+            alert("Error al descargar la factura");
+        }
+    };
+
+    // Función para limpiar todos los filtros
+    const handleVerTodos = () => {
+        setFiltros({
+            sucursalId: "",
+            estado: "",
+            desde: null,
+            hasta: null,
+            idPedido: undefined,
+            clienteNombre: ""
+        });
+        setPage(0);
+    };
+
+    // Funciones para exportación a Excel (solo admin)
+    const handleToggleSeleccion = (pedidoId: number) => {
+        setPedidosSeleccionados(prev => {
+            const newMap = new Map(prev);
+            if (newMap.has(pedidoId)) {
+                newMap.delete(pedidoId);
+            } else {
+                const pedido = pedidos.find(p => p.id === pedidoId);
+                if (pedido) {
+                    newMap.set(pedidoId, pedido);
+                }
+            }
+            return newMap;
+        });
+    };
+
+    const handleSeleccionarTodos = () => {
+        const pedidosActualesSeleccionados = pedidos.filter(p => pedidosSeleccionados.has(p.id!));
+
+        if (pedidosActualesSeleccionados.length === pedidos.length) {
+            // Deseleccionar todos los de esta página
+            setPedidosSeleccionados(prev => {
+                const newMap = new Map(prev);
+                pedidos.forEach(p => newMap.delete(p.id!));
+                return newMap;
+            });
+        } else {
+            // Seleccionar todos los de esta página
+            setPedidosSeleccionados(prev => {
+                const newMap = new Map(prev);
+                pedidos.forEach(p => newMap.set(p.id!, p));
+                return newMap;
+            });
+        }
+    };
+
+    const handleExportarExcel = async () => {
+        if (pedidosSeleccionados.size === 0) {
+            alert("Selecciona al menos un pedido para exportar");
+            return;
+        }
+
+        try {
+            const pedidosAExportar = Array.from(pedidosSeleccionados.values());
+            const blob = await pedidoService.exportarPedidos(pedidosAExportar);
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "pedidos.xlsx";
+            a.click();
+            window.URL.revokeObjectURL(url);
+            console.log("Exportando pedidos:", Array.from(pedidosSeleccionados));
+            alert(`Exportando ${pedidosSeleccionados.size} pedidos a Excel...`);
+
+            // Limpiar selección después de exportar
+            setPedidosSeleccionados(new Map());
+            setModoSeleccion(false);
+        } catch (error) {
+            console.error("Error al exportar Excel:", error);
+            alert("Error al exportar a Excel");
+        }
+    };
+
+    const handleCancelarSeleccion = () => {
+        setPedidosSeleccionados(new Map());
+        setModoSeleccion(false);
+    };
+
+    const columns = [
+        // Columna de selección solo para admin en modo selección
+        ...(usuario?.rol === 'ADMINISTRADOR' && modoSeleccion ? [{
+            key: "seleccion",
+            label: "",
+            render: (_: any, row: Pedido) => (
+                <Form.Check
+                    type="checkbox"
+                    checked={pedidosSeleccionados.has(row.id!)}
+                    onChange={() => handleToggleSeleccion(row.id!)}
+                />
+            )
+        }] : []),
+        { key: "numero", label: "Número", render: (_: any, row: Pedido) => row.id },
+        { key: "cliente", label: "Cliente", render: (_: any, row: Pedido) => `${row.cliente.nombre} ${row.cliente.apellido}` },
+        { key: "fecha", label: "Fecha", render: (_: any, row: Pedido) => formatFechaConOffset(row.fechaPedido) },
+        { key: "total", label: "Total", render: (_: any, row: Pedido) => `$${row.total.toFixed(2)}` },
+        { key: "tipoPago", label: "Medio de Pago", render: (_: any, row: Pedido) => row.formaPago },
+        { key: "estado", label: "Estado", render: (_: any, row: Pedido) => row.estado },
+
+        {
+            key: "acciones",
+            label: "Acciones",
+            render: (_: any, row: Pedido) => (
+                <div className="d-flex flex-column gap-1">
+                    <div className="d-flex gap-2 align-items-center">
+                        <Form.Select
+                            size="sm"
+                            className={`border-${getColorEstado(row.estado)}`}
+                            value={estadoSeleccionado[row.id!] || row.estado}
+                            onChange={(e) => setEstadoSeleccionado({ ...estadoSeleccionado, [row.id!]: e.target.value as Estado })}
+                        >
+                            {Object.values(Estado).map((estado) => (
+                                <option key={estado} value={estado}>{estado}</option>
+                            ))}
+                        </Form.Select>
+                        <Button
+                            size="sm"
+                            variant={getColorEstado(estadoSeleccionado[row.id!] || row.estado)}
+                            onClick={() => handleCambiarEstado(row.id!, estadoSeleccionado[row.id!] || row.estado)}
+                            disabled={!estadoSeleccionado[row.id!] || estadoSeleccionado[row.id!] === row.estado}
+                        >
+                            Cambiar
+                        </Button>
+                    </div>
+                    <div className="d-flex gap-2">
+                        <Button variant="outline-secondary" size="sm" onClick={() => handleDescargarFactura(row.id!)}>Factura</Button>
+                        <Button variant="primary" size="sm" onClick={() => handleVerDetalle(row.id!)}>Detalle</Button>
+                    </div>
+                </div>
+            )
+        }
+    ];
+
+    return (
+        <>
+            <Card>
+                <Card.Header>
+                    <div className="d-flex justify-content-between align-items-center">
+                        <Card.Title className="mb-0">
+                            {cliente ? `Pedidos del Cliente #${cliente.id} - ${cliente.nombre} ${cliente.apellido}` : 'Gestión de Pedidos'}
+                        </Card.Title>
+
+                        {/* Controles de exportación Excel solo para admin */}
+                        {usuario?.rol === 'ADMINISTRADOR' && !cliente && (
+                            <div className="d-flex gap-2 align-items-center">
+                                {modoSeleccion && (
+                                    <span className="badge bg-primary">
+                                        {pedidosSeleccionados.size} seleccionado...
+                                    </span>
+                                )}
+                                {modoSeleccion && (
+                                    <Button
+                                        variant="outline-primary"
+                                        size="sm"
+                                        onClick={handleSeleccionarTodos}
+                                    >
+                                        {pedidosSeleccionados.size === pedidos.length ?
+                                            "Deseleccionar página" :
+                                            "Seleccionar página"
+                                        }
+                                    </Button>
+                                )}
+
+                                {!modoSeleccion ? (
+                                    <Button
+                                        variant="success"
+                                        size="sm"
+                                        onClick={() => setModoSeleccion(true)}
+                                    >
+                                        📊 Exportar Excel
+                                    </Button>
+                                ) : (
+                                    <div className="d-flex gap-2">
+                                        <Button
+                                            variant="success"
+                                            size="sm"
+                                            onClick={handleExportarExcel}
+                                            disabled={pedidosSeleccionados.size === 0}
+                                        >
+                                            ✓ Exportar ({pedidosSeleccionados.size})
+                                        </Button>
+                                        <Button
+                                            variant="outline-secondary"
+                                            size="sm"
+                                            onClick={handleCancelarSeleccion}
+                                        >
+                                            ✕ Cancelar
+                                        </Button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </Card.Header>
+                <Card.Body>
+                    <Form className="mb-3">
+                        <Row>
+                            {!cliente && (
+                                <Col>
+                                    <Form.Control
+                                        placeholder="Nombre del cliente"
+                                        value={filtros.clienteNombre}
+                                        onChange={(e) => setFiltros({ ...filtros, clienteNombre: e.target.value })}
+                                    />
+                                </Col>
+                            )}
+                            {usuario?.rol === 'ADMINISTRADOR' && (
+                                <Col>
+                                    <Form.Select
+                                        value={filtros.sucursalId}
+                                        onChange={(e) => setFiltros({ ...filtros, sucursalId: e.target.value })}
+                                    >
+                                        <option value="">Todas las sucursales</option>
+                                        {sucursales.map((sucursal) => (
+                                            <option key={sucursal.id} value={sucursal.id}>
+                                                {sucursal.nombre}
+                                            </option>
+                                        ))}
+                                    </Form.Select>
+                                </Col>
+                            )}
+                            <Col>
+                                <Form.Select value={filtros.estado} onChange={(e) => setFiltros({ ...filtros, estado: e.target.value })}>
+                                    <option value="">Todos los estados</option>
+                                    {Object.values(Estado).map((est) => (
+                                        <option key={est} value={est}>{est}</option>
+                                    ))}
+                                </Form.Select>
+                            </Col>
+                            <Col>
+                                <DatePicker
+                                    className="form-control"
+                                    placeholderText="Desde"
+                                    selected={filtros.desde}
+                                    onChange={(date) => setFiltros({ ...filtros, desde: date })}
+                                    showTimeSelect
+                                    dateFormat="Pp"
+                                />
+                            </Col>
+                            <Col>
+                                <DatePicker
+                                    className="form-control"
+                                    placeholderText="Hasta"
+                                    selected={filtros.hasta}
+                                    onChange={(date) => setFiltros({ ...filtros, hasta: date })}
+                                    showTimeSelect
+                                    dateFormat="Pp"
+                                />
+                            </Col>
+                            <Col>
+                                <Form.Control
+                                    type="number"
+                                    placeholder="ID Pedido"
+                                    value={filtros.idPedido || ""}
+                                    onChange={(e) => setFiltros({ ...filtros, idPedido: e.target.value ? parseInt(e.target.value) : undefined })}
+                                />
+                            </Col>
+                            <Col>
+                                <Button variant="outline-secondary" onClick={handleVerTodos}>Ver Todos</Button>
+                            </Col>
+                        </Row>
+                    </Form>
+
+                    {loading ? (
+                        <div className="text-center">
+                            <Spinner animation="border" />
+                        </div>
+                    ) : (
+                        pedidos.length === 0 ? (
+                            <p className="text-center">No hay pedidos</p>
+                        ) : (
+                            <>
+                                <ReusableTable data={pedidos} columns={columns} />
+                                <div className="d-flex justify-content-end mt-3">
+                                    <Button variant="outline-secondary" size="sm" disabled={page === 0} onClick={() => setPage(page - 1)}>
+                                        <ChevronLeft />
+                                    </Button>
+                                    <span className="mx-2 align-self-center">Página {page + 1} de {totalPages}</span>
+                                    <Button variant="outline-secondary" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage(page + 1)}>
+                                        <ChevronRight />
+                                    </Button>
+                                </div>
+                            </>
+                        )
+                    )}
+                </Card.Body>
+            </Card>
+
+            {detallePedido && (
+                <PedidoDetalleModal
+                    show={showDetalleModal}
+                    onHide={() => setShowDetalleModal(false)}
+                    pedido={detallePedido}
+                />
+            )}
+        </>
+    );
+};
+
+export default GrillaPedidos;
