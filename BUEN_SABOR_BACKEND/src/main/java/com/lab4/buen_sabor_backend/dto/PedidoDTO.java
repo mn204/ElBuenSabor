@@ -24,6 +24,7 @@ public class PedidoDTO extends MasterDTO {
     private SucursalDTO sucursal;
     private EmpleadoDTO empleado;
     private ClienteDTO cliente;
+    private DomicilioDTO domicilio;
     private FacturaDTO factura;
     private List<DetallePedidoDTO> detalles = new ArrayList<>();
 }

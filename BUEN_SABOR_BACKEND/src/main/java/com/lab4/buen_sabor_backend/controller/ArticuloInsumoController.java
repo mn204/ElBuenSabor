@@ -54,6 +54,16 @@ public class ArticuloInsumoController extends MasterControllerImpl<ArticuloInsum
         return ResponseEntity.ok(ingredientesDTO);
     }
 
+    //Buscamos Insumos con bajo Stock
+    @GetMapping("/stock-bajo/{idSucursal}")
+    public ResponseEntity<List<ArticuloInsumoDTO>> getStockBajo(@PathVariable Long idSucursal) {
+        List<ArticuloInsumo> articulos = articuloInsumoService.obtenerConStockBajo(idSucursal);
+        List<ArticuloInsumoDTO> dtoList = articulos.stream()
+                .map(articuloInsumoMapper::toDTO)
+                .toList();
+        return ResponseEntity.ok(dtoList);
+    }
+
     @GetMapping("/noEliminados")
     public ResponseEntity<List<ArticuloInsumoDTO>> getAllElimanodFalse() {
         logger.info("Obteniendo grilla de ingredientes");

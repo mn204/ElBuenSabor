@@ -46,6 +46,10 @@ public class Pedido extends Master{
     @JoinColumn(name = "cliente_id")
     private Cliente cliente;
 
+    @ManyToOne
+    @JoinColumn(name = "domicilio_id", nullable = false)
+    private Domicilio domicilio;
+
     @OneToOne(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
     private Factura factura;
 
