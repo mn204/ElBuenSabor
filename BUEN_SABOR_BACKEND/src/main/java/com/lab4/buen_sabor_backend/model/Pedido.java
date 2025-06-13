@@ -39,7 +39,7 @@ public class Pedido extends Master{
     private Sucursal sucursal;
 
     @ManyToOne
-    @JoinColumn(name = "empleado_delibery_id")
+    @JoinColumn(name = "empleado_delivery_id")
     private Empleado empleado;
 
     @ManyToOne
