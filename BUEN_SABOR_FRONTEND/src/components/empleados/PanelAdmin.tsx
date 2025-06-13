@@ -150,7 +150,6 @@ function PanelAdmin() {
                 return (
                     <div>
                         <h4>Pedidos - {sucursalActual?.nombre}</h4>
-                        <p>Componente Pedidos para la sucursal {sucursalActual?.nombre}</p>
                     </div>
                 );
             case 'Cocina':
