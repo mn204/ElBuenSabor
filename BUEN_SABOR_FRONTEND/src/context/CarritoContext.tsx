@@ -9,11 +9,13 @@ import type Domicilio from "../models/Domicilio";
 
 interface CarritoContextProps {
   pedido: Pedido;
+  preferenceId: string;
   agregarAlCarrito: (articulo: Articulo, cantidad: number) => void;
   quitarDelCarrito: (idArticulo: number) => void;
   restarDelCarrito: (idArticulo: number) => void;
   limpiarCarrito: () => void;
-  enviarPedido: () => Promise<void>;
+  enviarPedido:  () => Promise<Pedido | null | undefined>;
+  AgregarPreferenceId: (id: string) => void;
   guardarPedidoYObtener: () => Promise<Pedido | null>;
 }
 
@@ -30,7 +32,11 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
     nuevoPedido.estado = Estado.PENDIENTE;
     return nuevoPedido;
   });
+  const [preferenceId, setIdPreference ] = useState<string>("");
 
+  const AgregarPreferenceId = (id: string) => {
+    setIdPreference(id);
+  }
   const agregarAlCarrito = (articulo: Articulo, cantidad: number) => {
   setPedido((prevPedido) => {
     const detallesExistente = prevPedido.detalles.find(
@@ -115,7 +121,8 @@ const restarDelCarrito = (idArticulo: number) => {
       if(pedido.domicilio == null){
         pedido.domicilio = {id: 6} as Domicilio
       }
-      PedidoService.create(pedido)
+      const res = PedidoService.create(pedido)
+      return res
     } catch (error) {
       console.error(error);
       alert("Hubo un error al enviar el pedido.");
@@ -134,10 +141,9 @@ const restarDelCarrito = (idArticulo: number) => {
       pedido.horaEstimadaFinalizacion = horaActual;
 
       const exito = await PedidoService.create(pedido);
-      console.log(pedido)
       if (exito) {
         alert("Pedido guardado exitosamente");
-        return pedido; // o null si no necesitas retornar nada
+        return exito; // o null si no necesitas retornar nada
       } else {
         console.log("❌ Entrando en rama FAILURE - Stock insuficiente");
         alert("No se pudo procesar el pedido. Verifique el stock disponible.");
@@ -149,16 +155,18 @@ const restarDelCarrito = (idArticulo: number) => {
       return null;
     }
 };
-  console.log(carritoContext)
+
   return (
     <carritoContext.Provider
       value={{
         pedido,
+        preferenceId,
         agregarAlCarrito,
         restarDelCarrito,
         quitarDelCarrito,
         limpiarCarrito,
         enviarPedido,
+        AgregarPreferenceId,
         guardarPedidoYObtener,
       }}
     >

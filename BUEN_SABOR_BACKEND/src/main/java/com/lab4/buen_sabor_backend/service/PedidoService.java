@@ -28,8 +28,11 @@ public interface PedidoService extends MasterService<Pedido, Long> {
     //Pedido cambiarEstado(Long idPedido, Estado nuevoEstado);
 
     Optional<Pedido> findByIdAndCliente(Long idPedido, Long clienteId);
+    void actualizarEstadoPorPago(Long pedidoId, Estado estado);
 
     byte[] generarFacturaPDF(Long pedidoId, Long clienteId);
     //byte[] generarFacturaPDF(Long pedidoId, Long clienteId);
     boolean verificarYDescontarStockPedido(Pedido pedido);
+
+    Pedido findFirstByClienteIdOrderByIdDesc(Long clienteId);
 }

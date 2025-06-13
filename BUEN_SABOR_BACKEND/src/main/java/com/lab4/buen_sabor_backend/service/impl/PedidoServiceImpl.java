@@ -103,6 +103,11 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
         return pedidoRepository.findByIdAndClienteId(idPedido, clienteId);
     }
 
+    @Override
+    public void actualizarEstadoPorPago(Long pedidoId, Estado estado) {
+        pedidoRepository.changeEstado(pedidoId, estado);
+    }
+
     //Generar PDF para el Cliente.
     @Override
     @Transactional
@@ -259,5 +264,10 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
         public SucursalInsumo getSucursalInsumo() { return sucursalInsumo; }
         public double getCantidadRequerida() { return cantidadRequerida; }
         public double getCostoTotal() { return costoTotal; }
+    }
+
+    @Override
+    public Pedido findFirstByClienteIdOrderByIdDesc(Long clienteId) {
+        return pedidoRepository.findFirstByClienteIdOrderByIdDesc(clienteId);
     }
 }

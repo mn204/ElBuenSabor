@@ -5,6 +5,9 @@ import TipoEnvio from "../../models/enums/TipoEnvio";
 import FormaPago from "../../models/enums/FormaPago";
 import type Domicilio from "../../models/Domicilio";
 import type Sucursal from "../../models/Sucursal";
+import CheckoutMP from "./CheckoutMP";
+import type Pedido from "../../models/Pedido";
+import { Wallet } from "@mercadopago/sdk-react";
 
 export function Carrito() {
   const { cliente } = useAuth();
@@ -14,6 +17,7 @@ export function Carrito() {
   const [domicilioSeleccionado, setDomicilioSeleccionado] = useState<Domicilio>();
   const [formaPago, setFormaPago] = useState<'EFECTIVO' | 'MERCADOPAGO' | null>(null);
   const [showDomicilioModal, setShowDomicilioModal] = useState(false);
+  const [pedidoGuardado, setPedidoGuardado] = useState<Pedido | null>(null);
 
   if (!carritoCtx) return null;
   useEffect(()=>{
@@ -32,17 +36,24 @@ export function Carrito() {
     fetch("/localidades.json").then((res)=>res.json()).then((localidades)=>localidades.map((loc: any)=>{
       if(loc.nombre == domicilioSeleccionado?.localidad?.nombre && tipoEnvio != 'TAKEAWAY'){
         pedido.sucursal = {id: loc.sucursal_id} as Sucursal
+        if (domicilioSeleccionado){
+          pedido.domicilio = domicilioSeleccionado;
+          console.log(domicilioSeleccionado)
+          console.log(pedido)
+        }
         console.log(pedido)
       }
     }))
   },[domicilioSeleccionado]);
   const {
     pedido,
+    preferenceId,
+    AgregarPreferenceId,
     restarDelCarrito,
     agregarAlCarrito,
     quitarDelCarrito,
     limpiarCarrito,
-    enviarPedido,
+    guardarPedidoYObtener,
   } = carritoCtx;
 
   const carrito = pedido.detalles;
@@ -66,17 +77,14 @@ export function Carrito() {
     setShowDomicilioModal(false);
   };
 
-  const handleConfirmarPedido = async () => {
-    // Aquí puedes actualizar el pedido con los datos seleccionados
-    // pedido.tipoEnvio = tipoEnvio;
-    // pedido.formaPago = formaPago;
-    // etc.
-    if(tipoEnvio == "TAKEAWAY"){
-      pedido.sucursal = {id: 1}as Sucursal;
+  const handlePagarConMP = async () => {
+    const pedidoFinal = await guardarPedidoYObtener();
+    console.log(pedidoFinal)
+    if (pedidoFinal) {
+      setPedidoGuardado(pedidoFinal);
     }
-    await enviarPedido();
+    console.log("preference: ",preferenceId)
   };
-
   const canProceedToConfirm = tipoEnvio && formaPago && (tipoEnvio === 'TAKEAWAY' || domicilioSeleccionado);
 
   const renderStep1 = () => (
@@ -308,12 +316,22 @@ export function Carrito() {
                     ? 'btn-success'
                     : 'btn-secondary'
                 }`}
-                onClick={handleConfirmarPedido}
+                onClick={handlePagarConMP}
                 disabled={!canProceedToConfirm}
               >
                 Confirmar Pedido
               </button>
-            </div>
+              {pedidoGuardado && 
+                <CheckoutMP pedido={pedidoGuardado}/>
+              }
+              {preferenceId &&
+                <div>
+                    <Wallet
+                        initialization={{ preferenceId: preferenceId, redirectMode: "blank" }}
+                    />
+                </div>
+              }
+                </div>
           </div>
         </div>
       </div>

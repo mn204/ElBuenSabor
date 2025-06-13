@@ -10,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,7 +21,10 @@ public interface PedidoRepository extends MasterRepository<Pedido, Long>, JpaSpe
 
     //búsqueda para los pedidos por cliente.
     Optional<Pedido> findByIdAndClienteId(Long id, Long clienteId);
-
+    @Modifying
+    @Transactional
+    @Query("UPDATE Pedido p SET p.estado = :estado WHERE p.id = :pedidoId")
+    void changeEstado(@Param("pedidoId") Long pedidoId, @Param("estado") Estado estado);
 /*
     // Buscar pedidos por cliente o estado
     List<Pedido> findByClienteOrEstado(Cliente cliente, Estado estado);
@@ -90,5 +94,4 @@ public interface PedidoRepository extends MasterRepository<Pedido, Long>, JpaSpe
     Long countByCliente(Cliente cliente);
 
  */
-
-}
+    Pedido findFirstByClienteIdOrderByIdDesc(Long clienteId);}
