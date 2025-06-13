@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -38,4 +39,6 @@ public interface ArticuloInsumoRepository extends MasterRepository<ArticuloInsum
            GROUP BY a
            """)
     List<Object[]> consultarStockInsumos();  // Devuelve lista de [ArticuloInsumo, StockTotal]
+
+    List<ArticuloInsumo> findArticuloInsumoBySucursalInsumo_StockActualGreaterThanAndEsParaElaborarFalse(int stockActual);
 }

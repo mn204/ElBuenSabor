@@ -14,4 +14,5 @@ public interface PedidoService extends MasterService<Pedido, Long> {
     Optional<Pedido> findByIdAndCliente(Long idPedido, Long clienteId);
 
     //byte[] generarFacturaPDF(Long pedidoId, Long clienteId);
+    boolean verificarYDescontarStockPedido(Pedido pedido);
 }

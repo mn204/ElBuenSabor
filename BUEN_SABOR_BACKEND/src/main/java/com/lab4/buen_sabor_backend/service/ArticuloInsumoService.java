@@ -53,5 +53,7 @@ public interface ArticuloInsumoService extends MasterService<ArticuloInsumo, Lon
      * Obtiene ingredientes activos ordenados por denominación
      */
     List<ArticuloInsumo> findAllActivosOrdenados();
+
+    List<ArticuloInsumo> findArticuloInsumoStockActualGratherThanAndEsParaElaborarFalse(int stock);
 }
 

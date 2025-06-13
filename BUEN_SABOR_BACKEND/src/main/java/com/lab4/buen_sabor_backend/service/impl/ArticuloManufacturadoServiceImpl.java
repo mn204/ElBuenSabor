@@ -37,6 +37,10 @@ public class ArticuloManufacturadoServiceImpl extends MasterServiceImpl<Articulo
             detalle.setArticuloManufacturado(entity);
         }
 
+        for(ImagenArticulo imagen: entity.getImagenes()) {
+            imagen.setArticulo(entity);
+        }
+
         // Verificar duplicados
         if (existeByDenominacion(entity.getDenominacion())) {
             throw new IllegalArgumentException("Ya existe un producto con la denominación: " + entity.getDenominacion());
@@ -162,6 +166,13 @@ public class ArticuloManufacturadoServiceImpl extends MasterServiceImpl<Articulo
     public boolean existeByDenominacionExcluyendoId(String denominacion, Long id) {
         return articuloManufacturadoRepository.existsByDenominacionIgnoreCaseAndEliminadoFalseAndIdNot(denominacion, id);
     }
+
+    @Override
+    public List<ArticuloManufacturado> findManufacturadosConStockDisponiblePorSucursal(int sucursalId) {
+        logger.info("Buscando productos con stock disponible en sucursal ID: {}", sucursalId);
+        return articuloManufacturadoRepository.findManufacturadosConStockDisponiblePorSucursal(sucursalId);
+    }
+
 
     private void validarDatosBasicos(ArticuloManufacturado producto) {
         if (producto.getDenominacion() == null || producto.getDenominacion().trim().isEmpty()) {

@@ -1,6 +1,7 @@
 package com.lab4.buen_sabor_backend.controller;
 
 import com.lab4.buen_sabor_backend.dto.ArticuloInsumoDTO;
+import com.lab4.buen_sabor_backend.dto.SucursalInsumoDTO;
 import com.lab4.buen_sabor_backend.mapper.ArticuloInsumoMapper;
 import com.lab4.buen_sabor_backend.model.ArticuloInsumo;
 import com.lab4.buen_sabor_backend.service.ArticuloInsumoService;
@@ -13,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/articulo")
@@ -186,5 +188,12 @@ public class ArticuloInsumoController extends MasterControllerImpl<ArticuloInsum
         return super.update(id, dto);
     }
 
-
+    @GetMapping("/stock/{stock}")
+    public ResponseEntity<List<ArticuloInsumoDTO>> obtenerStock(@PathVariable int stock) {
+        List<ArticuloInsumoDTO> productos = articuloInsumoService.findArticuloInsumoStockActualGratherThanAndEsParaElaborarFalse(stock)
+                .stream()
+                .map(articuloInsumoMapper::toDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(productos);
+    }
 }

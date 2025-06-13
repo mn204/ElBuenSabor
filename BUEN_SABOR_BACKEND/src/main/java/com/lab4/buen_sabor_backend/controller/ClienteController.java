@@ -39,9 +39,9 @@ public class ClienteController extends MasterControllerImpl<Cliente, ClienteDTO,
 
 
     @GetMapping("/usuario/{usuarioId}")
-    public ResponseEntity<Cliente> getByUsuarioId(@PathVariable Long usuarioId) {
+    public ResponseEntity<ClienteDTO> getByUsuarioId(@PathVariable Long usuarioId) {
         return clienteService.findByUsuarioId(usuarioId)
-                .map(ResponseEntity::ok)
+                .map(cliente -> ResponseEntity.ok(clienteMapper.toDTO(cliente)))
                 .orElse(ResponseEntity.notFound().build());
     }
 
