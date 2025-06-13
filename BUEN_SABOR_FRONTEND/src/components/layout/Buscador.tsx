@@ -1,18 +1,18 @@
 import { useState, useEffect, useRef } from 'react';
 import '../../styles/buscador.css';
-import Ham from '../../assets/images/hamburguesa.png';
 import { Link } from 'react-router-dom';
-
+import type Articulo from '../../models/Articulo';
 
 type BuscadorProps = {
   onBuscar: (valor: string) => void;
   valorInicial?: string;
-  setValor?: (valor: string) => void; // <-- Agrega esta línea
+  setValor?: (valor: string) => void;
 };
+
 function Buscador({ onBuscar, valorInicial = "", setValor }: BuscadorProps) {
   const [query, setQuery] = useState(valorInicial);
-  const [results, setResults] = useState<any[]>([]);
-  const inputRef = useRef<HTMLInputElement>(null); // <-- referencia al input
+  const [results, setResults] = useState<Articulo[]>([]);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Maneja el cambio en el input
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -20,7 +20,7 @@ function Buscador({ onBuscar, valorInicial = "", setValor }: BuscadorProps) {
     if (e.target.value.trim() === '') {
       setResults([]); // Limpia los resultados si el input está vacío
     }
-    if (setValor) setValor(e.target.value); // <-- Llama a setValor si existe
+    if (setValor) setValor(e.target.value);
   };
 
   // Consulta la API cuando cambia el query (solo para mostrar sugerencias)
@@ -32,22 +32,47 @@ function Buscador({ onBuscar, valorInicial = "", setValor }: BuscadorProps) {
 
     const fetchData = async () => {
       try {
-        const response = await fetch(
-          `http://localhost:8080/api/productos/buscar/denominacion?denominacion=${encodeURIComponent(query)}`
-        );
-        if (response.ok) {
-          const data = await response.json();
-          setResults(data);
-        } else {
-          setResults([]);
+        let allResults: Articulo[] = [];
+
+        // 1. Buscar productos por denominación
+        try {
+          const productosResponse = await fetch(
+            `http://localhost:8080/api/productos/buscar/denominacion?denominacion=${encodeURIComponent(query)}`
+          );
+          if (productosResponse.ok) {
+            const productosData = await productosResponse.json();
+            allResults = [...productosData];
+          }
+        } catch (error) {
+          console.error('Error al buscar productos:', error);
         }
+
+        // 2. Obtener todos los artículos con stock > 0
+        try {
+          const articulosResponse = await fetch(
+            `http://localhost:8080/api/articulo/stock/0`
+          );
+          if (articulosResponse.ok) {
+            const articulosData = await articulosResponse.json();
+            // Combinar los productos encontrados con todos los artículos
+            allResults = [...allResults, ...articulosData];
+          }
+        } catch (error) {
+          console.error('Error al buscar artículos:', error);
+        }
+
+        // Establecer todos los resultados combinados
+        setResults(allResults);
+
       } catch (error) {
+        console.error('Error general:', error);
         setResults([]);
       }
     };
     
     fetchData();
   }, [query]);
+
   useEffect(() => {
     // Limpia los resultados cuando el componente se monta o se desmonta
     return () => {
@@ -56,6 +81,7 @@ function Buscador({ onBuscar, valorInicial = "", setValor }: BuscadorProps) {
       }
     };
   }, []);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (query.trim() !== "") {
@@ -65,13 +91,13 @@ function Buscador({ onBuscar, valorInicial = "", setValor }: BuscadorProps) {
       setResults([]); // Limpia los resultados al buscar
     }
   };
-  const handleResultClick = () => {
-  // acá hacés lo que tengas que hacer con el item seleccionado
 
-  // limpiar input y resultados
-  setQuery("");
-  setResults([]);
-};
+  const handleResultClick = () => {
+    // acá hacés lo que tengas que hacer con el item seleccionado
+    // limpiar input y resultados
+    setQuery("");
+    setResults([]);
+  };
 
   return (
     <section className="buscador d-flex flex-column">
@@ -105,23 +131,24 @@ function Buscador({ onBuscar, valorInicial = "", setValor }: BuscadorProps) {
         />
       </form>
       {results.length > 0 && query.trim() !== "" && (
-      <div className="search-results position-absolute overflow-hidden p-10 align-items-start justify-content-center flex-column" style={{ padding: results.length === 0 ? '0' : '15px' }}>
-        {(results.length > 0 && query != "") && (
-          <ul className='listaProductoBuscado overflow-hidde list-unstyled d-flex flex-column gap-2 w-100'>
-            {results.slice(0, 3).map((producto: any) => (
-              <li key={producto.id}>
-                <Link className='linkProductoBsucado text-black d-flex text-start' to={`/articulo/${producto.id}`} onClick={() => handleResultClick()}>
-                  <img className='imgProductoBuscado' src={producto.imagenes[0].denominacion} alt={producto.denominacion} />
-                  <div className='d-flex flex-column'>
-                    <span>{producto.denominacion}</span>
-                    <span className='precioProductoBuscado'>${producto.precioVenta}</span>
-                  </div>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>)}
+        <div className="search-results position-absolute overflow-hidden p-10 align-items-start justify-content-center flex-column" style={{ padding: results.length === 0 ? '0' : '15px' }}>
+          {(results.length > 0 && query != "") && (
+            <ul className='listaProductoBuscado overflow-hidde list-unstyled d-flex flex-column gap-2 w-100'>
+              {results.slice(0, 3).map((producto: any) => (
+                <li key={producto.id}>
+                  <Link className='linkProductoBsucado text-black d-flex text-start' to={`/articulo/${producto.id}`} onClick={() => handleResultClick()}>
+                    <img className='imgProductoBuscado' src={producto.imagenes[0]?.denominacion} alt={producto.denominacion} />
+                    <div className='d-flex flex-column'>
+                      <span>{producto.denominacion}</span>
+                      <span className='precioProductoBuscado'>${producto.precioVenta}</span>
+                    </div>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
     </section>
   );
 }

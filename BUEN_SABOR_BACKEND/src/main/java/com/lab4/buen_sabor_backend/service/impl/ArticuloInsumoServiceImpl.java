@@ -3,6 +3,7 @@ package com.lab4.buen_sabor_backend.service.impl;
 import com.lab4.buen_sabor_backend.exceptions.EntityNotFoundException;
 import com.lab4.buen_sabor_backend.model.ArticuloInsumo;
 import com.lab4.buen_sabor_backend.model.Categoria;
+import com.lab4.buen_sabor_backend.model.ImagenArticulo;
 import com.lab4.buen_sabor_backend.repository.ArticuloInsumoRepository;
 import com.lab4.buen_sabor_backend.service.ArticuloInsumoService;
 import jakarta.transaction.Transactional;
@@ -108,11 +109,19 @@ public class ArticuloInsumoServiceImpl extends MasterServiceImpl<ArticuloInsumo,
     }
 
     @Override
+    public List<ArticuloInsumo> findArticuloInsumoStockActualGratherThanAndEsParaElaborarFalse(int stock) {
+        return articuloInsumoRepository.findArticuloInsumoBySucursalInsumo_StockActualGreaterThanAndEsParaElaborarFalse(stock);
+    }
+
+    @Override
     @Transactional
     public ArticuloInsumo save(ArticuloInsumo entity) {
         // Validación de duplicados antes de guardar
         if (entity.getId() == null && existsByDenominacion(entity.getDenominacion())) {
             throw new IllegalArgumentException("Ya existe un ingrediente con la denominación: " + entity.getDenominacion());
+        }
+        for(ImagenArticulo imagen: entity.getImagenes()) {
+            imagen.setArticulo(entity);
         }
 
         logger.info("Guardando ArticuloInsumo: {}", entity.getDenominacion());
@@ -128,6 +137,10 @@ public class ArticuloInsumoServiceImpl extends MasterServiceImpl<ArticuloInsumo,
         if (!existing.getDenominacion().equalsIgnoreCase(entity.getDenominacion()) &&
                 existsByDenominacion(entity.getDenominacion())) {
             throw new IllegalArgumentException("Ya existe un ingrediente con la denominación: " + entity.getDenominacion());
+        }
+
+        for(ImagenArticulo imagen: entity.getImagenes()) {
+            imagen.setArticulo(entity);
         }
 
         logger.info("Actualizando ArticuloInsumo id: {} con nueva denominación: {}", id, entity.getDenominacion());

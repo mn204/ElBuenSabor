@@ -1,5 +1,6 @@
 package com.lab4.buen_sabor_backend.service;
 
+import com.lab4.buen_sabor_backend.dto.ClienteDTO;
 import com.lab4.buen_sabor_backend.model.Cliente;
 
 

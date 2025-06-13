@@ -14,6 +14,8 @@ import { useManufacturado } from "../../hooks/useManufactuado.ts";
 import { useCargaDatosIniciales } from "../../hooks/useCargarDatosIinicales.ts";
 import { useModal } from "../../hooks/useModal.ts";
 import ImagenArticulo from "../../models/ImagenArticulo.ts";
+import TipoArticulo from "../../models/enums/TipoArticulo.ts";
+import { subirACloudinary } from "../../funciones/funciones.tsx";
 
 function FormArticuloManufacturado() {
   const {
@@ -40,19 +42,7 @@ function FormArticuloManufacturado() {
   const [cantidadInsumo, setCantidadInsumo] = useState<number>(1);
   const [showModalCategoria, setShowModalCategoria] = useState(false);
 
-  const subirACloudinary = async (file: File): Promise<string> => {
-    const data = new FormData();
-    data.append("file", file);
-    data.append("upload_preset", "buen_sabor"); // tu carpeta en Cloudinary
-
-    const res = await fetch("https://api.cloudinary.com/v1_1/dvyjtb1ns/image/upload", {
-      method: "POST",
-      body: data,
-    });
-
-    const response = await res.json();
-    return response.secure_url;
-  };
+  
 
 
   // Utilidades
@@ -172,14 +162,9 @@ const guardarOModificar = async () => {
     const manufacturado = await buildManufacturado();
     if (!manufacturado) return;
 
-    const precioVenta = new HistoricoPrecioVenta();
-    precioVenta.precio = totalConGanancia;
-    precioVenta.fecha = new Date();
-    precioVenta.eliminado = false;
-    manufacturado.historicosPrecioVenta = [precioVenta];
-    manufacturado.historicosPrecioCompra = [];
+    manufacturado.precioVenta = totalConGanancia;
     manufacturado.eliminado = eliminado;
-
+    manufacturado.tipoArticulo = TipoArticulo.ArticuloManufacturado;
     if (idFromUrl) {
       await ArticuloManufacturadoService.update(Number(idFromUrl), manufacturado);
       alert("Artículo manufacturado actualizado correctamente");
@@ -189,7 +174,7 @@ const guardarOModificar = async () => {
     }
     limpiarFormulario();
     console.log("Manufacturado creado:", manufacturado);
-    window.location.href = "/manufacturados";
+    window.location.href = "/empleado/productos";
   } catch (error) {
     console.error(error);
     alert("Error al guardar o actualizar el artículo manufacturado");
@@ -197,7 +182,7 @@ const guardarOModificar = async () => {
 };
 
   return (
-    <div className="formArticuloManufacturado d-flex flex-column gap-3 justify-content-center align-items-center">
+    <div className="formArticuloManufacturado d-flex flex-column gap-3 align-items-center">
       <h2>Formulario de Artículo Manufacturado</h2>
       <FormArticuloFields
         denominacion={denominacion}

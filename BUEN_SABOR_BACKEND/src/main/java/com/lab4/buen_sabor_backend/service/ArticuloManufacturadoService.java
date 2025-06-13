@@ -65,4 +65,6 @@ public interface ArticuloManufacturadoService extends MasterService<ArticuloManu
      * Verifica si existe un producto con la misma denominación excluyendo un ID
      */
     boolean existeByDenominacionExcluyendoId(String denominacion, Long id);
+
+    List<ArticuloManufacturado> findManufacturadosConStockDisponiblePorSucursal(int sucursalId);
 }

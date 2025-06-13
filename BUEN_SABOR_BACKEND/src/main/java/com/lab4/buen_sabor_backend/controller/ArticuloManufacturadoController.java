@@ -62,6 +62,17 @@ public class ArticuloManufacturadoController extends MasterControllerImpl<Articu
                 .collect(Collectors.toList());
         return ResponseEntity.ok(productos);
     }
+    @GetMapping("/buscar/stock/sucursal/{sucursalId}")
+    public ResponseEntity<List<ArticuloManufacturadoDTO>> getDisponiblesPorSucursal(@PathVariable int sucursalId) {
+        logger.info("Buscando productos con stock disponible para la sucursal ID: {}", sucursalId);
+        List<ArticuloManufacturadoDTO> productos = articuloManufacturadoService
+                .findManufacturadosConStockDisponiblePorSucursal(sucursalId)
+                .stream()
+                .map(articuloManufacturadoMapper::toDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(productos);
+    }
+
 
     @GetMapping("/buscar/precio")
     public ResponseEntity<List<ArticuloManufacturadoDTO>> buscarPorRangoPrecio(

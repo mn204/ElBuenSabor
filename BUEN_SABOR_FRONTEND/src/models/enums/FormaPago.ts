@@ -1,6 +1,7 @@
 enum FormaPago {
     EFECTIVO = "EFECTIVO",
-    MERCADO_PAGO = "MERCADO_PAGO"
+    TARJETA = "TARJETA",
+    MERCADO_PAGO = "MERCADOPAGO"
 }
 
 export default FormaPago;
