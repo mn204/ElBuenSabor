@@ -102,7 +102,6 @@ public class PedidoController extends MasterControllerImpl<Pedido, PedidoDTO, Lo
         return new ResponseEntity<>(pdf, headers, HttpStatus.OK);
     }
 
-     */
     @PostMapping("/verificar-y-procesar")
     public ResponseEntity<?> verificarYProcesar(@RequestBody Pedido pedido) {
         try {

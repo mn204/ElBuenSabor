@@ -5,6 +5,7 @@ import Pedido from "../models/Pedido";
 import PedidoDetalle from "../models/DetallePedido";
 import PedidoService from "../services/PedidoService";
 import Estado from "../models/enums/Estado";
+import type Domicilio from "../models/Domicilio";
 
 interface CarritoContextProps {
   pedido: Pedido;
@@ -111,6 +112,9 @@ const restarDelCarrito = (idArticulo: number) => {
       const ahora = new Date();
       const horaActual = ahora.toTimeString().split(' ')[0];
       pedido.horaEstimadaFinalizacion = horaActual;
+      if(pedido.domicilio == null){
+        pedido.domicilio = {id: 6} as Domicilio
+      }
       PedidoService.create(pedido)
     } catch (error) {
       console.error(error);

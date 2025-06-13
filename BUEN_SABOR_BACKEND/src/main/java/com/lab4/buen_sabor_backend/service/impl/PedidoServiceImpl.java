@@ -3,31 +3,23 @@ package com.lab4.buen_sabor_backend.service.impl;
 import com.lab4.buen_sabor_backend.dto.PedidoDTO;
 import com.lab4.buen_sabor_backend.exceptions.EntityNotFoundException;
 import com.lab4.buen_sabor_backend.model.*;
-import com.lab4.buen_sabor_backend.service.ArticuloInsumoService;
-import com.lab4.buen_sabor_backend.service.ArticuloManufacturadoService;
+import com.lab4.buen_sabor_backend.service.*;
 import com.lab4.buen_sabor_backend.service.impl.specification.PedidoSpecification;
 import static com.lab4.buen_sabor_backend.service.impl.specification.PedidoSpecification.*;
 import com.lab4.buen_sabor_backend.model.enums.Estado;
 import com.lab4.buen_sabor_backend.repository.PedidoRepository;
-import com.lab4.buen_sabor_backend.service.PedidoService;
 import org.springframework.transaction.annotation.Transactional; // CAMBIO AQUÍ
-import com.lab4.buen_sabor_backend.service.PdfService;
-import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-
 import java.time.LocalDateTime;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -41,14 +33,15 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
 
 
     private final ArticuloInsumoService articuloInsumoService;
+    private final SucursalInsumoService sucursalInsumoService;
     private final ArticuloManufacturadoService articuloManufacturadoService;
 
     @Autowired
-    public PedidoServiceImpl(PedidoRepository pedidoRepository, PdfService pdfService) {
-    public PedidoServiceImpl(PedidoRepository pedidoRepository, ArticuloInsumoService articuloInsumoService, ArticuloManufacturadoService articuloManufacturadoService) {
+    public PedidoServiceImpl(PedidoRepository pedidoRepository, PdfService pdfService, ArticuloInsumoService articuloInsumoService, SucursalInsumoService sucursalInsumoService, ArticuloManufacturadoService articuloManufacturadoService) {
         super(pedidoRepository);
         this.pedidoRepository = pedidoRepository;
         this.articuloInsumoService = articuloInsumoService;
+        this.sucursalInsumoService = sucursalInsumoService;
         this.articuloManufacturadoService = articuloManufacturadoService;
         this.pdfService = pdfService;
     }
@@ -123,23 +116,37 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
     @Override
     public boolean verificarYDescontarStockPedido(Pedido pedido) {
         try {
-            // Map< SucursalInsumo, cantidadTotalRequerida >
-            Map<SucursalInsumo, Double> requerimientos = new HashMap<>();
+            // Map< ID del SucursalInsumo, RequerimientoInfo >
+            Map<Long, RequerimientoInfo> requerimientos = new HashMap<>();
             Sucursal sucursal = pedido.getSucursal();
+            double totalCosto = 0.0;
 
             for (DetallePedido detPed : pedido.getDetalles()) {
                 Articulo art = detPed.getArticulo();
                 int cantidadPed = detPed.getCantidad();
 
                 try {
+                    // Intentar como insumo directo
                     ArticuloInsumo insumo = articuloInsumoService.getById(art.getId());
+
                     if (!insumo.getEsParaElaborar()) {
                         SucursalInsumo si = insumo.getSucursalInsumo();
                         if (!si.getSucursal().getId().equals(sucursal.getId())) {
                             return false; // No hay stock en esta sucursal
                         }
-                        requerimientos.merge(si, (double)cantidadPed, Double::sum);
+
+                        // Consolidar requerimientos por ID de SucursalInsumo
+                        Long siId = si.getId();
+                        requerimientos.merge(siId,
+                                new RequerimientoInfo(si, (double)cantidadPed, insumo.getPrecioCompra() * cantidadPed),
+                                (existing, nuevo) -> new RequerimientoInfo(
+                                        existing.getSucursalInsumo(),
+                                        existing.getCantidadRequerida() + nuevo.getCantidadRequerida(),
+                                        existing.getCostoTotal() + nuevo.getCostoTotal()
+                                )
+                        );
                     }
+
                 } catch (EntityNotFoundException e) {
                     // Es un artículo manufacturado
                     try {
@@ -148,12 +155,24 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
                         for (DetalleArticuloManufacturado dam : man.getDetalles()) {
                             ArticuloInsumo ai = dam.getArticuloInsumo();
                             SucursalInsumo si = ai.getSucursalInsumo();
+
                             if (!si.getSucursal().getId().equals(sucursal.getId())) {
                                 return false; // No hay insumos en esta sucursal
                             }
 
-                            double totalReq = dam.getCantidad() * cantidadPed;
-                            requerimientos.merge(si, totalReq, Double::sum);
+                            double cantidadRequerida = dam.getCantidad() * cantidadPed;
+                            double costoComponente = ai.getPrecioCompra() * cantidadRequerida;
+
+                            // Consolidar requerimientos por ID de SucursalInsumo
+                            Long siId = si.getId();
+                            requerimientos.merge(siId,
+                                    new RequerimientoInfo(si, cantidadRequerida, costoComponente),
+                                    (existing, nuevo) -> new RequerimientoInfo(
+                                            existing.getSucursalInsumo(),
+                                            existing.getCantidadRequerida() + nuevo.getCantidadRequerida(),
+                                            existing.getCostoTotal() + nuevo.getCostoTotal()
+                                    )
+                            );
                         }
                     } catch (EntityNotFoundException ex) {
                         // Artículo no existe
@@ -162,13 +181,24 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
                 }
             }
 
+            // Calcular costo total
+            totalCosto = requerimientos.values().stream()
+                    .mapToDouble(RequerimientoInfo::getCostoTotal)
+                    .sum();
+            pedido.setTotalCosto(totalCosto);
+
             // Verificar stock disponible antes de proceder
-            for (Map.Entry<SucursalInsumo, Double> entry : requerimientos.entrySet()) {
-                SucursalInsumo si = entry.getKey();
-                double requerido = entry.getValue();
+            for (RequerimientoInfo req : requerimientos.values()) {
+                SucursalInsumo si = req.getSucursalInsumo();
+                double requerido = req.getCantidadRequerida();
+
+                // Refrescar el stock actual desde la base de datos para evitar datos obsoletos
+                si = sucursalInsumoService.getById(si.getId());
+
                 if (si.getStockActual() < requerido) {
-                    System.out.println("Stock insuficiente");
-                    return false; // Stock insuficiente
+                    System.out.println("Stock insuficiente para insumo ID: " + si.getId() +
+                            ". Requerido: " + requerido + ", Disponible: " + si.getStockActual());
+                    return false;
                 }
             }
 
@@ -182,13 +212,23 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
     }
 
     @Transactional
-    protected boolean guardarPedidoConTransaccion(Pedido pedido, Map<SucursalInsumo, Double> requerimientos) {
+    protected boolean guardarPedidoConTransaccion(Pedido pedido, Map<Long, RequerimientoInfo> requerimientos) {
         try {
             // Descontar stock
-            for (Map.Entry<SucursalInsumo, Double> entry : requerimientos.entrySet()) {
-                SucursalInsumo si = entry.getKey();
-                si.setStockActual(si.getStockActual() - entry.getValue());
-                // El stock se actualiza automáticamente por estar en contexto JPA
+            for (RequerimientoInfo req : requerimientos.values()) {
+                SucursalInsumo si = req.getSucursalInsumo();
+                // Refrescar la entidad para asegurar que tenemos la versión más actual
+                si = sucursalInsumoService.getById(si.getId());
+
+                double nuevoStock = si.getStockActual() - req.getCantidadRequerida();
+                si.setStockActual(nuevoStock);
+
+                // Guardar explícitamente si es necesario
+                sucursalInsumoService.save(si);
+
+                logger.info("Stock actualizado para insumo ID: " + si.getId() +
+                        ". Cantidad descontada: " + req.getCantidadRequerida() +
+                        ". Stock restante: " + nuevoStock);
             }
 
             // Guardar pedido
@@ -202,5 +242,22 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
             logger.error("Error al guardar pedido con transacción: ", e);
             throw e; // Re-lanzar para que haga rollback
         }
+    }
+
+    // Clase helper para consolidar requerimientos
+    private static class RequerimientoInfo {
+        private final SucursalInsumo sucursalInsumo;
+        private final double cantidadRequerida;
+        private final double costoTotal;
+
+        public RequerimientoInfo(SucursalInsumo sucursalInsumo, double cantidadRequerida, double costoTotal) {
+            this.sucursalInsumo = sucursalInsumo;
+            this.cantidadRequerida = cantidadRequerida;
+            this.costoTotal = costoTotal;
+        }
+
+        public SucursalInsumo getSucursalInsumo() { return sucursalInsumo; }
+        public double getCantidadRequerida() { return cantidadRequerida; }
+        public double getCostoTotal() { return costoTotal; }
     }
 }

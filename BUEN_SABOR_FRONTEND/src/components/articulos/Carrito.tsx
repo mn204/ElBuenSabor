@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import Pedido from "../../models/Pedido";
 import { useCarrito } from "../../hooks/useCarrito";
 import { useAuth } from "../../context/AuthContext";
 import TipoEnvio from "../../models/enums/TipoEnvio";
@@ -10,7 +9,6 @@ import type Sucursal from "../../models/Sucursal";
 export function Carrito() {
   const { cliente } = useAuth();
   const carritoCtx = useCarrito();
-  const [pedidoGuardado, setPedidoGuardado] = useState<Pedido | null>(null);
   const [currentStep, setCurrentStep] = useState(1);
   const [tipoEnvio, setTipoEnvio] = useState<'DELIVERY' | 'TAKEAWAY' | null>(null);
   const [domicilioSeleccionado, setDomicilioSeleccionado] = useState<Domicilio>();
@@ -45,7 +43,6 @@ export function Carrito() {
     quitarDelCarrito,
     limpiarCarrito,
     enviarPedido,
-    guardarPedidoYObtener
   } = carritoCtx;
 
   const carrito = pedido.detalles;
