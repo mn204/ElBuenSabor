@@ -28,6 +28,7 @@ import RegisterGoogle from "./components/auth/RegisterGoogle.tsx";
 import PanelAdmin from "./components/empleados/PanelAdmin.tsx";
 import DomiciliosCliente from "./components/clientes/DomiciliosCliente.tsx";
 import { SucursalProvider } from './context/SucursalContextEmpleado.tsx'
+import FormCategoria from './components/articulos/FormCategoria.tsx';
 
 
 function AppContent() {
@@ -97,7 +98,7 @@ function AppContent() {
 
           <Route path="/articulos" element={
             <ProtectedRoute requiredRoles={[Rol.ADMIN, Rol.COCINERO]}>
-              <GrillaInsumos />
+              <FormInsumos />
             </ProtectedRoute>
           } />
 
@@ -126,9 +127,7 @@ function AppContent() {
           } />
 
           <Route path="/categoria" element={
-            <ProtectedRoute requiredRoles={[Rol.ADMIN]}>
-              <FormInsumos />
-            </ProtectedRoute>
+              <FormCategoria />
           } />
 
           <Route path="/admin/nuevo-empleado/" element={

@@ -22,5 +22,4 @@ export default class Pedido {
     factura?: Factura;
     detalles: DetallePedido[] = [];
     eliminado!: boolean;
-    sucursal!: Sucursal;
 }

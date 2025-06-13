@@ -1,6 +1,7 @@
 import ImagenArticulo from "./ImagenArticulo";
 import UnidadMedida from "./UnidadMedida";
 import Categoria from "./Categoria";
+import type TipoArticulo from "./enums/TipoArticulo";
 
 export default abstract class Articulo {
     id?: number;
@@ -9,5 +10,6 @@ export default abstract class Articulo {
     imagenes: ImagenArticulo[] = [];
     unidadMedida!: UnidadMedida;
     categoria!: Categoria;
+    tipoArticulo!: TipoArticulo;
     eliminado!: boolean;
 }

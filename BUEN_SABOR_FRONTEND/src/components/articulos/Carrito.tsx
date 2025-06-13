@@ -5,7 +5,6 @@ import { useAuth } from "../../context/AuthContext";
 import TipoEnvio from "../../models/enums/TipoEnvio";
 import FormaPago from "../../models/enums/FormaPago";
 import type Domicilio from "../../models/Domicilio";
-import type Localidad from "../../models/Localidad";
 import type Sucursal from "../../models/Sucursal";
 
 export function Carrito() {
@@ -75,14 +74,16 @@ export function Carrito() {
     // pedido.tipoEnvio = tipoEnvio;
     // pedido.formaPago = formaPago;
     // etc.
-    
+    if(tipoEnvio == "TAKEAWAY"){
+      pedido.sucursal = {id: 1}as Sucursal;
+    }
     await enviarPedido();
   };
 
   const canProceedToConfirm = tipoEnvio && formaPago && (tipoEnvio === 'TAKEAWAY' || domicilioSeleccionado);
 
   const renderStep1 = () => (
-    <div className="p-4">
+    <div className="p-4" style={{minHeight: "60vh"}}>
       <h4 className="mb-4">Carrito de Compras</h4>
       {carrito.length === 0 ? (
         <p className="text-muted">El carrito está vacío.</p>
@@ -245,6 +246,7 @@ export function Carrito() {
                             ? 'btn-primary' 
                             : 'btn-outline-primary'
                         }`}
+                        disabled = {tipoEnvio == "DELIVERY" ? true : false}
                         onClick={() => setFormaPago('EFECTIVO')}
                       >
                         <div>
@@ -303,7 +305,6 @@ export function Carrito() {
             </div>
 
             <div className="d-grid gap-2">
-              {cliente?.id && (
               <button
                 className={`btn btn-lg ${
                   canProceedToConfirm
@@ -315,7 +316,6 @@ export function Carrito() {
               >
                 Confirmar Pedido
               </button>
-              )}
             </div>
           </div>
         </div>

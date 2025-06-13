@@ -45,7 +45,7 @@ function FormCategoria() {
                 await categoriaService.create(categoria);
             }
             alert("Categoría guardada exitosamente");
-            window.location.href = "/categorias"; // Redirige a la lista de categorías
+            window.location.href = "/empleado/categorias"; // Redirige a la lista de categorías
         } catch (error) {
             console.error("Error al guardar la categoría:", error);
             alert("Error al guardar la categoría");
@@ -58,7 +58,7 @@ function FormCategoria() {
         <form className="formContainer container d-flex flex-column gap-3 text-start" onSubmit={e => e.preventDefault()}>
             <div>
                 <label>Denominación:</label>
-                <input value={denominacion} onChange={e => setDenominacion(e.target.value)} />
+                <input className="form-control" value={denominacion} onChange={e => setDenominacion(e.target.value)} />
             </div>
             <div>
                 <label>Categoría:</label>
