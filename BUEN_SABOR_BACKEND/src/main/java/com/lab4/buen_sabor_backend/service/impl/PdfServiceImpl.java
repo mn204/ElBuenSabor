@@ -45,6 +45,7 @@ public class PdfServiceImpl implements PdfService {
             String cae = "X" + String.format("%012d", pedido.getId());
             LocalDateTime fechaVtoCae = pedido.getFechaPedido().plusDays(10);
 
+
             // ENCABEZADO DE LA FACTURA
             PdfPTable tablaEncabezado = new PdfPTable(3);
             tablaEncabezado.setWidthPercentage(100);
@@ -87,7 +88,14 @@ public class PdfServiceImpl implements PdfService {
             parrafoTipoFactura.setAlignment(Element.ALIGN_CENTER);
             parrafoTipoFactura.add(new Chunk("FACTURA\n", fuenteTitulo));
             parrafoTipoFactura.add(new Chunk("B\n", new Font(Font.HELVETICA, 30, Font.BOLD, COLOR_AZUL_CLARO)));
-            parrafoTipoFactura.add(new Chunk("N°: 0001-" + String.format("%08d", pedido.getId()), fuenteNegrita));
+            //
+            // parrafoTipoFactura.add(new Chunk("N°: 0001-" + String.format("%08d", pedido.getId()), fuenteNegrita));
+            //Esto es para seleccionar la sucursal y ponerla en el punto de venta
+            String codSucursal = String.format("%04d", pedido.getSucursal().getId());
+            String codPedido = String.format("%08d", pedido.getId());
+            parrafoTipoFactura.add(new Chunk("N°: " + codSucursal + "-" + codPedido, fuenteNegrita));
+
+
 
             celdaTipoFactura.addElement(parrafoTipoFactura);
             tablaEncabezado.addCell(celdaTipoFactura);
