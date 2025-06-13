@@ -20,7 +20,7 @@ public class PedidoDTO extends MasterDTO {
     private Estado estado;
     private TipoEnvio tipoEnvio;
     private FormaPago formaPago;
-    private LocalDateTime fechaPedido;
+    private Date fechaPedido;
     private SucursalDTO sucursal;
     private EmpleadoDTO empleado;
     private ClienteDTO cliente;

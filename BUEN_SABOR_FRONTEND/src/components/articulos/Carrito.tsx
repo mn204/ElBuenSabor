@@ -4,10 +4,11 @@ import { useAuth } from "../../context/AuthContext";
 import TipoEnvio from "../../models/enums/TipoEnvio";
 import FormaPago from "../../models/enums/FormaPago";
 import type Domicilio from "../../models/Domicilio";
-import type Sucursal from "../../models/Sucursal";
 import CheckoutMP from "./CheckoutMP";
 import type Pedido from "../../models/Pedido";
 import { Wallet } from "@mercadopago/sdk-react";
+import { useSucursalUsuario } from "../../context/SucursalContext";
+import SelectorSucursal from "../empresa/SelectorSucursal";
 
 export function Carrito() {
   const { cliente } = useAuth();
@@ -18,6 +19,7 @@ export function Carrito() {
   const [formaPago, setFormaPago] = useState<'EFECTIVO' | 'MERCADOPAGO' | null>(null);
   const [showDomicilioModal, setShowDomicilioModal] = useState(false);
   const [pedidoGuardado, setPedidoGuardado] = useState<Pedido | null>(null);
+  const { sucursalActual } = useSucursalUsuario();
 
   if (!carritoCtx) return null;
   useEffect(()=>{
@@ -29,13 +31,17 @@ export function Carrito() {
   },[formaPago]);
 
   useEffect(()=>{
+    pedido.sucursal = sucursalActual!;
+    console.log(pedido.sucursal)
+  },[sucursalActual]);
+
+  useEffect(()=>{
     pedido.cliente = cliente!;
   },[cliente]);
 
   useEffect(()=>{
     fetch("/localidades.json").then((res)=>res.json()).then((localidades)=>localidades.map((loc: any)=>{
       if(loc.nombre == domicilioSeleccionado?.localidad?.nombre && tipoEnvio != 'TAKEAWAY'){
-        pedido.sucursal = {id: loc.sucursal_id} as Sucursal
         if (domicilioSeleccionado){
           pedido.domicilio = domicilioSeleccionado;
           console.log(domicilioSeleccionado)
@@ -48,7 +54,6 @@ export function Carrito() {
   const {
     pedido,
     preferenceId,
-    AgregarPreferenceId,
     restarDelCarrito,
     agregarAlCarrito,
     quitarDelCarrito,
@@ -308,28 +313,32 @@ export function Carrito() {
                 </div>
               </div>
             </div>
-
+            {tipoEnvio == 'TAKEAWAY' && 
+              <SelectorSucursal tipoEnvio={tipoEnvio}/>
+            }
             <div className="d-grid gap-2">
-              <button
-                className={`btn btn-lg ${
-                  canProceedToConfirm
-                    ? 'btn-success'
-                    : 'btn-secondary'
-                }`}
-                onClick={handlePagarConMP}
-                disabled={!canProceedToConfirm}
-              >
-                Confirmar Pedido
-              </button>
               {pedidoGuardado && 
                 <CheckoutMP pedido={pedidoGuardado}/>
               }
-              {preferenceId &&
+              {preferenceId ? (
                 <div>
                     <Wallet
                         initialization={{ preferenceId: preferenceId, redirectMode: "blank" }}
-                    />
+                        />
                 </div>
+                ):(
+                  <button
+                    className={`btn btn-lg ${
+                      canProceedToConfirm
+                        ? 'btn-success'
+                        : 'btn-secondary'
+                    }`}
+                    onClick={handlePagarConMP}
+                    disabled={!canProceedToConfirm}
+                  >
+                    Confirmar Pedido
+                  </button>
+                )
               }
                 </div>
           </div>

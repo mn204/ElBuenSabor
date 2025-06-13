@@ -29,6 +29,7 @@ import PanelAdmin from "./components/empleados/PanelAdmin.tsx";
 import DomiciliosCliente from "./components/clientes/DomiciliosCliente.tsx";
 import { SucursalProvider } from './context/SucursalContextEmpleado.tsx'
 import PedidoCliente from './components/clientes/PedidoCliente.tsx';
+import { SucursalProviderUsuario } from './context/SucursalContext.tsx';
 
 
 function AppContent() {
@@ -173,7 +174,9 @@ function App() {
   return (
     <AuthProvider>
       <SucursalProvider>
+      <SucursalProviderUsuario>
         <AppContent />
+      </SucursalProviderUsuario>
       </SucursalProvider>
     </AuthProvider>
   );

@@ -10,6 +10,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Entity
@@ -32,7 +33,7 @@ public class Pedido extends Master{
     @Enumerated(EnumType.STRING)
     private FormaPago formaPago;
 
-    private LocalDateTime fechaPedido;
+    private Date fechaPedido;
 
     @ManyToOne
     @JoinColumn(name = "sucursal_id")

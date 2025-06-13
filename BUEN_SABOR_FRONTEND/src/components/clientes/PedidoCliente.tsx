@@ -86,7 +86,7 @@ const PedidoCliente: React.FC = () => {
     };
 
     return (
-        <div className="container mt-4 m-4">
+        <div className="container mt-4 m-4 d-flex flex-column justify-content-center m-auto">
             <h2 className="text-center fw-bold mb-4 perfilTitle">Mis Pedidos</h2>
 
             <Form className="mb-3">
