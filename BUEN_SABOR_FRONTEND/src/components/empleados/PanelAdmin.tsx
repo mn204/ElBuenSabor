@@ -25,7 +25,7 @@ import DashboardSection from './DashboardSection';
 function PanelAdmin() {
 
     const { usuario, user, empleado } = useAuth();
-    const { sucursalActual } = useSucursal();
+    const { sucursalActual, esModoTodasSucursales, sucursalIdSeleccionada } = useSucursal();
     const location = useLocation();
     const navigate = useNavigate();
 
@@ -58,18 +58,30 @@ function PanelAdmin() {
 
         const requiereContextoSucursal = !['clientes', 'empleados'].includes(botonActual.path);
 
-        if (requiereContextoSucursal && !sucursalActual) {
+        if (requiereContextoSucursal && !sucursalActual && !esModoTodasSucursales) {
             return (
                 <div className="text-center p-4">
                     <p>Cargando información de la sucursal...</p>
                 </div>
             );
         }
+        const getTitulo = (nombreSeccion: string) => {
+            if (esModoTodasSucursales) {
+                return `${nombreSeccion} - Todas las sucursales`;
+            }
+            return `${nombreSeccion} - ${sucursalActual?.nombre}`;
+        };
+
 
         switch (botonActual.nombre) {
             case 'Dashboard':
                 return (
-                    <DashboardSection sucursalActual={sucursalActual} />
+                    <DashboardSection
+                        sucursalActual={sucursalActual}
+                        esModoTodasSucursales={esModoTodasSucursales}
+                        sucursalIdSeleccionada={sucursalIdSeleccionada}
+                    />
+
                 );
 
             case 'Productos':
@@ -88,35 +100,32 @@ function PanelAdmin() {
             case 'Pedidos':
                 return (
                     <div>
-                        <h4>Pedidos - {sucursalActual?.nombre}</h4>
+                        <h4>{getTitulo('Pedidos')}</h4>
                     </div>
                 );
             case 'Cocina':
                 return (
                     <div>
-                        <h4>Cocina - {sucursalActual?.nombre}</h4>
-                        <p>Componente Cocina para la sucursal {sucursalActual?.nombre}</p>
+                        <h4>{getTitulo('Cocina')}</h4>
                     </div>
                 );
             case 'Delivery':
                 return (
                     <div>
-                        <h4>Delivery - {sucursalActual?.nombre}</h4>
-                        <p>Componente Delivery para la sucursal {sucursalActual?.nombre}</p>
+                        <h4>{getTitulo('Delivery')}</h4>
                     </div>
                 );
             case 'Facturación':
                 return (
                     <div>
-                        <h4>Facturación - {sucursalActual?.nombre}</h4>
-                        <p>Componente Facturación para la sucursal {sucursalActual?.nombre}</p>
+                        <h4>{getTitulo('Facturacion')}</h4>
                     </div>
                 );
             case 'Estadísticas':
                 return (
                     <div>
-                        <h4>Estadísticas - {sucursalActual?.nombre}</h4>
-                        <p>Componente Estadísticas para la sucursal {sucursalActual?.nombre}</p>
+                        <h4>{getTitulo('Estadisticas')}</h4>
+
                     </div>
                 );
             case 'Empleados':

@@ -7,9 +7,12 @@ import { useAuth } from './AuthContext';
 interface SucursalContextType {
     sucursalActual: Sucursal | null;
     sucursales: Sucursal[];
-    cambiarSucursal: (sucursal: Sucursal) => void;
+    cambiarSucursal: (sucursal: Sucursal | null) => void;
     loading: boolean;
+    esModoTodasSucursales: boolean;
+    sucursalIdSeleccionada: number | null;
 }
+
 
 const SucursalContext = createContext<SucursalContextType | undefined>(undefined);
 
@@ -17,10 +20,12 @@ interface SucursalProviderProps {
     children: ReactNode;
 }
 
+
 export const SucursalProvider: React.FC<SucursalProviderProps> = ({ children }) => {
     const [sucursalActual, setSucursalActual] = useState<Sucursal | null>(null);
     const [sucursales, setSucursales] = useState<Sucursal[]>([]);
     const [loading, setLoading] = useState(true);
+    const [esModoTodasSucursales, setEsModoTodasSucursales] = useState(false);
     const { empleado, usuario, isAuthenticated } = useAuth();
 
     // Cargar todas las sucursales (solo para administradores)
@@ -42,6 +47,7 @@ export const SucursalProvider: React.FC<SucursalProviderProps> = ({ children }) 
                 setSucursalActual(null);
                 setSucursales([]);
                 setLoading(false);
+                setEsModoTodasSucursales(false);
                 return;
             }
 
@@ -57,12 +63,14 @@ export const SucursalProvider: React.FC<SucursalProviderProps> = ({ children }) 
                     const sucursalPorDefecto = sucursalesData.find(s => s.id === 1) || sucursalesData[0];
                     if (sucursalPorDefecto) {
                         setSucursalActual(sucursalPorDefecto);
+                        setEsModoTodasSucursales(false);
                     }
                 } else {
                     // Para empleados regulares: usar la sucursal asignada
                     if (empleado?.sucursal) {
                         setSucursalActual(empleado.sucursal);
                         setSucursales([]); // Los empleados no necesitan ver todas las sucursales
+                        setEsModoTodasSucursales(false);
                     }
                 }
             } catch (error) {
@@ -75,20 +83,31 @@ export const SucursalProvider: React.FC<SucursalProviderProps> = ({ children }) 
         inicializarContextoSucursal();
     }, [empleado, usuario, isAuthenticated]);
 
-    const cambiarSucursal = (sucursal: Sucursal) => {
+    const cambiarSucursal = (sucursal: Sucursal | null) => {
         // Solo los administradores pueden cambiar de sucursal
         if (usuario?.rol === 'ADMINISTRADOR') {
-            setSucursalActual(sucursal);
+            if (sucursal === null) {
+                // Modo "Todas las sucursales"
+                setSucursalActual(null);
+                setEsModoTodasSucursales(true);
+            } else {
+                setSucursalActual(sucursal);
+                setEsModoTodasSucursales(false);
+            }
         } else {
             console.warn('Solo los administradores pueden cambiar de sucursal');
         }
     };
 
+    const sucursalIdSeleccionada = esModoTodasSucursales ? null : sucursalActual?.id || null;
+
     const value = {
         sucursalActual,
         sucursales,
         cambiarSucursal,
-        loading
+        loading,
+        esModoTodasSucursales,
+        sucursalIdSeleccionada
     };
 
     return (

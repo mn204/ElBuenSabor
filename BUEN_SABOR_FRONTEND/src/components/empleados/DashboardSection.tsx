@@ -6,9 +6,15 @@ import ArticuloInsumo from '../../models/ArticuloInsumo';
 
 interface DashboardSectionProps {
     sucursalActual: ReturnType<typeof useSucursal>['sucursalActual'];
+    esModoTodasSucursales?: boolean;
+    sucursalIdSeleccionada: number | null;
 }
 
-const DashboardSection: React.FC<DashboardSectionProps> = ({ sucursalActual }) => {
+const DashboardSection: React.FC<DashboardSectionProps> = ({
+                                                               sucursalActual,
+                                                               esModoTodasSucursales = false,
+                                                               sucursalIdSeleccionada
+                                                           }) => {
     const navigate = useNavigate();
     const [stockBajo, setStockBajo] = useState<ArticuloInsumo[]>([]);
 
@@ -27,6 +33,7 @@ const DashboardSection: React.FC<DashboardSectionProps> = ({ sucursalActual }) =
         const interval = setInterval(fetchStockBajo, 60000);
         return () => clearInterval(interval);
     }, [sucursalActual]);
+
 
     return (
         <div>
