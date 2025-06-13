@@ -94,7 +94,7 @@ const PedidoClienteModal: React.FC<Props> = ({ show, onHide, cliente }) => {
             label: "Acciones",
             render: (_: any, row: Pedido) => (
                 <div className="d-flex gap-2">
-                    <Button variant="outline-secondary" size="sm" onClick={() => handleDescargarFactura(row.id!)}>Descargar</Button>
+                    <Button variant="outline-secondary" size="sm" onClick={() => handleDescargarFactura(row.id!)}>Descargar Factura</Button>
                     <Button variant="primary" size="sm" onClick={() => handleVerDetalle(row.id!)}>Ver detalle</Button>
                 </div>
             )
