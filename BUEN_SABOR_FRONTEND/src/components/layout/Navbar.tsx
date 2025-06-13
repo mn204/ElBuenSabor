@@ -16,7 +16,7 @@ function Navbar() {
     const [busqueda, setBusqueda] = useState("");
     const navigate = useNavigate();
     const { isAuthenticated, getUserDisplayName, logout, usuario, user, empleado } = useAuth();
-    const { sucursalActual, sucursales, cambiarSucursal } = useSucursal();
+    const { sucursalActual, sucursales, cambiarSucursal , esModoTodasSucursales} = useSucursal();
 
     const handleOpenLogin = () => {
         setIsLoginView(true);
@@ -46,12 +46,19 @@ function Navbar() {
     };
 
     const handleCambiarSucursal = (event: React.ChangeEvent<HTMLSelectElement>) => {
-        const sucursalId = parseInt(event.target.value);
-        const sucursalSeleccionada = sucursales.find(s => s.id === sucursalId);
-        if (sucursalSeleccionada) {
-            cambiarSucursal(sucursalSeleccionada);
+        const valor = event.target.value;
+
+        if (valor === "todas") {
+            cambiarSucursal(null); // Modo "Todas las sucursales"
+        } else {
+            const sucursalId = parseInt(valor);
+            const sucursalSeleccionada = sucursales.find(s => s.id === sucursalId);
+            if (sucursalSeleccionada) {
+                cambiarSucursal(sucursalSeleccionada);
+            }
         }
     };
+
 
     return (
         <>
@@ -87,16 +94,18 @@ function Navbar() {
                                         </label>
                                         <Form.Select
                                             id="sucursal-select"
-                                            value={sucursalActual?.id || ""}
+                                            value={esModoTodasSucursales ? "todas" : (sucursalActual?.id || "")}
                                             onChange={handleCambiarSucursal}
                                             style={{ width: 'auto', minWidth: '200px' }}
                                         >
+                                            <option value="todas">Todas las sucursales</option>
                                             {sucursales.map(sucursal => (
                                                 <option key={sucursal.id} value={sucursal.id}>
                                                     {sucursal.nombre}
                                                 </option>
                                             ))}
                                         </Form.Select>
+
                                     </div>
                                 ) : (
                                     // Mostrar sucursal fija para empleados regulares
