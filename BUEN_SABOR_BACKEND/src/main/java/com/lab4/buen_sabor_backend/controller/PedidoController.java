@@ -102,4 +102,14 @@ public class PedidoController extends MasterControllerImpl<Pedido, PedidoDTO, Lo
         return new ResponseEntity<>(pdf, headers, HttpStatus.OK);
     }
 
+    @PostMapping("/verificar-y-procesar")
+    public ResponseEntity<?> verificarYProcesar(@RequestBody Pedido pedido) {
+        try {
+            boolean resultado = pedidoService.verificarYDescontarStockPedido(pedido);
+            return ResponseEntity.ok(resultado);
+        } catch (Exception e) {
+            logger.error("Error en controlador: ", e);
+            return ResponseEntity.ok(false); // Devuelve false en caso de error
+        }
+    }
 }

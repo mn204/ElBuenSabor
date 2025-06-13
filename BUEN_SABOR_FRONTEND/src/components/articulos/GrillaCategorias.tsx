@@ -97,7 +97,7 @@ function GrillaCategorias() {
 
   return (
     <div>
-      <h2>Categorías (Vista Árbol)</h2>
+      <h2>Categorías</h2>
       <ul style={{ listStyleType: "none", paddingLeft: 0 }}>
         {categoriasArbol.map(cat => (
           <CategoriaNodoUI

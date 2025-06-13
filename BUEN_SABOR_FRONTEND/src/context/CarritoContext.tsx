@@ -4,6 +4,8 @@ import Articulo from "../models/Articulo";
 import Pedido from "../models/Pedido";
 import PedidoDetalle from "../models/DetallePedido";
 import PedidoService from "../services/PedidoService";
+import Estado from "../models/enums/Estado";
+import type Domicilio from "../models/Domicilio";
 
 interface CarritoContextProps {
   pedido: Pedido;
@@ -25,6 +27,7 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
     nuevoPedido.fechaPedido = soloFecha;
     nuevoPedido.detalles = [];
     nuevoPedido.total = 0;
+    nuevoPedido.estado = Estado.PENDIENTE;
     return nuevoPedido;
   });
 
@@ -109,7 +112,9 @@ const restarDelCarrito = (idArticulo: number) => {
       const ahora = new Date();
       const horaActual = ahora.toTimeString().split(' ')[0];
       pedido.horaEstimadaFinalizacion = horaActual;
-      console.log("Hora actual:", horaActual);
+      if(pedido.domicilio == null){
+        pedido.domicilio = {id: 6} as Domicilio
+      }
       PedidoService.create(pedido)
     } catch (error) {
       console.error(error);
@@ -126,18 +131,24 @@ const restarDelCarrito = (idArticulo: number) => {
     try {
       const ahora = new Date();
       const horaActual = ahora.toTimeString().split(' ')[0];
-      console.log("Hora actual:", horaActual);
       pedido.horaEstimadaFinalizacion = horaActual;
 
-      PedidoService.create(pedido)
-      const pedidoTemporal = new Pedido();
-      return pedidoTemporal;
+      const exito = await PedidoService.create(pedido);
+      console.log(pedido)
+      if (exito) {
+        alert("Pedido guardado exitosamente");
+        return pedido; // o null si no necesitas retornar nada
+      } else {
+        console.log("❌ Entrando en rama FAILURE - Stock insuficiente");
+        alert("No se pudo procesar el pedido. Verifique el stock disponible.");
+        return null;
+      }
     } catch (error) {
       console.error(error);
       alert("Hubo un error al guardar el pedido.");
       return null;
     }
-  };
+};
   console.log(carritoContext)
   return (
     <carritoContext.Provider

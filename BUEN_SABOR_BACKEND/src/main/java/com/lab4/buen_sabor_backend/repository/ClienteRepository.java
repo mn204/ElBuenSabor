@@ -1,5 +1,6 @@
 package com.lab4.buen_sabor_backend.repository;
 
+import com.lab4.buen_sabor_backend.dto.ClienteDTO;
 import com.lab4.buen_sabor_backend.model.Cliente;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

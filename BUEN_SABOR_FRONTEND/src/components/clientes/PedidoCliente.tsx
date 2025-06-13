@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { Table, Button, Form, Row, Col, Spinner } from "react-bootstrap";
+import {  Button, Form, Row, Col, Spinner } from "react-bootstrap";
 import Pedido from "../../models/Pedido";
 import pedidoService from "../../services/PedidoService";
 import { useAuth } from "../../context/AuthContext";
-import PedidoDetalleModal from "../articulos/PedidoDetalleModal";
+import PedidoDetalleModal from "../empleados/pedidos/PedidoDetalleModal.tsx";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import Estado from "../../models/enums/Estado";
+import PedidoCard from "./PedidoCard";
+import {ChevronLeft, ChevronRight} from "react-bootstrap-icons";
 
 const PedidoCliente: React.FC = () => {
     const { cliente } = useAuth();
@@ -84,8 +86,8 @@ const PedidoCliente: React.FC = () => {
     };
 
     return (
-        <div className="container mt-4">
-            <h2>Historial de pedidos</h2>
+        <div className="container mt-4 m-4">
+            <h2 className="text-center fw-bold mb-4 perfilTitle">Mis Pedidos</h2>
 
             <Form className="mb-3">
                 <Row>
@@ -146,44 +148,51 @@ const PedidoCliente: React.FC = () => {
                 <Spinner animation="border" />
             ) : (
                 <>
-                    <Table striped bordered hover>
-                        <thead>
-                            <tr>
-                                <th>Fecha</th>
-                                <th>Número</th>
-                                <th>Total</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {pedidos.content.length === 0 ? (
-                                <tr>
-                                    <td colSpan={4}>No hay pedidos</td>
-                                </tr>
-                            ) : (
-                                pedidos.content.map((p: Pedido) => (
-                                    <tr key={p.id}>
-                                        <td>{new Date(p.fechaPedido).toLocaleString()}</td>
-                                        <td>{p.id}</td>
-                                        <td>${p.total.toFixed(2)}</td>
-                                        <td>
-                                            <Button size="sm" onClick={() => handleDetalle(p.id!)}>Ver detalle</Button>{" "}
-                                            <Button size="sm" variant="secondary" onClick={() => handleDescargarFactura(p.id!)}>Factura</Button>
-                                        </td>
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </Table>
+                    {pedidos.content.length === 0 ? (
+                        <p>No hay pedidos</p>
+                    ) : (
+                        <div className="d-flex flex-column align-items-center">
+                            {pedidos.content.map((p) => (
+                                <div key={p.id} className="w-100" style={{ maxWidth: "1000px" }}>
+                                    <PedidoCard
+                                        pedido={p}
+                                        onVerDetalle={handleDetalle}
+                                        onDescargarFactura={handleDescargarFactura}
+                                    />
+                                </div>
+                            ))}
+                        </div>
+
+                    )}
 
                     {/* Navegación de páginas */}
-                    <div className="d-flex justify-content-between">
-                        <Button disabled={page === 0} onClick={() => setPage(page - 1)}>Anterior</Button>
-                        <span>Página {page + 1} de {totalPages}</span>
-                        <Button disabled={page >= totalPages - 1} onClick={() => setPage(page + 1)}>Siguiente</Button>
+                    <div className="d-flex justify-content-end mt-4">
+                        <div className="d-flex align-items-center gap-2">
+                            <Button
+                                variant="outline-secondary"
+                                size="sm"
+                                disabled={page === 0}
+                                onClick={() => setPage(page - 1)}
+                            >
+                                <ChevronLeft />
+                            </Button>
+                            <span className="text-muted">
+                              Página {page + 1} de {totalPages}
+                             </span>
+                            <Button
+                                variant="outline-secondary"
+                                size="sm"
+                                disabled={page >= totalPages - 1}
+                                onClick={() => setPage(page + 1)}
+                            >
+                                <ChevronRight />
+                            </Button>
+                        </div>
                     </div>
+
                 </>
             )}
+
 
             {detallePedido && (
                 <PedidoDetalleModal show={showModal} onHide={() => setShowModal(false)} pedido={detallePedido} />

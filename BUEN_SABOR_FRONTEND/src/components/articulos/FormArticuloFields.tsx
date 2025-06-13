@@ -51,7 +51,7 @@ const FormArticuloFields: React.FC<Props> = ({
   setShowModalCategoria,
 }) => (
   <form className="d-flex flex-column gap-3 text-start" onSubmit={e => e.preventDefault()}>
-    <div>
+    <div className="d-flex flex-column">
       <label>Denominación:</label>
       <input
         type="text"
@@ -61,7 +61,7 @@ const FormArticuloFields: React.FC<Props> = ({
         required
       />
     </div>
-    <div>
+    <div className="d-flex flex-column">
       <label>Descripción:</label>
       <textarea
         value={descripcion}
@@ -70,7 +70,7 @@ const FormArticuloFields: React.FC<Props> = ({
         required
       />
     </div>
-    <div>
+    <div className="d-flex flex-column">
       <label>Tiempo estimado (minutos):</label>
       <input
         type="number"
@@ -81,7 +81,7 @@ const FormArticuloFields: React.FC<Props> = ({
         required
       />
     </div>
-    <div>
+    <div className="d-flex flex-column">
       <label>Preparación:</label>
       <textarea
         value={preparacion}
@@ -90,9 +90,9 @@ const FormArticuloFields: React.FC<Props> = ({
         required
       />
     </div>
-    <div>
+    <div className="d-flex flex-column">
   <label>Categoría:</label>
-  <div className="d-flex align-items-center gap-2">
+  <div className="d-flex flex-column align-items-center gap-2">
     <button
       type="button"
       className="btn btn-outline-primary"
@@ -112,7 +112,7 @@ const FormArticuloFields: React.FC<Props> = ({
         setCategoriaSeleccionada={setCategoria}
       />
     </div>
-    <div>
+    <div className="d-flex flex-column">
       <label>Unidad de medida:</label>
       <select
         value={unidad}
@@ -127,7 +127,7 @@ const FormArticuloFields: React.FC<Props> = ({
       </select>
     </div>
     {/* Imágenes */}
-    <div>
+    <div className="d-flex flex-column">
       <label>Imágenes:</label>
       {/* Imágenes existentes */}
       {imagenesExistentes.length > 0 && (

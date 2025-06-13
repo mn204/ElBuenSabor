@@ -15,7 +15,7 @@ import BotonAlta from "../layout/BotonAlta.tsx";
 import googleLogo from "../../assets/google_logo.png"; // ruta correcta según tu proyecto
 import { Modal } from "react-bootstrap";
 import {darDeAltaUsuario, eliminarUsuario} from "../../services/UsuarioService.ts";
-
+import PedidoClienteModal from "./pedidos/PedidoClienteModal.tsx"
 
 //TODO implementar ver los pedidos del cliente.
 
@@ -25,6 +25,13 @@ const GrillaCliente = () => {
     const [search, setSearch] = useState("");
     const [estado, setEstado] = useState("todos");
     const [ordenAsc, setOrdenAsc] = useState(true);
+    const [showPedidosModal, setShowPedidosModal] = useState(false);
+    const [clientePedidos, setClientePedidos] = useState<Cliente | null>(null);
+    const handleVerPedidos = (cliente: Cliente) => {
+        setClientePedidos(cliente);
+        setShowPedidosModal(true);
+    };
+
 
     const [clienteSeleccionado, setClienteSeleccionado] = useState<Cliente | null>(null);
     const [showModal, setShowModal] = useState(false);
@@ -234,8 +241,8 @@ const GrillaCliente = () => {
                             </div>
 
                             <div className="mt-4 text-center">
-                                <Button variant="primary" disabled>
-                                    Ver Pedidos (próximamente)
+                                <Button variant="primary" onClick={() => handleVerPedidos(clienteSeleccionado!)}>
+                                    Ver Pedidos
                                 </Button>
                             </div>
                         </div>
@@ -244,6 +251,14 @@ const GrillaCliente = () => {
                 <Modal.Footer>
                     <Button variant="secondary" onClick={handleCloseModal}>Cerrar</Button>
                 </Modal.Footer>
+                {clientePedidos && (
+                    <PedidoClienteModal
+                        show={showPedidosModal}
+                        onHide={() => setShowPedidosModal(false)}
+                        cliente={clientePedidos}
+                    />
+                )}
+
             </Modal>
 
         </div>

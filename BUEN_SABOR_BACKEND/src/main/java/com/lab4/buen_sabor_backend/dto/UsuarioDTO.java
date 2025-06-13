@@ -15,4 +15,5 @@ public class UsuarioDTO extends MasterDTO{
     private Rol rol;
     private String providerId;
     private String photoUrl;
+    private Boolean eliminado;
 }

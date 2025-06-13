@@ -19,8 +19,9 @@ import { useSucursal } from "../../context/SucursalContextEmpleado.tsx";
 import ArticuloInsumoService from "../../services/ArticuloInsumoService";
 import ArticuloInsumo from "../../models/ArticuloInsumo";
 
-import { useLocation } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
+import {useLocation} from "react-router-dom";
+import {useNavigate} from "react-router-dom";
+import GrillaCategorias from '../articulos/GrillaCategorias.tsx';
 
 function PanelAdmin() {
 
@@ -149,7 +150,6 @@ function PanelAdmin() {
                 return (
                     <div>
                         <h4>Pedidos - {sucursalActual?.nombre}</h4>
-                        <p>Componente Pedidos para la sucursal {sucursalActual?.nombre}</p>
                     </div>
                 );
             case 'Cocina':
@@ -189,8 +189,7 @@ function PanelAdmin() {
             case 'Categorias':
                 return (
                     <div>
-                        <h4>Categorías - {sucursalActual?.nombre}</h4>
-                        <p>Componente Categorías para la sucursal {sucursalActual?.nombre}</p>
+                        <GrillaCategorias/>
                     </div>
                 );
             default:
