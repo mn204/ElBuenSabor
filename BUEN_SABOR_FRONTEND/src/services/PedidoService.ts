@@ -136,6 +136,40 @@ class PedidoService {
         }
     }
 
+    async agregarCincoMinutos(pedido: Pedido): Promise<void> {
+        if (!pedido.horaEstimadaFinalizacion) {
+            throw new Error("El pedido no tiene una hora estimada.");
+        }
+
+        // Convertimos la hora a un objeto Date
+        const fecha = new Date(`1970-01-01T${pedido.horaEstimadaFinalizacion}`);
+
+        // Sumamos 5 minutos
+        fecha.setMinutes(fecha.getMinutes() + 5);
+
+        // Convertimos de nuevo a string en formato HH:mm:ss
+        const nuevaHora = fecha.toTimeString().split(" ")[0]; // HH:mm:ss
+
+        // Creamos el nuevo objeto pedido con la hora modificada
+        const pedidoActualizado = {
+            ...pedido,
+            horaEstimadaFinalizacion: nuevaHora
+        };
+
+        const response = await fetch(`${API_URL}/${pedido.id}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(pedidoActualizado),
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error("Error al actualizar el pedido: " + errorText);
+        }
+    }
+
     async exportarPedidos(pedidosSeleccionados: Pedido[]): Promise<Blob> {
         const response = await fetch(`${API_URL}/excel`, {
             method: "POST",

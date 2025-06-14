@@ -49,6 +49,23 @@ const GrillaCocina: React.FC = () => {
         // basándote en los artículos del pedido. Por ahora retorno un placeholder
         return "0:25"; // Placeholder - implementar según tu lógica de negocio
     };
+    const calcularHoraEstimada = (pedido: Pedido): string => {
+        if (!pedido.horaEstimadaFinalizacion) return "No especificada";
+
+        const fecha = new Date(`1970-01-01T${pedido.horaEstimadaFinalizacion}`);
+
+        if (pedido.tipoEnvio === "DELIVERY") {
+            fecha.setMinutes(fecha.getMinutes() - 10);
+        }
+
+        // Formato HH:mm (puedes cambiar a HH:mm:ss si lo preferís)
+        const horas = fecha.getHours().toString().padStart(2, '0');
+        const minutos = fecha.getMinutes().toString().padStart(2, '0');
+
+        return `${horas}:${minutos}`;
+    };
+
+
 
     // Función para contar productos
     const contarProductos = (pedido: Pedido): number => {
@@ -148,9 +165,14 @@ const GrillaCocina: React.FC = () => {
         }
     };
 
-    const handleAgregar5Min = (pedidoId: number) => {
-        // TODO: Implementar lógica para agregar 5 minutos
-        console.log(`Agregando 5 minutos al pedido ${pedidoId}`);
+    const handleAgregar5Min = async (pedido: Pedido) => {
+        try {
+            await pedidoService.agregarCincoMinutos(pedido);
+           fetchPedidos();
+            console.log("Hora estimada actualizada correctamente.");
+        } catch (error) {
+            console.error("Error al agregar 5 minutos:", error);
+        }
     };
 
     const handleMarcarListo = (pedidoId: number) => {
@@ -221,7 +243,7 @@ const GrillaCocina: React.FC = () => {
         {
             key: "horaEstimada",
             label: "Hora Estimada",
-            render: (_: any, row: Pedido) => row.horaEstimadaFinalizacion || "No especificada"
+            render: (_: any, row: Pedido) => calcularHoraEstimada(row)
         },
         // Columna de sucursal solo visible para admin cuando está en modo "todas las sucursales"
         ...(isAdmin && esModoTodasSucursales ? [{
@@ -245,7 +267,7 @@ const GrillaCocina: React.FC = () => {
                     <Button
                         variant="danger"
                         size="sm"
-                        onClick={() => handleAgregar5Min(row.id!)}
+                        onClick={() => handleAgregar5Min(row)}
                         title="Agregar 5 minutos"
                     >
                         +5 min

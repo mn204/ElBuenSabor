@@ -36,6 +36,16 @@ const GrillaDelivery: React.FC = () => {
     const isAdmin = usuario?.rol === 'ADMINISTRADOR';
     const isDelivery = usuario?.rol === 'DELIVERY';
 
+    const handleAgregar5Min = async (pedido: Pedido) => {
+        try {
+            await pedidoService.agregarCincoMinutos(pedido);
+            fetchPedidos();
+            console.log("Hora estimada actualizada correctamente.");
+        } catch (error) {
+            console.error("Error al agregar 5 minutos:", error);
+        }
+    };
+
     const fetchPedidos = async () => {
         try {
             setLoading(true);
@@ -184,6 +194,7 @@ const GrillaDelivery: React.FC = () => {
             key: "acciones",
             label: "Acciones",
             render: (_: any, row: Pedido) => (
+                <div className="d-flex gap-2 justify-content-center align-items-center">
                 <Button
                     variant="primary"
                     size="sm"
@@ -191,6 +202,15 @@ const GrillaDelivery: React.FC = () => {
                 >
                     Ver Detalle
                 </Button>
+                <Button
+                    variant="danger"
+                    size="sm"
+                    onClick={() => handleAgregar5Min(row)}
+                    title="Agregar 5 minutos"
+                >
+                    +5 min
+                </Button>
+                </div>
             )
         }
     ];
