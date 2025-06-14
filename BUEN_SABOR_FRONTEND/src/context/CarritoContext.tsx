@@ -19,6 +19,7 @@ interface CarritoContextProps {
   enviarPedido: () => Promise<Pedido | null | undefined>;
   AgregarPreferenceId: (id: string) => void;
   guardarPedidoYObtener: () => Promise<Pedido | null>;
+  limpiarPreferenceId: ()=> void;
 }
 
 export const carritoContext = createContext<CarritoContextProps | undefined>(undefined);
@@ -127,12 +128,13 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
         .filter((d): d is PedidoDetalle => d !== null);
 
       const nuevoTotal = nuevosdetalles.reduce((acc, d) => acc + d.subTotal, 0); // <--- aquí
-      console.log(obtenerFechaArgentina())
 
       return { ...prevPedido, detalles: nuevosdetalles, total: nuevoTotal };
     });
   };
-
+  const limpiarPreferenceId = () => {
+    setIdPreference(undefined as any); // Forzar el tipo si es necesario
+  };
   const quitarDelCarrito = (idArticulo: number) => {
     setPedido((prevPedido) => {
       const nuevosdetalles = prevPedido.detalles.filter(
@@ -150,6 +152,7 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
     nuevoPedido.total = 0;
     setPedido(nuevoPedido);
     localStorage.removeItem("carritoPedido");
+    setIdPreference("");
   };
 
   const enviarPedido = async () => {
@@ -240,6 +243,7 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
       value={{
         pedido,
         preferenceId,
+        limpiarPreferenceId,
         agregarAlCarrito,
         restarDelCarrito,
         quitarDelCarrito,

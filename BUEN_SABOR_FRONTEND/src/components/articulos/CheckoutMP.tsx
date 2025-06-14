@@ -13,10 +13,8 @@ function CheckoutMP({ pedido }: { pedido: Pedido }) {
   const getPreferenceMP = async () => {
     try {
       const response: PreferenceMP = await savePreferenceMP(pedido);
-      console.log(response) // ← llamada usando la función que devuelve el hook
       if (response && response.id) {
         setIdPreference(response.id);
-        console.log(response.id)
       } else {
         alert("Error al generar la preferencia de Mercado Pago");
       }

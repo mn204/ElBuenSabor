@@ -13,6 +13,25 @@ class PedidoService {
             throw error;
         }
     }
+
+    async consultarStock(pedido: Pedido) {
+        try {
+            const response = await fetch('http://localhost:8080/api/pedidos/verificar-stock', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(pedido)
+            });
+
+            const stockDisponible: boolean = await response.json();
+            return stockDisponible;
+        } catch (error) {
+            alert(error)
+        }
+
+    }
+
     async create(pedido: Pedido): Promise<Pedido | null> {
         try {
             console.log('Enviando pedido:', JSON.stringify(pedido));
@@ -22,9 +41,6 @@ class PedidoService {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(pedido)
             });
-
-            console.log("Status:", res.status);
-            console.log("OK:", res.ok);
 
             if (!res.ok) {
                 const errorText = await res.text();
@@ -64,13 +80,10 @@ class PedidoService {
             }
 
             const resultado = await res.json();
-            console.log("Respuesta del servidor:", resultado);
 
             // Si el resultado es un boolean true, significa que se procesó correctamente
             if (resultado === true) {
                 try {
-                    console.log('Obteniendo último pedido del cliente:', pedido.cliente.id);
-
                     const ultimoPedidoRes = await fetch(`${API_URL}/ultimo/cliente/${pedido.cliente.id}`, {
                         method: "GET",
                         headers: { "Content-Type": "application/json" },
@@ -94,7 +107,6 @@ class PedidoService {
                     }
 
                     const ultimoPedido: Pedido = await ultimoPedidoRes.json();
-                    console.log("Último pedido obtenido:", ultimoPedido);
 
                     if (ultimoPedido && ultimoPedido.id) {
                         alert(`Pedido guardado exitosamente con ID: ${ultimoPedido.id}`);

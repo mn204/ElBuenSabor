@@ -8,22 +8,29 @@ import CheckoutMP from "./CheckoutMP";
 import type Pedido from "../../models/Pedido";
 import { Wallet } from "@mercadopago/sdk-react";
 import { useSucursalUsuario } from "../../context/SucursalContext";
+import PedidoService from "../../services/PedidoService";
+import { Button } from "react-bootstrap";
+import { FaPlus } from "react-icons/fa6";
+import ModalDomicilio from "../clientes/ModalDomicilio";
 
 export function Carrito() {
-  const { cliente } = useAuth();
+  const { cliente, setCliente } = useAuth();
   const carritoCtx = useCarrito();
   const [currentStep, setCurrentStep] = useState(1);
   const [tipoEnvio, setTipoEnvio] = useState<'DELIVERY' | 'TAKEAWAY' | null>(null);
-  const [domicilioSeleccionado, setDomicilioSeleccionado] = useState<Domicilio>();
+  const [domicilioSeleccionado, setDomicilioSeleccionado] = useState<Domicilio | null>();
   const [formaPago, setFormaPago] = useState<'EFECTIVO' | 'MERCADOPAGO' | null>(null);
   const [showDomicilioModal, setShowDomicilioModal] = useState(false);
   const [pedidoGuardado, setPedidoGuardado] = useState<Pedido | null>(null);
   const [stockError, setStockError] = useState<string | null>(null);
   const [verificandoStock, setVerificandoStock] = useState(false);
   const { sucursalActualUsuario } = useSucursalUsuario();
+  const [modalVisible, setModalVisible] = useState(false);
 
   if (!carritoCtx) return null;
-
+  const handleModalSubmit = (clienteActualizado: any) => {
+    setCliente(clienteActualizado);
+  };
   useEffect(() => {
     if (formaPago == 'EFECTIVO') {
       pedido.formaPago = FormaPago.EFECTIVO
@@ -34,7 +41,6 @@ export function Carrito() {
 
   useEffect(() => {
     pedido.sucursal = sucursalActualUsuario!;
-    console.log(pedido.sucursal)
   }, [sucursalActualUsuario]);
 
   useEffect(() => {
@@ -46,10 +52,7 @@ export function Carrito() {
       if (loc.nombre == domicilioSeleccionado?.localidad?.nombre && tipoEnvio != 'TAKEAWAY') {
         if (domicilioSeleccionado) {
           pedido.domicilio = domicilioSeleccionado;
-          console.log(domicilioSeleccionado)
-          console.log(pedido)
         }
-        console.log(pedido)
       }
     }))
   }, [domicilioSeleccionado]);
@@ -63,7 +66,10 @@ export function Carrito() {
     limpiarCarrito,
     guardarPedidoYObtener,
   } = carritoCtx;
-
+  const handleAgregar = () => {
+    setDomicilioSeleccionado(null);
+    setModalVisible(true);
+  };
   const carrito = pedido.detalles;
 
   const verificarStock = async () => {
@@ -71,16 +77,7 @@ export function Carrito() {
     setStockError(null);
 
     try {
-      const response = await fetch('http://localhost:8080/api/pedidos/verificar-stock', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(pedido)
-      });
-
-      const stockDisponible: boolean = await response.json();
-      console.log(response)
+      const stockDisponible = await PedidoService.consultarStock(pedido)
       if (!stockDisponible) {
         setStockError("No hay stock suficiente para algunos productos en la sucursal seleccionada.");
         return false;
@@ -127,15 +124,48 @@ export function Carrito() {
     if (!stockOk) {
       return;
     }
-
     const pedidoFinal = await guardarPedidoYObtener();
-    console.log(pedidoFinal)
+    limpiarCarrito()
     if (pedidoFinal) {
       setPedidoGuardado(pedidoFinal);
     }
-    console.log("preference: ", preferenceId)
   };
+  // Opción 2: Limpiar preferenceId al agregar productos al carrito
+  useEffect(() => {
+    if (carrito.length > 0 && preferenceId) {
+      // Si hay productos en el carrito y existe un preferenceId de un pedido anterior, limpiarlo
+      carritoCtx.limpiarPreferenceId();
+      setPedidoGuardado(null);
+    }
+  }, [carrito.length]);
 
+  // Opción 3: Limpiar preferenceId al cambiar de step
+  useEffect(() => {
+    if (currentStep === 1) {
+      // Limpiar estados relacionados con pagos anteriores
+      carritoCtx.limpiarPreferenceId();
+      setPedidoGuardado(null);
+    }
+  }, [currentStep]);
+
+  // Opción 4: Detectar cuando el usuario regresa de MercadoPago
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && preferenceId && carrito.length === 0) {
+        // El usuario regresó a la página y el carrito está vacío
+        // Limpiar el preferenceId para resetear el estado
+        carritoCtx.limpiarPreferenceId();
+        setPedidoGuardado(null);
+        setCurrentStep(1);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [preferenceId, carrito.length]);
   const canProceedToConfirm = tipoEnvio && formaPago && (tipoEnvio === 'TAKEAWAY' || domicilioSeleccionado);
 
   const renderStep1 = () => (
@@ -374,46 +404,64 @@ export function Carrito() {
                 <h5>Resumen del Pedido</h5>
               </div>
               <div className="card-body">
-                {carrito.map((item) => (
-                  <div key={item.articulo.id} className="d-flex justify-content-between mb-2">
-                    <span>{item.cantidad}x {item.articulo.denominacion}</span>
-                    <span>${item.subTotal.toFixed(2)}</span>
+                {/* Usar carrito si tiene items, sino usar pedidoGuardado */}
+                {(carrito && carrito.length > 0 ? carrito : pedidoGuardado?.detalles || []).map((item) => (
+                  <div key={item.articulo?.id || item.id} className="d-flex justify-content-between mb-2">
+                    <span>
+                      {item.cantidad}x {item.articulo?.denominacion}
+                    </span>
+                    <span>
+                      ${(item.subTotal || (item.cantidad * item.articulo.precioVenta)).toFixed(2)}
+                    </span>
                   </div>
                 ))}
+
+                {/* Mostrar mensaje si no hay items en ninguno */}
+                {(!carrito || carrito.length === 0) && (!pedidoGuardado?.detalles || pedidoGuardado.detalles.length === 0) && (
+                  <div className="text-center py-3">
+                    <p className="text-muted mb-0">No hay productos en el pedido</p>
+                  </div>
+                )}
+
                 <hr />
                 <div className="d-flex justify-content-between">
                   <strong>Total: </strong>
                   <strong>
-                    ${carrito.reduce((acc, item) => acc + item.subTotal, 0).toFixed(2)}
+                    ${(() => {
+                      const items = carrito && carrito.length > 0 ? carrito : pedidoGuardado?.detalles || [];
+                      return items.reduce((acc, item) => {
+                        return acc + (item.subTotal || (item.cantidad * item.articulo.precioVenta));
+                      }, 0).toFixed(2);
+                    })()}
                   </strong>
                 </div>
               </div>
             </div>
+          </div>
 
-            <div className="d-grid gap-2">
-              {pedidoGuardado &&
-                <CheckoutMP pedido={pedidoGuardado} />
-              }
-              {preferenceId ? (
-                <div>
-                  <Wallet
-                    initialization={{ preferenceId: preferenceId, redirectMode: "blank" }}
-                  />
-                </div>
-              ) : (
-                <button
-                  className={`btn btn-lg ${canProceedToConfirm && !stockError
-                    ? 'btn-success'
-                    : 'btn-secondary'
-                    }`}
-                  onClick={handlePagarConMP}
-                  disabled={!canProceedToConfirm || stockError !== null || verificandoStock}
-                >
-                  {verificandoStock ? 'Verificando...' : 'Confirmar Pedido'}
-                </button>
-              )
-              }
-            </div>
+          <div className="d-grid gap-2">
+            {pedidoGuardado && (preferenceId != undefined) &&
+              <CheckoutMP pedido={pedidoGuardado} />
+            }
+            {preferenceId != undefined ? (
+              <div>
+                <Wallet
+                  initialization={{ preferenceId: preferenceId, redirectMode: "blank" }}
+                />
+              </div>
+            ) : (
+              <button
+                className={`btn btn-lg ${canProceedToConfirm && !stockError
+                  ? 'btn-success'
+                  : 'btn-secondary'
+                  }`}
+                onClick={handlePagarConMP}
+                disabled={!canProceedToConfirm || stockError !== null || verificandoStock}
+              >
+                {verificandoStock ? 'Verificando...' : 'Confirmar Pedido'}
+              </button>
+            )
+            }
           </div>
         </div>
       </div>
@@ -428,47 +476,89 @@ export function Carrito() {
       {showDomicilioModal && (
         <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
           <div className="modal-dialog modal-lg modal-dialog-centered">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Seleccionar Domicilio</h5>
+            <div className="modal-content shadow-lg border-0 rounded-4">
+              <div className="modal-header border-0 pb-2">
+                <div>
+                  <h4 className="modal-title fw-bold text-dark mb-1">Seleccionar Domicilio</h4>
+                  <p className="text-muted mb-0 small">Elige la dirección para tu pedido</p>
+                </div>
                 <button
                   type="button"
-                  className="btn-close"
+                  className="btn-close btn-close-white bg-light rounded-circle p-2"
+                  style={{ opacity: 0.8 }}
                   onClick={() => setShowDomicilioModal(false)}
                 ></button>
               </div>
-              <div className="modal-body">
+
+              <div className="modal-body px-4 py-3">
                 {cliente?.domicilios && cliente.domicilios.length > 0 ? (
-                  <div className="row">
+                  <div className="row g-3">
                     {cliente.domicilios
                       .filter(domicilio => !domicilio.eliminado)
                       .map((domicilio) => (
-                        <div key={domicilio.id} className="col-md-6 mb-3">
+                        <div key={domicilio.id} className="col-12 col-md-6">
                           <div
-                            className={`card h-100 ${domicilioSeleccionado?.id === domicilio.id
-                              ? 'border-success bg-success bg-opacity-10'
-                              : 'border-secondary'
+                            className={`card h-100 border-2 transition-all ${domicilioSeleccionado?.id === domicilio.id
+                              ? 'border-success shadow-sm bg-success bg-opacity-10'
+                              : 'border-light-subtle hover-shadow'
                               }`}
-                            style={{ cursor: 'pointer' }}
+                            style={{
+                              cursor: 'pointer',
+                              transition: 'all 0.2s ease-in-out',
+                              borderRadius: '12px'
+                            }}
                             onClick={() => handleDomicilioSelect(domicilio)}
+                            onMouseEnter={(e) => {
+                              if (domicilioSeleccionado?.id !== domicilio.id) {
+                                e.target.classList.add('shadow-sm', 'border-primary', 'border-opacity-50');
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (domicilioSeleccionado?.id !== domicilio.id) {
+                                e.target.classList.remove('shadow-sm', 'border-primary', 'border-opacity-50');
+                              }
+                            }}
                           >
-                            <div className="card-body">
-                              <h6 className="card-title">
-                                {domicilio.calle} {domicilio.numero}
-                              </h6>
-                              <div className="card-text">
-                                {domicilio.piso && `Piso ${domicilio.piso}`}
-                                {domicilio.nroDepartamento && `, Depto ${domicilio.nroDepartamento}`}
-                                <br />
-                                {domicilio.localidad?.nombre}
-                                <br />
-                                CP: {domicilio.codigoPostal}
-                                {domicilio.detalles && (
-                                  <>
-                                    <br />
-                                    <small className="text-muted">{domicilio.detalles}</small>
-                                  </>
+                            <div className="card-body p-3">
+                              <div className="d-flex justify-content-center align-items-start mb-2">
+                                <h6 className="card-title fw-semibold text-dark mb-0">
+                                  <i className="fas fa-map-marker-alt text-primary me-2"></i>
+                                  {domicilio.calle} {domicilio.numero}
+                                </h6>
+                                {domicilioSeleccionado?.id === domicilio.id && (
+                                  <i className="fas fa-check-circle text-success"></i>
                                 )}
+                              </div>
+
+                              <div className="card-text">
+                                <div className="d-flex flex-column gap-1 text-muted small">
+                                  {domicilio.piso && (
+                                    <span>
+                                      <i className="fas fa-building me-1"></i>
+                                      Piso {domicilio.piso}
+                                      {domicilio.nroDepartamento && `, Depto ${domicilio.nroDepartamento}`}
+                                    </span>
+                                  )}
+
+                                  <span>
+                                    <i className="fas fa-city me-1"></i>
+                                    {domicilio.localidad?.nombre}
+                                  </span>
+
+                                  <span>
+                                    <i className="fas fa-mail-bulk me-1"></i>
+                                    CP: {domicilio.codigoPostal}
+                                  </span>
+
+                                  {domicilio.detalles && (
+                                    <div className="mt-2 pt-2 border-top border-light">
+                                      <span className="text-info small">
+                                        <i className="fas fa-info-circle me-1"></i>
+                                        {domicilio.detalles}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </div>
@@ -476,21 +566,49 @@ export function Carrito() {
                       ))}
                   </div>
                 ) : (
-                  <div className="text-center py-4">
-                    <p className="mb-3">No tienes domicilios registrados.</p>
-                    <button className="btn btn-primary">Agregar Domicilio</button>
+                  <div className="text-center py-5">
+                    <div className="mb-3">
+                      <i className="fas fa-home fa-3x text-muted opacity-50"></i>
+                    </div>
+                    <h5 className="text-muted mb-2">No tienes domicilios registrados</h5>
+                    <p className="text-muted small mb-0">Agrega tu primera dirección para continuar</p>
                   </div>
                 )}
               </div>
-              <div className="modal-footer">
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => setShowDomicilioModal(false)}
-                >
-                  Cancelar
-                </button>
+
+              <div className="modal-footer bg-light bg-opacity-50 border-0 rounded-bottom-4 px-4 py-3">
+                <div className="d-flex justify-content-between w-100 gap-2">
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary px-4 rounded-pill"
+                    onClick={() => setShowDomicilioModal(false)}
+                  >
+                    <i className="fas fa-times me-2"></i>
+                    Cancelar
+                  </button>
+
+                  <Button
+                    variant="dark"
+                    className="px-4 rounded-pill shadow-sm"
+                    onClick={handleAgregar}
+                    style={{
+                      background: 'linear-gradient(135deg, #343a40 0%, #495057 100%)',
+                      border: 'none'
+                    }}
+                  >
+                    <FaPlus className="me-2" />
+                    Agregar dirección
+                  </Button>
+                </div>
               </div>
+
+              <ModalDomicilio
+                show={modalVisible}
+                onHide={() => setModalVisible(false)}
+                onSubmit={handleModalSubmit}
+                domicilioActual={domicilioSeleccionado!}
+                cliente={cliente!}
+              />
             </div>
           </div>
         </div>
