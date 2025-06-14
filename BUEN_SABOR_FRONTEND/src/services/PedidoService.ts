@@ -75,11 +75,12 @@ class PedidoService {
     }
 
     async getPedidosFiltrados(
-        idSucursal: number,
+        idSucursal: number | null, // <-- Cambié a opcional
         filtros: {
             estado?: string;
             clienteNombre?: string;
             idPedido?: number;
+            idEmpleado?: number; // <-- Agregué idEmpleado
             fechaDesde?: string; // Formato ISO, ej: '2025-06-13T00:00:00'
             fechaHasta?: string;
         },
@@ -88,11 +89,15 @@ class PedidoService {
     ): Promise<{ content: Pedido[]; totalPages: number }> {
         const params = new URLSearchParams();
 
-        params.append("idSucursal", idSucursal.toString());
+        // Solo agregar idSucursal si no es null
+        if (idSucursal !== null) {
+            params.append("idSucursal", idSucursal.toString());
+        }
 
         if (filtros.estado) params.append("estado", filtros.estado);
         if (filtros.clienteNombre) params.append("clienteNombre", filtros.clienteNombre);
         if (filtros.idPedido !== undefined) params.append("idPedido", filtros.idPedido.toString());
+        if (filtros.idEmpleado !== undefined) params.append("idEmpleado", filtros.idEmpleado.toString()); // <-- Nueva línea
         if (filtros.fechaDesde) params.append("fechaDesde", filtros.fechaDesde);
         if (filtros.fechaHasta) params.append("fechaHasta", filtros.fechaHasta);
 

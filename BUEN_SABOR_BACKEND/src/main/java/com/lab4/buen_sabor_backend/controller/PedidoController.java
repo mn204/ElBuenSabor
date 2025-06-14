@@ -67,15 +67,16 @@ public class PedidoController extends MasterControllerImpl<Pedido, PedidoDTO, Lo
     //GET de pedidos con filtros para una sucursal específica
     @GetMapping("/filtrados")
     public ResponseEntity<Page<PedidoDTO>> obtenerPedidosFiltrados(
-            @RequestParam Long idSucursal,
+            @RequestParam(required = false) Long idSucursal,
             @RequestParam(required = false) Estado estado,
             @RequestParam(required = false) String clienteNombre,
             @RequestParam(required = false) Long idPedido,
+            @RequestParam(required = false) Long idEmpleado,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fechaDesde,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fechaHasta,
             Pageable pageable
     ) {
-        Page <Pedido> pedidos = pedidoService.buscarPedidosFiltrados(idSucursal, estado, clienteNombre, idPedido, fechaDesde, fechaHasta, pageable);
+        Page <Pedido> pedidos = pedidoService.buscarPedidosFiltrados(idSucursal, estado, clienteNombre, idPedido, idEmpleado, fechaDesde, fechaHasta, pageable);
         Page<PedidoDTO> result = pedidos.map(pedidoMapper::toDTO);
 
         return ResponseEntity.ok(result);

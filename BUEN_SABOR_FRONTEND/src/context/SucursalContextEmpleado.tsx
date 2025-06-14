@@ -70,7 +70,8 @@ export const SucursalProvider: React.FC<SucursalProviderProps> = ({ children }) 
                     if (empleado?.sucursal) {
                         setSucursalActual(empleado.sucursal);
                         setSucursales([]); // Los empleados no necesitan ver todas las sucursales
-                        setEsModoTodasSucursales(false);
+                        setEsModoTodasSucursales(false)
+                        console.log(empleado.id);
                     }
                 }
             } catch (error) {

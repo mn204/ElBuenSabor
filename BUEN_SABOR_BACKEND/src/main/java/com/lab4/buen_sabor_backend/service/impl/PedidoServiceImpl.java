@@ -84,13 +84,14 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
         return pedidoRepository.findAll(spec, pageable);
     }
 
-    //Buscar pedidos con filtros para Administrador y Cajero
+    //Buscar pedidos con filtros
     @Override
     public Page<Pedido> buscarPedidosFiltrados(
             Long idSucursal,
             Estado estado,
             String clienteNombre,
             Long idPedido,
+            Long idEmpleado, // <-- NUEVO PARÁMETRO
             LocalDateTime fechaDesde,
             LocalDateTime fechaHasta,
             Pageable pageable
@@ -100,6 +101,7 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
                 .and(PedidoSpecification.estadoEquals(estado))
                 .and(PedidoSpecification.clienteNombreContains(clienteNombre))
                 .and(PedidoSpecification.idEquals(idPedido))
+                .and(PedidoSpecification.empleadoIdEquals(idEmpleado)) // <-- NUEVA LÍNEA
                 .and(PedidoSpecification.fechaBetween(fechaDesde, fechaHasta));
         return pedidoRepository.findAll(spec, pageable);
     }

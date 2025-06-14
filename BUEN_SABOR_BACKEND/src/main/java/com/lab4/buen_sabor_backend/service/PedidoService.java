@@ -15,14 +15,17 @@ public interface PedidoService extends MasterService<Pedido, Long> {
                                                  LocalDateTime desde, LocalDateTime hasta, String nombreArticulo,
                                                  Pageable pageable);
 
-    //Esto es para los Pedidos de la Sucursal
+    //Esto es para los Pedidos filtrados
+
+    //Esto es para los Pedidos filtrados
     Page<Pedido> buscarPedidosFiltrados(Long idSucursal,
-                                  Estado estado,
-                                  String nombreCliente,
-                                  Long idPedido,
-                                  LocalDateTime fechaDesde,
-                                  LocalDateTime fechaHasta,
-                                  Pageable pageable);
+                                        Estado estado,
+                                        String nombreCliente,
+                                        Long idPedido,
+                                        Long idEmpleado, // <-- NUEVO PARÁMETRO
+                                        LocalDateTime fechaDesde,
+                                        LocalDateTime fechaHasta,
+                                        Pageable pageable);
 
     //Cambiar Estado del Pedido
     void cambiarEstadoPedido(Pedido pedido);

@@ -22,6 +22,7 @@ import {useLocation} from "react-router-dom";
 import {useNavigate} from "react-router-dom";
 import GrillaCategorias from '../articulos/GrillaCategorias.tsx';
 import DashboardSection from './DashboardSection';
+import GrillaDelivery from "./GrillaDelivery.tsx";
 
 function PanelAdmin() {
 
@@ -115,7 +116,8 @@ function PanelAdmin() {
             case 'Delivery':
                 return (
                     <div>
-                        <h4>{getTitulo('Delivery')}</h4>
+                        <h2 className="mb-4">{getTitulo('Delivery')}</h2>
+                        <GrillaDelivery/>
                     </div>
                 );
             case 'Facturación':
