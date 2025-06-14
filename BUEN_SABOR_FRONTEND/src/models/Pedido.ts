@@ -13,6 +13,7 @@ export default class Pedido {
     horaEstimadaFinalizacion: string = "";
     total: number = 0;
     totalCosto: number = 0;
+    pagado: boolean = false;
     estado!: Estado;
     tipoEnvio!: TipoEnvio;
     formaPago!: FormaPago;

@@ -17,6 +17,7 @@ public class PedidoDTO extends MasterDTO {
     private LocalTime horaEstimadaFinalizacion;
     private Double total;
     private Double totalCosto;
+    private boolean pagado = false;
     private Estado estado;
     private TipoEnvio tipoEnvio;
     private FormaPago formaPago;

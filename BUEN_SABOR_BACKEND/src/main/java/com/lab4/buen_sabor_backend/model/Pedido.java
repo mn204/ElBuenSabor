@@ -22,6 +22,7 @@ public class Pedido extends Master{
     private LocalTime horaEstimadaFinalizacion;
     private Double total;
     private Double totalCosto;
+    private boolean pagado;
 
     @Enumerated(EnumType.STRING)
     private Estado estado;
