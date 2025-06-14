@@ -40,7 +40,7 @@ class ArticuloInsumoService {
     //Busqueda de Stock bajo
     async obtenerArticulosConStockBajo(idSucursal: number): Promise<ArticuloInsumo[]> {
         try {
-            console.log (`${API_URL}`)
+            console.log(`${API_URL}`)
             const response = await fetch(`${API_URL}/stock-bajo/${idSucursal}`);
             if (!response.ok) {
                 throw new Error("Error al obtener artículos con stock bajo.");
@@ -51,6 +51,30 @@ class ArticuloInsumoService {
             throw error;
         }
     };
+
+    async obtenerArticulosConStockBajo2(idSucursal: number | null): Promise<ArticuloInsumo[]> {
+        try {
+            console.log(`${API_URL}`);
+            let url: string;
+
+            if (idSucursal === null) {
+                // Para todas las sucursales - sin query parameter
+                url = `${API_URL}/stock-bajo`;
+            } else {
+                // Para una sucursal específica - con query parameter
+                url = `${API_URL}/stock-bajo?idSucursal=${idSucursal}`;
+            }
+
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error("Error al obtener artículos con stock bajo.");
+            }
+            return await response.json();
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
 
     async changeEliminado(id: number): Promise<void> {
         try {

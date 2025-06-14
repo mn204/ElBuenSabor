@@ -57,12 +57,17 @@ public class ArticuloInsumoController extends MasterControllerImpl<ArticuloInsum
     }
 
     //Buscamos Insumos con bajo Stock
-    @GetMapping("/stock-bajo/{idSucursal}")
-    public ResponseEntity<List<ArticuloInsumoDTO>> getStockBajo(@PathVariable Long idSucursal) {
-        List<ArticuloInsumo> articulos = articuloInsumoService.obtenerConStockBajo(idSucursal);
-        List<ArticuloInsumoDTO> dtoList = articulos.stream()
-                .map(articuloInsumoMapper::toDTO)
-                .toList();
+    @GetMapping("/stock-bajo")
+    public ResponseEntity<List<ArticuloInsumoDTO>> getStockBajo(@RequestParam(required = false) Long idSucursal) {
+        List<ArticuloInsumo> articulos;
+
+        if (idSucursal != null) {
+            articulos = articuloInsumoService.obtenerConStockBajo(idSucursal);
+        } else {
+            articulos = articuloInsumoService.obtenerConStockBajoTodasSucursales();
+        }
+
+        List<ArticuloInsumoDTO> dtoList = articuloInsumoMapper.toDTOsList(articulos);
         return ResponseEntity.ok(dtoList);
     }
 

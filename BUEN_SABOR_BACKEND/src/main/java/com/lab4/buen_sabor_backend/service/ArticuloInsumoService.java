@@ -12,8 +12,11 @@ public interface ArticuloInsumoService extends MasterService<ArticuloInsumo, Lon
      */
     Optional<ArticuloInsumo> obtenerRecetaCompleta(Long id);
 
-    //Busqueda de Stock Bajo
+    // Búsqueda de stock bajo por sucursal
     List<ArticuloInsumo> obtenerConStockBajo(Long idSucursal);
+
+    // Búsqueda de stock bajo para todas las sucursales
+    List<ArticuloInsumo> obtenerConStockBajoTodasSucursales();
 
     /**
      * Busca un ingrediente por nombre exacto (case insensitive)

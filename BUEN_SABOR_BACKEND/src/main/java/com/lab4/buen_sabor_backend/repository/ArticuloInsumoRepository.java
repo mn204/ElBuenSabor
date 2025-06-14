@@ -17,13 +17,20 @@ public interface ArticuloInsumoRepository extends MasterRepository<ArticuloInsum
     @Query("SELECT a FROM ArticuloInsumo a LEFT JOIN FETCH a.sucursalInsumo si  WHERE a.id = :id")
     Optional<ArticuloInsumo> obtenerRecetaCompleta(@Param("id") Long id);
 
-    //Busqueda de Stock bajo
+    //Busqueda de Stock bajo sucursal Especifica
     @Query("""
     SELECT a FROM ArticuloInsumo a 
     WHERE a.sucursalInsumo.sucursal.id = :sucursalId 
       AND a.sucursalInsumo.stockActual <= a.sucursalInsumo.stockMinimo
 """)
     List<ArticuloInsumo> findArticulosConStockBajo(@Param("sucursalId") Long sucursalId);
+
+    //Busqueda de Stock bajo todas las sucursales
+    @Query("""
+    SELECT a FROM ArticuloInsumo a 
+    WHERE a.sucursalInsumo.stockActual <= a.sucursalInsumo.stockMinimo
+""")
+    List<ArticuloInsumo> findArticulosConStockBajoTodasSucursales();
 
     // Buscar ingrediente por nombre exacto (case insensitive)
     Optional<ArticuloInsumo> findByDenominacionIgnoreCase(String denominacion);

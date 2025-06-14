@@ -33,6 +33,12 @@ public class ArticuloInsumoServiceImpl extends MasterServiceImpl<ArticuloInsumo,
         return articuloInsumoRepository.findArticulosConStockBajo(idSucursal);
     }
 
+    // Búsqueda de stock bajo para todas las sucursale
+    @Override
+    public List<ArticuloInsumo> obtenerConStockBajoTodasSucursales() {
+        return articuloInsumoRepository.findArticulosConStockBajoTodasSucursales();
+    }
+
 
     @Override
     @Transactional
