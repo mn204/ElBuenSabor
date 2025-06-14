@@ -33,7 +33,7 @@ public class PedidoController extends MasterControllerImpl<Pedido, PedidoDTO, Lo
     private final MercadoPagoService mercadoPagoService;
 
     @Autowired
-    public PedidoController(PedidoService pedidoService, PedidoMapper pedidoMapper) {
+    public PedidoController(PedidoService pedidoService, PedidoMapper pedidoMapper, MercadoPagoService mercadoPagoService) {
         super(pedidoService);
         this.pedidoService = pedidoService;
         this.pedidoMapper = pedidoMapper;
@@ -125,10 +125,10 @@ public class PedidoController extends MasterControllerImpl<Pedido, PedidoDTO, Lo
     @PostMapping("/verificar-y-procesar")
     public ResponseEntity<?> verificarYProcesar(@RequestBody Pedido pedido) {
         try {
-            boolean resultado = pedidoService.verificarYDescontarStockPedido(pedido);
-            return ResponseEntity.ok(resultado);
+            pedidoService.verificarYDescontarStockPedido(pedido);
+            return ResponseEntity.ok(true); // Devuelve true si todo salió bien
         } catch (Exception e) {
-            logger.error("Error en controlador: ", e);
+            logger.error("Error en controlador: " + e.getMessage(), e);
             return ResponseEntity.ok(false); // Devuelve false en caso de error
         }
     }

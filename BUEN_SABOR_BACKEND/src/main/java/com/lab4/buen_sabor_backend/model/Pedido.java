@@ -33,7 +33,7 @@ public class Pedido extends Master{
     @Enumerated(EnumType.STRING)
     private FormaPago formaPago;
 
-    private Date fechaPedido;
+    private LocalDateTime fechaPedido;
 
     @ManyToOne
     @JoinColumn(name = "sucursal_id")

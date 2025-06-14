@@ -12,7 +12,8 @@ function CheckoutMP({ pedido }: { pedido: Pedido }) {
   const { AgregarPreferenceId } = carritoCtx;
   const getPreferenceMP = async () => {
     try {
-      const response: PreferenceMP = await savePreferenceMP(pedido); // ← llamada usando la función que devuelve el hook
+      const response: PreferenceMP = await savePreferenceMP(pedido);
+      console.log(response) // ← llamada usando la función que devuelve el hook
       if (response && response.id) {
         setIdPreference(response.id);
         console.log(response.id)

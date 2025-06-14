@@ -8,7 +8,6 @@ import CheckoutMP from "./CheckoutMP";
 import type Pedido from "../../models/Pedido";
 import { Wallet } from "@mercadopago/sdk-react";
 import { useSucursalUsuario } from "../../context/SucursalContext";
-import SelectorSucursal from "../empresa/SelectorSucursal";
 
 export function Carrito() {
   const { cliente } = useAuth();
@@ -19,30 +18,33 @@ export function Carrito() {
   const [formaPago, setFormaPago] = useState<'EFECTIVO' | 'MERCADOPAGO' | null>(null);
   const [showDomicilioModal, setShowDomicilioModal] = useState(false);
   const [pedidoGuardado, setPedidoGuardado] = useState<Pedido | null>(null);
-  const { sucursalActual } = useSucursalUsuario();
+  const [stockError, setStockError] = useState<string | null>(null);
+  const [verificandoStock, setVerificandoStock] = useState(false);
+  const { sucursalActualUsuario } = useSucursalUsuario();
 
   if (!carritoCtx) return null;
-  useEffect(()=>{
-    if(formaPago == 'EFECTIVO'){
+
+  useEffect(() => {
+    if (formaPago == 'EFECTIVO') {
       pedido.formaPago = FormaPago.EFECTIVO
-    }else{
+    } else {
       pedido.formaPago = FormaPago.MERCADO_PAGO;
     }
-  },[formaPago]);
+  }, [formaPago]);
 
-  useEffect(()=>{
-    pedido.sucursal = sucursalActual!;
+  useEffect(() => {
+    pedido.sucursal = sucursalActualUsuario!;
     console.log(pedido.sucursal)
-  },[sucursalActual]);
+  }, [sucursalActualUsuario]);
 
-  useEffect(()=>{
+  useEffect(() => {
     pedido.cliente = cliente!;
-  },[cliente]);
+  }, [cliente]);
 
-  useEffect(()=>{
-    fetch("/localidades.json").then((res)=>res.json()).then((localidades)=>localidades.map((loc: any)=>{
-      if(loc.nombre == domicilioSeleccionado?.localidad?.nombre && tipoEnvio != 'TAKEAWAY'){
-        if (domicilioSeleccionado){
+  useEffect(() => {
+    fetch("/localidades.json").then((res) => res.json()).then((localidades) => localidades.map((loc: any) => {
+      if (loc.nombre == domicilioSeleccionado?.localidad?.nombre && tipoEnvio != 'TAKEAWAY') {
+        if (domicilioSeleccionado) {
           pedido.domicilio = domicilioSeleccionado;
           console.log(domicilioSeleccionado)
           console.log(pedido)
@@ -50,7 +52,8 @@ export function Carrito() {
         console.log(pedido)
       }
     }))
-  },[domicilioSeleccionado]);
+  }, [domicilioSeleccionado]);
+
   const {
     pedido,
     preferenceId,
@@ -63,10 +66,43 @@ export function Carrito() {
 
   const carrito = pedido.detalles;
 
-  const handleProceedToStep2 = () => {
-    setCurrentStep(2);
-    setTipoEnvio(null)
-    setFormaPago(null)
+  const verificarStock = async () => {
+    setVerificandoStock(true);
+    setStockError(null);
+
+    try {
+      const response = await fetch('http://localhost:8080/api/pedidos/verificar-stock', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(pedido)
+      });
+
+      const stockDisponible: boolean = await response.json();
+      console.log(response)
+      if (!stockDisponible) {
+        setStockError("No hay stock suficiente para algunos productos en la sucursal seleccionada.");
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error verificando stock:', error);
+      setStockError("Error al verificar el stock. Intenta nuevamente.");
+      return false;
+    } finally {
+      setVerificandoStock(false);
+    }
+  };
+
+  const handleProceedToStep2 = async () => {
+    const stockOk = await verificarStock();
+    if (stockOk) {
+      setCurrentStep(2);
+      setTipoEnvio(null);
+      setFormaPago(null);
+    }
   };
 
   const handleTipoEnvioChange = (tipo: 'DELIVERY' | 'TAKEAWAY') => {
@@ -86,22 +122,34 @@ export function Carrito() {
   };
 
   const handlePagarConMP = async () => {
+    // Verificar stock nuevamente antes de confirmar
+    const stockOk = await verificarStock();
+    if (!stockOk) {
+      return;
+    }
+
     const pedidoFinal = await guardarPedidoYObtener();
     console.log(pedidoFinal)
     if (pedidoFinal) {
       setPedidoGuardado(pedidoFinal);
     }
-    console.log("preference: ",preferenceId)
+    console.log("preference: ", preferenceId)
   };
+
   const canProceedToConfirm = tipoEnvio && formaPago && (tipoEnvio === 'TAKEAWAY' || domicilioSeleccionado);
 
   const renderStep1 = () => (
-    <div className="p-4" style={{minHeight: "60vh"}}>
+    <div className="p-4" style={{ minHeight: "60vh" }}>
       <h4 className="mb-4">Carrito de Compras</h4>
       {carrito.length === 0 ? (
         <p className="text-muted">El carrito está vacío.</p>
       ) : (
         <>
+          {stockError && (
+            <div className="alert alert-danger" role="alert">
+              {stockError}
+            </div>
+          )}
           {carrito.map((item) => (
             <div key={item.articulo.id} className="d-flex align-items-center mb-3 border-bottom pb-2">
               <img
@@ -155,7 +203,13 @@ export function Carrito() {
           </div>
           <div className="d-flex justify-content-between mt-3">
             <button className="btn btn-warning" onClick={limpiarCarrito}>Limpiar carrito</button>
-            <button className="btn btn-success" onClick={handleProceedToStep2}>Realizar pedido</button>
+            <button
+              className="btn btn-success"
+              onClick={handleProceedToStep2}
+              disabled={verificandoStock}
+            >
+              {verificandoStock ? 'Verificando stock...' : 'Realizar pedido'}
+            </button>
           </div>
         </>
       )}
@@ -165,7 +219,7 @@ export function Carrito() {
   const renderStep2 = () => (
     <div className="p-4">
       <div className="d-flex align-items-center mb-4">
-        <button 
+        <button
           className="btn btn-link p-0 me-3 text-decoration-none"
           onClick={() => setCurrentStep(1)}
         >
@@ -173,11 +227,34 @@ export function Carrito() {
         </button>
         <h4>Datos de Entrega y Pago</h4>
       </div>
-      
+
+      {stockError && (
+        <div className="alert alert-danger" role="alert">
+          {stockError}
+        </div>
+      )}
+
       <div className="container-fluid justify-content-center">
         <div className="row">
           {/* Columna izquierda - Opciones (70%) */}
           <div className="col-lg-8 pe-4">
+            {/* Información de Sucursal */}
+            <div className="card mb-4">
+              <div className="card-header">
+                <h5>Sucursal Seleccionada</h5>
+              </div>
+              <div className="card-body">
+                <div className="p-3 bg-light rounded">
+                  <strong>{sucursalActualUsuario?.nombre}</strong>
+                  <p className="mb-0 text-muted">
+                    {sucursalActualUsuario?.domicilio?.calle} {sucursalActualUsuario?.domicilio?.numero}
+                    <br />
+                    {sucursalActualUsuario?.domicilio?.localidad?.nombre}
+                  </p>
+                </div>
+              </div>
+            </div>
+
             {/* Forma de Entrega */}
             <div className="card mb-4">
               <div className="card-header">
@@ -188,11 +265,10 @@ export function Carrito() {
                   <div className="col-md-6">
                     <div className="d-grid gap-2">
                       <button
-                        className={`btn py-3 ${
-                          tipoEnvio === 'DELIVERY' 
-                            ? 'btn-success' 
-                            : 'btn-outline-success'
-                        }`}
+                        className={`btn py-3 ${tipoEnvio === 'DELIVERY'
+                          ? 'btn-success'
+                          : 'btn-outline-success'
+                          }`}
                         onClick={() => handleTipoEnvioChange('DELIVERY')}
                       >
                         <div>
@@ -206,11 +282,10 @@ export function Carrito() {
                   <div className="col-md-6">
                     <div className="d-grid gap-2">
                       <button
-                        className={`btn py-3 ${
-                          tipoEnvio === 'TAKEAWAY' 
-                            ? 'btn-success' 
-                            : 'btn-outline-success'
-                        }`}
+                        className={`btn py-3 ${tipoEnvio === 'TAKEAWAY'
+                          ? 'btn-success'
+                          : 'btn-outline-success'
+                          }`}
                         onClick={() => handleTipoEnvioChange('TAKEAWAY')}
                       >
                         <div>
@@ -222,7 +297,7 @@ export function Carrito() {
                     </div>
                   </div>
                 </div>
-                
+
                 {tipoEnvio === 'DELIVERY' && domicilioSeleccionado && (
                   <div className="mt-3 p-3 bg-light rounded">
                     <strong>Domicilio seleccionado:</strong>
@@ -254,12 +329,11 @@ export function Carrito() {
                   <div className="col-md-6">
                     <div className="d-grid gap-2">
                       <button
-                        className={`btn py-3 ${
-                          formaPago === 'EFECTIVO' 
-                            ? 'btn-primary' 
-                            : 'btn-outline-primary'
-                        }`}
-                        disabled = {tipoEnvio == "DELIVERY" ? true : false}
+                        className={`btn py-3 ${formaPago === 'EFECTIVO'
+                          ? 'btn-primary'
+                          : 'btn-outline-primary'
+                          }`}
+                        disabled={tipoEnvio == "DELIVERY" ? true : false}
                         onClick={() => setFormaPago('EFECTIVO')}
                       >
                         <div>
@@ -273,11 +347,10 @@ export function Carrito() {
                   <div className="col-md-6">
                     <div className="d-grid gap-2">
                       <button
-                        className={`btn py-3 ${
-                          formaPago === 'MERCADOPAGO' 
-                            ? 'btn-primary' 
-                            : 'btn-outline-primary'
-                        }`}
+                        className={`btn py-3 ${formaPago === 'MERCADOPAGO'
+                          ? 'btn-primary'
+                          : 'btn-outline-primary'
+                          }`}
                         onClick={() => setFormaPago('MERCADOPAGO')}
                       >
                         <div>
@@ -316,34 +389,31 @@ export function Carrito() {
                 </div>
               </div>
             </div>
-            {tipoEnvio == 'TAKEAWAY' && 
-              <SelectorSucursal tipoEnvio={tipoEnvio} pedido={pedido}/>
-            }
+
             <div className="d-grid gap-2">
-              {pedidoGuardado && 
-                <CheckoutMP pedido={pedidoGuardado}/>
+              {pedidoGuardado &&
+                <CheckoutMP pedido={pedidoGuardado} />
               }
               {preferenceId ? (
                 <div>
-                    <Wallet
-                        initialization={{ preferenceId: preferenceId, redirectMode: "blank" }}
-                        />
+                  <Wallet
+                    initialization={{ preferenceId: preferenceId, redirectMode: "blank" }}
+                  />
                 </div>
-                ):(
-                  <button
-                    className={`btn btn-lg ${
-                      canProceedToConfirm
-                        ? 'btn-success'
-                        : 'btn-secondary'
+              ) : (
+                <button
+                  className={`btn btn-lg ${canProceedToConfirm && !stockError
+                    ? 'btn-success'
+                    : 'btn-secondary'
                     }`}
-                    onClick={handlePagarConMP}
-                    disabled={!canProceedToConfirm}
-                  >
-                    Confirmar Pedido
-                  </button>
-                )
+                  onClick={handlePagarConMP}
+                  disabled={!canProceedToConfirm || stockError !== null || verificandoStock}
+                >
+                  {verificandoStock ? 'Verificando...' : 'Confirmar Pedido'}
+                </button>
+              )
               }
-                </div>
+            </div>
           </div>
         </div>
       </div>
@@ -375,11 +445,10 @@ export function Carrito() {
                       .map((domicilio) => (
                         <div key={domicilio.id} className="col-md-6 mb-3">
                           <div
-                            className={`card h-100 ${
-                              domicilioSeleccionado?.id === domicilio.id 
-                                ? 'border-success bg-success bg-opacity-10' 
-                                : 'border-secondary'
-                            }`}
+                            className={`card h-100 ${domicilioSeleccionado?.id === domicilio.id
+                              ? 'border-success bg-success bg-opacity-10'
+                              : 'border-secondary'
+                              }`}
                             style={{ cursor: 'pointer' }}
                             onClick={() => handleDomicilioSelect(domicilio)}
                           >

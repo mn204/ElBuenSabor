@@ -4,9 +4,9 @@ import Sucursal from '../models/Sucursal';
 import { obtenerSucursales } from '../services/SucursalService';
 
 interface SucursalContextType {
-    sucursalActual: Sucursal | null;
-    sucursales: Sucursal[];
-    cambiarSucursal: (sucursal: Sucursal) => void;
+    sucursalActualUsuario: Sucursal | null;
+    sucursalesUsuario: Sucursal[];
+    cambiarSucursalUsuario: (sucursal: Sucursal) => void;
     loading: boolean;
 }
 
@@ -17,8 +17,8 @@ interface SucursalProviderProps {
 }
 
 export const SucursalProviderUsuario: React.FC<SucursalProviderProps> = ({ children }) => {
-    const [sucursalActual, setSucursalActual] = useState<Sucursal | null>(null);
-    const [sucursales, setSucursales] = useState<Sucursal[]>([]);
+    const [sucursalActualUsuario, setSucursalActual] = useState<Sucursal | null>(null);
+    const [sucursalesUsuario, setSucursales] = useState<Sucursal[]>([]);
     const [loading, setLoading] = useState(true);
     const cargarSucursales = async () => {
         try {
@@ -52,14 +52,14 @@ export const SucursalProviderUsuario: React.FC<SucursalProviderProps> = ({ child
         inicializarContextoSucursal();
     }, []);
 
-    const cambiarSucursal = (sucursal: Sucursal) => {
+    const cambiarSucursalUsuario = (sucursal: Sucursal) => {
         setSucursalActual(sucursal);
     };
 
     const value = {
-        sucursalActual,
-        sucursales,
-        cambiarSucursal,
+        sucursalActualUsuario,
+        sucursalesUsuario,
+        cambiarSucursalUsuario,
         loading
     };
 
