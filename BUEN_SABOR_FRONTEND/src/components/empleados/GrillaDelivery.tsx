@@ -137,15 +137,6 @@ const GrillaDelivery: React.FC = () => {
         setPage(0);
     };
 
-    // Función para obtener el texto del contexto actual
-    const obtenerTextoContexto = () => {
-        if (isAdmin) {
-            return esModoTodasSucursales
-                ? "Mostrando pedidos de todas las sucursales"
-                : `Mostrando pedidos de: ${sucursalActual?.nombre || 'Sucursal no definida'}`;
-        }
-        return null;
-    };
 
     const columns = [
         {
