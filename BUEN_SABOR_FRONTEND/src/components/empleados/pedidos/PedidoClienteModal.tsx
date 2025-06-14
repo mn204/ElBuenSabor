@@ -89,6 +89,7 @@ const PedidoClienteModal: React.FC<Props> = ({ show, onHide, cliente }) => {
         { key: "fecha", label: "Fecha", render: (_: any, row: Pedido) => formatFechaConOffset(row.fechaPedido) },
         { key: "total", label: "Total", render: (_: any, row: Pedido) => `$${row.total.toFixed(2)}` },
         { key: "estado", label: "Estado", render: (_: any, row: Pedido) => row.estado },
+        { key: "sucursal", label: "Sucursal", render: (_: any, row: Pedido) => row.sucursal.nombre },
         {
             key: "acciones",
             label: "Acciones",

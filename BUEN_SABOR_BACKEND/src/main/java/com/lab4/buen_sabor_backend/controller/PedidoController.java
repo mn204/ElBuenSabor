@@ -33,7 +33,7 @@ public class PedidoController extends MasterControllerImpl<Pedido, PedidoDTO, Lo
     private final MercadoPagoService mercadoPagoService;
 
     @Autowired
-    public PedidoController(PedidoService pedidoService, PedidoMapper pedidoMapper, MercadoPagoService mercadoPagoService) {
+    public PedidoController(PedidoService pedidoService, PedidoMapper pedidoMapper) {
         super(pedidoService);
         this.pedidoService = pedidoService;
         this.pedidoMapper = pedidoMapper;
@@ -49,6 +49,8 @@ public class PedidoController extends MasterControllerImpl<Pedido, PedidoDTO, Lo
     protected PedidoDTO toDTO(Pedido entity) {
         return pedidoMapper.toDTO(entity);
     }
+
+    protected List<Pedido> toEntity(List<PedidoDTO> dtoList) {return pedidoMapper.toEntitiesList(dtoList);}
 
     // GET de pedidos con filtros para un cliente específico
     @GetMapping("/cliente/{clienteId}")
@@ -69,15 +71,16 @@ public class PedidoController extends MasterControllerImpl<Pedido, PedidoDTO, Lo
     //GET de pedidos con filtros para una sucursal específica
     @GetMapping("/filtrados")
     public ResponseEntity<Page<PedidoDTO>> obtenerPedidosFiltrados(
-            @RequestParam Long idSucursal,
+            @RequestParam(required = false) Long idSucursal,
             @RequestParam(required = false) Estado estado,
             @RequestParam(required = false) String clienteNombre,
             @RequestParam(required = false) Long idPedido,
+            @RequestParam(required = false) Long idEmpleado,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fechaDesde,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fechaHasta,
-            @PageableDefault(size = 20, sort = "fechaPedido", direction = Sort.Direction.DESC) Pageable pageable
+            Pageable pageable
     ) {
-        Page <Pedido> pedidos = pedidoService.buscarPedidosFiltrados(idSucursal, estado, clienteNombre, idPedido, fechaDesde, fechaHasta, pageable);
+        Page <Pedido> pedidos = pedidoService.buscarPedidosFiltrados(idSucursal, estado, clienteNombre, idPedido, idEmpleado, fechaDesde, fechaHasta, pageable);
         Page<PedidoDTO> result = pedidos.map(pedidoMapper::toDTO);
 
         return ResponseEntity.ok(result);
@@ -112,6 +115,13 @@ public class PedidoController extends MasterControllerImpl<Pedido, PedidoDTO, Lo
         return new ResponseEntity<>(pdf, headers, HttpStatus.OK);
     }
 
+    //Cambiar estado del pedido
+    @PutMapping("/estado")
+    public ResponseEntity<Void> cambiarEstadoPedido(@RequestBody PedidoDTO pedidoDTO) {
+        pedidoService.cambiarEstadoPedido(pedidoMapper.toEntity(pedidoDTO));
+        return ResponseEntity.ok().build();
+    }
+
     @PostMapping("/verificar-y-procesar")
     public ResponseEntity<?> verificarYProcesar(@RequestBody Pedido pedido) {
         try {
@@ -137,5 +147,16 @@ public class PedidoController extends MasterControllerImpl<Pedido, PedidoDTO, Lo
     @PostMapping("/create_preference_mp")
     public PreferenceMP crearPreferenciaMercadoPago(@RequestBody Pedido pedido) {
         return mercadoPagoService.getPreferenciaIdMercadoPago(pedido);
+    }
+
+    @PostMapping("/excel")
+    public ResponseEntity<byte[]> exportarPedidosExcel(@RequestBody List<PedidoDTO> pedidosDTO) {
+        byte[] excel = pedidoService.exportarPedidosAExcel(pedidoMapper.toEntitiesList(pedidosDTO));
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        headers.setContentDisposition(ContentDisposition.attachment().filename("pedidos.xlsx").build());
+
+        return new ResponseEntity<>(excel, headers, HttpStatus.OK);
     }
 }

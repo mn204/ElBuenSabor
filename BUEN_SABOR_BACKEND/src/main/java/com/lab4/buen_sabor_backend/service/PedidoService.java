@@ -15,24 +15,31 @@ public interface PedidoService extends MasterService<Pedido, Long> {
                                                  LocalDateTime desde, LocalDateTime hasta, String nombreArticulo,
                                                  Pageable pageable);
 
-    //Esto es para los Pedidos de la Sucursal
+    //Esto es para los Pedidos filtrados
+
+    //Esto es para los Pedidos filtrados
     Page<Pedido> buscarPedidosFiltrados(Long idSucursal,
-                                  Estado estado,
-                                  String nombreCliente,
-                                  Long idPedido,
-                                  LocalDateTime fechaDesde,
-                                  LocalDateTime fechaHasta,
-                                  Pageable pageable);
+                                        Estado estado,
+                                        String nombreCliente,
+                                        Long idPedido,
+                                        Long idEmpleado, // <-- NUEVO PARÁMETRO
+                                        LocalDateTime fechaDesde,
+                                        LocalDateTime fechaHasta,
+                                        Pageable pageable);
 
     //Cambiar Estado del Pedido
-    //Pedido cambiarEstado(Long idPedido, Estado nuevoEstado);
+    void cambiarEstadoPedido(Pedido pedido);
 
     Optional<Pedido> findByIdAndCliente(Long idPedido, Long clienteId);
     void actualizarEstadoPorPago(Long pedidoId, Estado estado);
 
-    byte[] generarFacturaPDF(Long pedidoId, Long clienteId);
     //byte[] generarFacturaPDF(Long pedidoId, Long clienteId);
+    byte[] generarFacturaPDF(Long pedidoId, Long clienteId);
+
     boolean verificarYDescontarStockPedido(Pedido pedido);
+
+    // Generacion de Excel para pedidos
+    byte[] exportarPedidosAExcel(List<Pedido> pedidos);
     boolean verificarStockPedido(Pedido pedido);
     Pedido findFirstByClienteIdOrderByIdDesc(Long clienteId);
 }

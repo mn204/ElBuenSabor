@@ -1,5 +1,4 @@
 import { Container, Row, Col, Nav } from 'react-bootstrap';
-import { useEffect, useState } from "react";
 import '../../styles/panelAdmin.css';
 
 import Computadora from '../../assets/svgAdmin/computadora.svg';
@@ -14,39 +13,24 @@ import Usuario from '../../assets/svgAdmin/usuario-black.svg';
 import GrillaArticuloManufacturado from "../articulos/GrillaArticuloManufacturado.tsx";
 import GrillaCliente from "./GrillaCliente.tsx";
 import GrillaEmpleado from "./GrillaEmpleado.tsx";
+import GrillaPedidos from './GrillaPedidos.tsx';
 import { useAuth } from "../../context/AuthContext.tsx"
 import { useSucursal } from "../../context/SucursalContextEmpleado.tsx";
-import ArticuloInsumoService from "../../services/ArticuloInsumoService";
-import ArticuloInsumo from "../../models/ArticuloInsumo";
+
 
 import {useLocation} from "react-router-dom";
 import {useNavigate} from "react-router-dom";
 import GrillaCategorias from '../articulos/GrillaCategorias.tsx';
+import DashboardSection from './DashboardSection';
+import GrillaDelivery from "./GrillaDelivery.tsx";
+import {useEffect} from "react";
 
 function PanelAdmin() {
 
     const { usuario, user, empleado } = useAuth();
-    const { sucursalActual } = useSucursal();
+    const { sucursalActual, esModoTodasSucursales, sucursalIdSeleccionada } = useSucursal();
     const location = useLocation();
     const navigate = useNavigate();
-
-    const [stockBajo, setStockBajo] = useState<ArticuloInsumo[]>([]);
-
-    useEffect(() => {
-        const fetchStockBajo = async () => {
-            if (!sucursalActual) return;
-            try {
-                const data = await ArticuloInsumoService.obtenerArticulosConStockBajo(sucursalActual.id!);
-                setStockBajo(data);
-            } catch (error) {
-                console.error("Error al obtener insumos con stock bajo", error);
-            }
-        };
-
-        fetchStockBajo();
-        const interval = setInterval(fetchStockBajo, 60000); // cada 1 min
-        return () => clearInterval(interval);
-    }, [sucursalActual]);
 
 
     const botones = [
@@ -69,7 +53,15 @@ function PanelAdmin() {
     // Obtener la ruta activa desde la URL (ej: 'cocina')
     const rutaActual = location.pathname.split("/")[2] || "dashboard";
     const botonActual = botones.find(btn => btn.path === rutaActual);
-
+    // Si el usuario no tiene permisos para la ruta actual, redirigilo al primero que sí tenga
+    useEffect(() => {
+        if (usuario && (!botonActual || !botonActual.rolesPermitidos.includes(usuario.rol))) {
+            const primerPermitido = botonesVisibles[0];
+            if (primerPermitido) {
+                navigate(`/empleado/${primerPermitido.path}`, { replace: true });
+            }
+        }
+    }, [usuario, botonActual, navigate]);
     const renderContent = () => {
         if (!botonActual || !botonActual.rolesPermitidos.includes(usuario?.rol)) {
             return <div>No tenés permiso para ver esta sección.</div>;
@@ -77,60 +69,30 @@ function PanelAdmin() {
 
         const requiereContextoSucursal = !['clientes', 'empleados'].includes(botonActual.path);
 
-        if (requiereContextoSucursal && !sucursalActual) {
+        if (requiereContextoSucursal && !sucursalActual && !esModoTodasSucursales) {
             return (
                 <div className="text-center p-4">
                     <p>Cargando información de la sucursal...</p>
                 </div>
             );
         }
+        const getTitulo = (nombreSeccion: string) => {
+            if (esModoTodasSucursales) {
+                return `${nombreSeccion} - Todas las sucursales`;
+            }
+            return `${nombreSeccion} - ${sucursalActual?.nombre}`;
+        };
+
 
         switch (botonActual.nombre) {
             case 'Dashboard':
                 return (
-                    <div>
-                        <h4>Dashboard - {sucursalActual?.nombre}</h4>
-                        <p>Bienvenido al panel de administración</p>
-                        {sucursalActual && (
-                            <div className="mt-3 mb-4">
-                                <strong>Sucursal Actual:</strong> {sucursalActual.nombre}<br />
-                                <strong>Horario:</strong> {sucursalActual.horarioApertura} - {sucursalActual.horarioCierre}<br />
-                                <strong>Dirección:</strong> {sucursalActual.domicilio?.calle} {sucursalActual.domicilio?.numero}
-                            </div>
-                        )}
+                    <DashboardSection
+                        sucursalActual={sucursalActual}
+                        esModoTodasSucursales={esModoTodasSucursales}
+                        sucursalIdSeleccionada={sucursalIdSeleccionada}
+                    />
 
-                        <div className="d-flex justify-content-center gap-3 mb-4">
-                            <button className="dashboard-button" onClick={() => navigate('/empleado/clientes')}>Gestionar Clientes</button>
-                            <button className="dashboard-button" onClick={() => navigate('/empleado/empleados')}>Gestionar Empleados</button>
-                            <button className="dashboard-button" onClick={() => navigate('/empleado/promociones')}>Gestionar Promociones</button>
-                        </div>
-
-                        <h5 className="mt-4">Notificaciones de Stock</h5>
-                        <table className="table table-bordered mt-2">
-                            <thead className="table-light">
-                                <tr>
-                                    <th>Insumo</th>
-                                    <th>Stock Actual</th>
-                                    <th>Stock Mínimo</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {stockBajo.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={3} className="text-center">No hay alertas de stock.</td>
-                                    </tr>
-                                ) : (
-                                    stockBajo.map((n, i) => (
-                                        <tr key={i}>
-                                            <td>{n.denominacion}</td>
-                                            <td>{n.sucursalInsumo?.stockActual}</td>
-                                            <td>{n.sucursalInsumo?.stockMinimo}</td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
                 );
 
             case 'Productos':
@@ -150,34 +112,34 @@ function PanelAdmin() {
                 return (
                     <div>
                         <h4>Pedidos - {sucursalActual?.nombre}</h4>
+                        <GrillaPedidos />
+                        <h4>{getTitulo('Pedidos')}</h4>
                     </div>
                 );
             case 'Cocina':
                 return (
                     <div>
-                        <h4>Cocina - {sucursalActual?.nombre}</h4>
-                        <p>Componente Cocina para la sucursal {sucursalActual?.nombre}</p>
+                        <h4>{getTitulo('Cocina')}</h4>
                     </div>
                 );
             case 'Delivery':
                 return (
                     <div>
-                        <h4>Delivery - {sucursalActual?.nombre}</h4>
-                        <p>Componente Delivery para la sucursal {sucursalActual?.nombre}</p>
+                        <h2 className="mb-4">{getTitulo('Delivery')}</h2>
+                        <GrillaDelivery/>
                     </div>
                 );
             case 'Facturación':
                 return (
                     <div>
-                        <h4>Facturación - {sucursalActual?.nombre}</h4>
-                        <p>Componente Facturación para la sucursal {sucursalActual?.nombre}</p>
+                        <h4>{getTitulo('Facturacion')}</h4>
                     </div>
                 );
             case 'Estadísticas':
                 return (
                     <div>
-                        <h4>Estadísticas - {sucursalActual?.nombre}</h4>
-                        <p>Componente Estadísticas para la sucursal {sucursalActual?.nombre}</p>
+                        <h4>{getTitulo('Estadisticas')}</h4>
+
                     </div>
                 );
             case 'Empleados':

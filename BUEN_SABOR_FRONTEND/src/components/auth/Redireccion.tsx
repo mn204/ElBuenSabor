@@ -10,14 +10,30 @@ const Redireccion = () => {
     useEffect(() => {
         const rutaActual = location.pathname;
 
-        // Redirige SOLO si estás en "/" o "/home"
         if (
             isAuthenticated &&
             usuario?.rol &&
             usuario.rol !== "CLIENTE" &&
-            (rutaActual === '/' || rutaActual === '/home')
+            (rutaActual === '/' || rutaActual === '/home' || rutaActual === '/empleado')
         ) {
-            navigate("/empleado");
+            // Redirección según rol
+            switch (usuario.rol) {
+                case "ADMINISTRADOR":
+                    navigate("/empleado/dashboard");
+                    break;
+                case "COCINERO":
+                    navigate("/empleado/cocina");
+                    break;
+                case "CAJERO":
+                    navigate("/empleado/pedidos");
+                    break;
+                case "DELIVERY":
+                    navigate("/empleado/delivery");
+                    break;
+                default:
+                    navigate("/home"); // fallback seguro
+                    break;
+            }
         }
     }, [isAuthenticated, usuario, location]);
 

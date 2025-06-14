@@ -145,6 +145,6 @@ Cada módulo está adaptado a los distintos roles del sistema: Cliente, Administ
 - Delivery: `delivery2@buensa.com` / `123456A.a`
 
 ### Clientes
-- `juan@hotmail.com` / `123456`
+- `clientebuensabor@gmail.com` / `123456`
 - `luis@hotmail.com` / `123456A.a`
 - `max@hotmail.com` / `123456A.a`

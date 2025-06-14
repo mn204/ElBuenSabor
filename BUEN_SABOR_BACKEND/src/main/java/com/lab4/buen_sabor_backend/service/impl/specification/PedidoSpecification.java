@@ -26,9 +26,11 @@ public class PedidoSpecification {
     }
 
     public static Specification<Pedido> sucursalIdEquals(Long idSucursal) {
-        return (root, query, cb) -> cb.equal(root.get("sucursal").get("id"), idSucursal);
+        return (root, query, cb) -> idSucursal == null ? null : cb.equal(root.get("sucursal").get("id"), idSucursal);
     }
-
+    public static Specification<Pedido> empleadoIdEquals(Long empleadoId) {
+        return (root, query, cb) -> empleadoId == null ? null : cb.equal(root.get("empleado").get("id"), empleadoId);
+    }
     public static Specification<Pedido> sucursalNombreContains(String sucursalNombre) {
         return (root, query, cb) -> {
             if (sucursalNombre == null || sucursalNombre.isBlank()) return null;

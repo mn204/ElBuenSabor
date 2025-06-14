@@ -3,6 +3,8 @@ package com.lab4.buen_sabor_backend.service.impl;
 import com.lab4.buen_sabor_backend.dto.PedidoDTO;
 import com.lab4.buen_sabor_backend.exceptions.EntityNotFoundException;
 import com.lab4.buen_sabor_backend.model.*;
+import com.lab4.buen_sabor_backend.model.enums.Rol;
+import com.lab4.buen_sabor_backend.repository.EmpleadoRepository;
 import com.lab4.buen_sabor_backend.service.*;
 import com.lab4.buen_sabor_backend.service.impl.specification.PedidoSpecification;
 import static com.lab4.buen_sabor_backend.service.impl.specification.PedidoSpecification.*;
@@ -20,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -29,21 +32,25 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
     private static final Logger logger = LoggerFactory.getLogger(PedidoServiceImpl.class);
 
     private final PedidoRepository pedidoRepository;
+    private final EmpleadoRepository empleadoRepository;
+    private final ExcelService excelService;
     private final PdfService pdfService;
-
-
     private final ArticuloInsumoService articuloInsumoService;
     private final SucursalInsumoService sucursalInsumoService;
     private final ArticuloManufacturadoService articuloManufacturadoService;
 
     @Autowired
-    public PedidoServiceImpl(PedidoRepository pedidoRepository, PdfService pdfService, ArticuloInsumoService articuloInsumoService, SucursalInsumoService sucursalInsumoService, ArticuloManufacturadoService articuloManufacturadoService) {
+    public PedidoServiceImpl(PedidoRepository pedidoRepository, PdfService pdfService, ArticuloInsumoService articuloInsumoService,
+                             SucursalInsumoService sucursalInsumoService, ArticuloManufacturadoService articuloManufacturadoService,
+                             EmpleadoRepository empleadoRepository, ExcelService excelService) {
         super(pedidoRepository);
         this.pedidoRepository = pedidoRepository;
         this.articuloInsumoService = articuloInsumoService;
         this.sucursalInsumoService = sucursalInsumoService;
         this.articuloManufacturadoService = articuloManufacturadoService;
+        this.empleadoRepository = empleadoRepository;
         this.pdfService = pdfService;
+        this.excelService = excelService;
     }
 
     @Override
@@ -77,13 +84,14 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
         return pedidoRepository.findAll(spec, pageable);
     }
 
-    //Buscar pedidos con filtros para Administrador y Cajero
+    //Buscar pedidos con filtros
     @Override
     public Page<Pedido> buscarPedidosFiltrados(
             Long idSucursal,
             Estado estado,
             String clienteNombre,
             Long idPedido,
+            Long idEmpleado, // <-- NUEVO PARÁMETRO
             LocalDateTime fechaDesde,
             LocalDateTime fechaHasta,
             Pageable pageable
@@ -93,6 +101,7 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
                 .and(PedidoSpecification.estadoEquals(estado))
                 .and(PedidoSpecification.clienteNombreContains(clienteNombre))
                 .and(PedidoSpecification.idEquals(idPedido))
+                .and(PedidoSpecification.empleadoIdEquals(idEmpleado)) // <-- NUEVA LÍNEA
                 .and(PedidoSpecification.fechaBetween(fechaDesde, fechaHasta));
         return pedidoRepository.findAll(spec, pageable);
     }
@@ -214,6 +223,42 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
             logger.error("Error al procesar pedido: ", e);
             return false;
         }
+    }
+
+
+    @Override
+    @Transactional
+    public void cambiarEstadoPedido(Pedido pedidoRequest) {
+        Pedido pedido = pedidoRepository.findByIdAndSucursalId(pedidoRequest.getId(), pedidoRequest.getSucursal().getId())
+                .orElseThrow(() -> new RuntimeException("Pedido no encontrado para esa sucursal."));
+
+        Empleado empleado = empleadoRepository.findById(pedidoRequest.getEmpleado().getId())
+                .orElseThrow(() -> new RuntimeException("Empleado no encontrado."));
+
+        Rol rol = empleado.getUsuario().getRol();
+        Estado estadoActual = pedido.getEstado();
+        Estado nuevoEstado = pedidoRequest.getEstado();
+
+        if (!puedeCambiarEstado(rol, estadoActual, nuevoEstado)) {
+            throw new RuntimeException("Cambio de estado no permitido para el rol " + rol);
+        }
+
+        pedido.setEstado(nuevoEstado);
+        pedidoRepository.save(pedido);
+    }
+
+    private boolean puedeCambiarEstado(Rol rol, Estado actual, Estado nuevo) {
+        if (rol == Rol.ADMINISTRADOR || rol == Rol.CAJERO) return true;
+
+        // No se puede retroceder (excepto ADMIN y CAJERO)
+        if (nuevo.ordinal() < actual.ordinal()) return false;
+
+        return switch (rol) {
+            case CLIENTE -> actual == Estado.PENDIENTE && nuevo == Estado.CANCELADO;
+            case DELIVERY -> actual == Estado.EN_DELIVERY && nuevo == Estado.ENTREGADO;
+            case COCINERO -> actual == Estado.PREPARACION && nuevo == Estado.LISTO;
+            default -> false;
+        };
     }
 
     @Override
@@ -367,5 +412,10 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
     @Override
     public Pedido findFirstByClienteIdOrderByIdDesc(Long clienteId) {
         return pedidoRepository.findFirstByClienteIdOrderByIdDesc(clienteId);
+    }
+
+    @Override
+    public byte[] exportarPedidosAExcel(List<Pedido> pedidos) {
+        return excelService.exportarPedidosAExcel(pedidos);
     }
 }
