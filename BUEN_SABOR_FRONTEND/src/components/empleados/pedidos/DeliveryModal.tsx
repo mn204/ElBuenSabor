@@ -1,0 +1,139 @@
+import React, { useState } from "react";
+import { Modal, Button, Row, Col, Table } from "react-bootstrap";
+import Pedido from "../../../models/Pedido.ts";
+import pedidoService from "../../../services/PedidoService.ts";
+import Estado from "../../../models/enums/Estado.ts";
+import {formatFechaConOffset} from "../../../funciones/formatFecha.ts";
+
+interface Props {
+    show: boolean;
+    onHide: () => void;
+    pedido: Pedido | null;
+}
+
+const DeliveryModal: React.FC<Props> = ({ show, onHide, pedido }) => {
+    const [showConfirm, setShowConfirm] = useState(false);
+    const [loading, setLoading] = useState(false);
+
+    if (!pedido) return null;
+
+    const domicilio = pedido.domicilio;
+    const cliente = pedido.cliente;
+    const delivery = pedido.empleado;
+    const detalles = pedido.detalles;
+
+    const abrirEnGoogleMaps = () => {
+        const direccion = `${domicilio.calle} ${domicilio.numero}, ${domicilio.localidad.nombre}`;
+        const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(direccion)}`;
+        window.open(url, '_blank');
+    };
+
+    const handleConfirmEntrega = async () => {
+        try {
+            setLoading(true);
+            const pedidoActualizado = {
+                ...pedido,
+                estado: Estado.ENTREGADO,
+            };
+            await pedidoService.cambiarEstadoPedido(pedidoActualizado);
+            setShowConfirm(false);
+            onHide(); // cerrar modal principal después de actualizar
+        } catch (error) {
+            alert("Error al cambiar el estado del pedido");
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <>
+            {/* Modal Principal */}
+            <Modal show={show} onHide={onHide} size="lg" centered>
+                <Modal.Header closeButton>
+                    <Modal.Title>Pedido #{pedido.id}</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Row className="mb-3">
+                        <Col md={6}>
+                            <strong>Fecha Pedido:</strong> {formatFechaConOffset( pedido.fechaPedido)}<br />
+                            <strong>Hora Estimada:</strong> {pedido.horaEstimadaFinalizacion}<br />
+                            <strong>Cliente:</strong> {cliente.nombre} {cliente.apellido}<br />
+                            <strong>Teléfono:</strong> {cliente.telefono}<br />
+                            <strong>Delivery:</strong> {delivery?.nombre} {delivery?.apellido}<br />
+                            <strong>Estado:</strong> {pedido.estado}<br /><br />
+                            <Button
+                                variant="success"
+                                size="sm"
+                                className="ms-2"
+                                onClick={() => setShowConfirm(true)}
+                            >
+                                Entregar Pedido
+                            </Button>
+                        </Col>
+                    </Row>
+
+                    <Row className="mb-3">
+                        <Col>
+                            <strong>Domicilio del Pedido:</strong><br />
+                            <div>
+                                Referencia: {domicilio.detalles || "-"}, {domicilio.calle} {domicilio.numero}, CP {domicilio.codigoPostal}
+                                {domicilio.piso && `, Piso ${domicilio.piso}`}
+                                {domicilio.nroDepartamento && `, Dpto ${domicilio.nroDepartamento}`} - {domicilio.localidad.nombre}
+                            </div>
+                            <Button variant="outline-primary" size="sm" className="mt-2" onClick={abrirEnGoogleMaps}>
+                                📍 Ver ubicación en Google Maps
+                            </Button>
+                        </Col>
+                    </Row>
+
+                    <Row>
+                        <Col>
+                            <strong>Detalle del Pedido</strong>
+                            <Table striped bordered hover responsive className="mt-2">
+                                <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th>Cantidad</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {detalles.map((detalle) => (
+                                    <tr key={detalle.id}>
+                                        <td>{detalle.articulo.denominacion}</td>
+                                        <td>{detalle.cantidad}</td>
+                                    </tr>
+                                ))}
+                                </tbody>
+                            </Table>
+                        </Col>
+                    </Row>
+                </Modal.Body>
+            </Modal>
+
+            {/* Mini modal de confirmación */}
+            <Modal show={showConfirm} onHide={() => setShowConfirm(false)} centered>
+                <Modal.Header closeButton>
+                    <Modal.Title>Confirmar entrega</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    ¿Desea confirmar la entrega de este pedido?
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setShowConfirm(false)}>
+                        Cancelar
+                    </Button>
+                    <Button
+                        variant="success"
+                        onClick={handleConfirmEntrega}
+                        disabled={loading}
+                    >
+                        {loading ? "Enviando..." : "Confirmar entrega"}
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+        </>
+    );
+};
+
+export default DeliveryModal;

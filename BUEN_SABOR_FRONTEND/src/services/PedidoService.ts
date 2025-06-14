@@ -40,7 +40,16 @@ class PedidoService {
             return false;
         }
     }
-
+    async getPedidoPorId(idPedido: number) : Promise<Pedido> {
+        try {
+            const res = await fetch(`${API_URL}/${idPedido}`);
+            if (!res.ok) throw new Error("Error al obtener pedido");
+            return await res.json();
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
     async getPedidosCliente(clienteId: number, filtros: any, page: number, size: number): Promise<{ content: Pedido[]; totalPages: number }> {
         const params = new URLSearchParams();
 

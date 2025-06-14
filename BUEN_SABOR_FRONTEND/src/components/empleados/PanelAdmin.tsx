@@ -23,6 +23,7 @@ import {useNavigate} from "react-router-dom";
 import GrillaCategorias from '../articulos/GrillaCategorias.tsx';
 import DashboardSection from './DashboardSection';
 import GrillaDelivery from "./GrillaDelivery.tsx";
+import {useEffect} from "react";
 
 function PanelAdmin() {
 
@@ -52,7 +53,15 @@ function PanelAdmin() {
     // Obtener la ruta activa desde la URL (ej: 'cocina')
     const rutaActual = location.pathname.split("/")[2] || "dashboard";
     const botonActual = botones.find(btn => btn.path === rutaActual);
-
+    // Si el usuario no tiene permisos para la ruta actual, redirigilo al primero que sí tenga
+    useEffect(() => {
+        if (usuario && (!botonActual || !botonActual.rolesPermitidos.includes(usuario.rol))) {
+            const primerPermitido = botonesVisibles[0];
+            if (primerPermitido) {
+                navigate(`/empleado/${primerPermitido.path}`, { replace: true });
+            }
+        }
+    }, [usuario, botonActual, navigate]);
     const renderContent = () => {
         if (!botonActual || !botonActual.rolesPermitidos.includes(usuario?.rol)) {
             return <div>No tenés permiso para ver esta sección.</div>;

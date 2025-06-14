@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, Form, Row, Col, Spinner, Card } from "react-bootstrap";
+import { Button, Form, Spinner, Card } from "react-bootstrap";
 import Pedido from "../../models/Pedido";
 import Estado from "../../models/enums/Estado";
 import pedidoService from "../../services/PedidoService";
@@ -10,6 +10,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useSucursal } from "../../context/SucursalContextEmpleado.tsx";
 import { obtenerSucursales } from "../../services/SucursalService.ts";
 import type Sucursal from "../../models/Sucursal.ts";
+import DeliveryModal from "./pedidos/DeliveryModal.tsx";
 
 const GrillaDelivery: React.FC = () => {
     const { sucursalActual, esModoTodasSucursales, sucursalIdSeleccionada } = useSucursal();
@@ -21,6 +22,10 @@ const GrillaDelivery: React.FC = () => {
     const [size] = useState(10);
     const [loading, setLoading] = useState(false);
     const [sucursales, setSucursales] = useState<Sucursal[]>([]);
+
+    const [pedidoSeleccionado, setPedidoSeleccionado] = useState<Pedido | null>(null);
+    const [showModal, setShowModal] = useState(false);
+
 
     // Filtros para admin
     const [filtros, setFiltros] = useState({
@@ -114,10 +119,15 @@ const GrillaDelivery: React.FC = () => {
     }, [page, filtros.deliveryNombre, filtros.sucursalFiltro, sucursalIdSeleccionada, sucursalActual?.id, usuario, isAdmin, isDelivery, esModoTodasSucursales]);
 
     const handleVerDetalle = async (pedidoId: number) => {
-        // TODO: Implementar cuando esté listo el modal de detalle
-        console.log("Ver detalle del pedido:", pedidoId);
-        alert("Funcionalidad de ver detalle será implementada próximamente");
+        try {
+            const pedido = await pedidoService.getPedidoPorId(pedidoId);
+            setPedidoSeleccionado(pedido);
+            setShowModal(true);
+        } catch (error) {
+            alert("No se pudo obtener el detalle del pedido");
+        }
     };
+
 
     const handleLimpiarFiltros = () => {
         setFiltros({
@@ -280,12 +290,36 @@ const GrillaDelivery: React.FC = () => {
                     </div>
                 ) : (
                     <>
-                        <div className="table-responsive">
-                            <ReusableTable data={pedidos} columns={columns} />
+                        {/* Responsive: Cards en dispositivos móviles, tabla en desktop */}
+                        <div className="d-block d-md-none">
+                            {/* Cards para móvil */}
+                            {pedidos.map((pedido) => (
+                                <div key={pedido.id} className="border rounded shadow-sm p-3 mb-3 bg-light">
+                                    <div><strong>Pedido #</strong> {pedido.id}</div>
+                                    <div><strong>Cliente:</strong> {pedido.cliente.nombre} {pedido.cliente.apellido}</div>
+                                    <div><strong>Hora estimada:</strong> {pedido.horaEstimadaFinalizacion || "No especificada"}</div>
+                                    <div className="mt-2 text-end">
+                                        <Button
+                                            variant="primary"
+                                            size="sm"
+                                            onClick={() => handleVerDetalle(pedido.id!)}
+                                        >
+                                            Ver detalle
+                                        </Button>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
 
-                        {/* Paginación */}
-                        <div className="d-flex justify-content-between align-items-center mt-3">
+                        <div className="d-none d-md-block">
+                            {/* Tabla visible solo en desktop/tablets */}
+                            <div className="table-responsive">
+                                <ReusableTable data={pedidos} columns={columns} />
+                            </div>
+                        </div>
+
+                        {/* Paginación visible en todos los tamaños */}
+                        <div className="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
                             <div className="text-muted">
                                 Mostrando {pedidos.length} pedidos
                                 {isAdmin && (filtros.deliveryNombre || filtros.sucursalFiltro) && (
@@ -302,8 +336,8 @@ const GrillaDelivery: React.FC = () => {
                                     <ChevronLeft />
                                 </Button>
                                 <span className="px-2">
-                                    Página {page + 1} de {totalPages || 1}
-                                </span>
+                Página {page + 1} de {totalPages || 1}
+            </span>
                                 <Button
                                     variant="outline-secondary"
                                     size="sm"
@@ -315,8 +349,19 @@ const GrillaDelivery: React.FC = () => {
                             </div>
                         </div>
                     </>
+
                 )}
             </div>
+            <DeliveryModal
+                show={showModal}
+                onHide={() => {
+                    setShowModal(false);
+                    setPedidoSeleccionado(null);
+                    fetchPedidos(); // Refrescar lista después de entregar
+                }}
+                pedido={pedidoSeleccionado}
+            />
+
         </div>
     );
 };
