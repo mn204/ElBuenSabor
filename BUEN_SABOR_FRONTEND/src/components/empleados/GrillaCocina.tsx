@@ -10,9 +10,8 @@ import { useAuth } from "../../context/AuthContext";
 import { useSucursal } from "../../context/SucursalContextEmpleado.tsx";
 import { obtenerSucursales } from "../../services/SucursalService.ts";
 import type Sucursal from "../../models/Sucursal.ts";
-//TODO: ver la hora correcta de entrega estimada.
+import CocinaModal  from "./pedidos/CocinaModal.tsx";
 //TODO: ver detalle
-//TODO: agregar +5min
 
 const GrillaCocina: React.FC = () => {
     const { sucursalActual, esModoTodasSucursales, sucursalIdSeleccionada } = useSucursal();
@@ -41,14 +40,7 @@ const GrillaCocina: React.FC = () => {
     const isAdmin = usuario?.rol === 'ADMINISTRADOR';
     const isCocinero = usuario?.rol === 'COCINERO';
 
-    // Función para obtener la duración más larga de los productos
-    const obtenerDuracionMaxima = (pedido: Pedido): string => {
-        if (!pedido.detalles || pedido.detalles.length === 0) return "0:00";
 
-        // Aquí deberías implementar la lógica para obtener la duración máxima
-        // basándote en los artículos del pedido. Por ahora retorno un placeholder
-        return "0:25"; // Placeholder - implementar según tu lógica de negocio
-    };
     const calcularHoraEstimada = (pedido: Pedido): string => {
         if (!pedido.horaEstimadaFinalizacion) return "No especificada";
 
@@ -205,6 +197,30 @@ const GrillaCocina: React.FC = () => {
             setLoadingListo(false);
         }
     };
+    const marcarListoDirecto = async (pedidoId: number) => {
+        try {
+            setLoadingListo(true);
+            const pedidoActual = pedidos.find(p => p.id === pedidoId);
+            if (!pedidoActual) return;
+
+            const pedidoActualizado = {
+                ...pedidoActual,
+                estado: Estado.LISTO,
+                empleado: empleado
+            };
+
+            await pedidoService.cambiarEstadoPedido(pedidoActualizado);
+            setShowModal(false); // ✅ Cerramos el modal
+            setPedidoSeleccionado(null);
+            fetchPedidos(); // ✅ Refrescamos la lista
+        } catch (error) {
+            alert("Error al cambiar el estado del pedido");
+            console.error(error);
+        } finally {
+            setLoadingListo(false);
+        }
+    };
+
     const handleLimpiarFiltros = () => {
         setFiltros({
             ordenHora: "ASC",
@@ -229,11 +245,6 @@ const GrillaCocina: React.FC = () => {
                     minute: '2-digit'
                 });
             }
-        },
-        {
-            key: "duracion",
-            label: "Duración",
-            render: (_: any, row: Pedido) => obtenerDuracionMaxima(row)
         },
         {
             key: "productos",
@@ -412,7 +423,6 @@ const GrillaCocina: React.FC = () => {
             </div>
 
             {/* Modal de detalle - necesitarás crear CocinaModal similar a DeliveryModal */}
-            {/*
             <CocinaModal
                 show={showModal}
                 onHide={() => {
@@ -421,8 +431,8 @@ const GrillaCocina: React.FC = () => {
                     fetchPedidos();
                 }}
                 pedido={pedidoSeleccionado}
+                onMarcarListo={marcarListoDirecto} // 👈 cambiamos la función
             />
-            */}
 
             {/* Modal de confirmación para marcar como listo */}
             <Modal show={showConfirmListo} onHide={() => setShowConfirmListo(false)} centered>
