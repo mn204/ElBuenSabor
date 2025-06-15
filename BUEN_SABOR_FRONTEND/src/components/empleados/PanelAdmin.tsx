@@ -30,6 +30,7 @@ import {useEffect} from "react";
 import GrillaInsumos from './GrillaInsumos.tsx';
 import GrillaCocina from "./GrillaCocina.tsx";
 import GrillaStock from './GrillaStock.tsx';
+import { GrillaPromocion } from './GrillaPromociones.tsx';
 
 function PanelAdmin() {
 
@@ -51,6 +52,7 @@ function PanelAdmin() {
         { nombre: 'Categorias', icono: Categorias, path: 'categorias', rolesPermitidos: ['ADMINISTRADOR'] },
         { nombre: 'Empleados', icono: Usuario, path: 'empleados', rolesPermitidos: ['ADMINISTRADOR'] },
         { nombre: 'Estadísticas', icono: Estadisticas, path: 'estadisticas', rolesPermitidos: ['ADMINISTRADOR'] },
+        { nombre: 'Promociones', icono: Pedidos, path: 'promociones', rolesPermitidos: ['ADMINISTRADOR'] },
     ];
 
     const botonesVisibles = botones.filter(btn =>
@@ -172,6 +174,12 @@ function PanelAdmin() {
                 return(
                     <div>
                         <GrillaStock/>
+                    </div>
+                )
+            case 'Promociones':
+                return(
+                    <div>
+                        <GrillaPromocion/>
                     </div>
                 )
             default:

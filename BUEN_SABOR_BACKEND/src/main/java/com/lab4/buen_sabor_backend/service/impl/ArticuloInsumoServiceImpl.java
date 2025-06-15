@@ -64,6 +64,13 @@ public class ArticuloInsumoServiceImpl extends MasterServiceImpl<ArticuloInsumo,
 
     @Override
     @Transactional
+    public List<ArticuloInsumo> findAllNoEsParaElaborar() {
+        logger.info("Obteniendo todos los ArticuloInsumo que son para elaborar");
+        return articuloInsumoRepository.findArticuloInsumosByEsParaElaborarFalse();
+    }
+
+    @Override
+    @Transactional
     public boolean existsByDenominacion(String denominacion) {
         return articuloInsumoRepository.findByDenominacionIgnoreCase(denominacion).isPresent();
     }
