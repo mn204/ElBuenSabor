@@ -1,15 +1,19 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import InsumoService from "../../services/ArticuloInsumoService";
+import CategoriaService from "../../services/CategoriaService";
 import Insumo from "../../models/ArticuloInsumo";
+import Categoria from "../../models/Categoria";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
-import Pagination from "react-bootstrap/Pagination";
 import { ReusableTable } from "../Tabla";
 import BotonVer from "../layout/BotonVer";
 import BotonEliminar from "../layout/BotonEliminar";
 import BotonModificar from "../layout/BotonModificar";
 import BotonAlta from "../layout/BotonAlta";
-import Form from "react-bootstrap/Form";
+import { Link } from "react-router-dom";
+import { ChevronLeft, ChevronRight } from "react-bootstrap-icons";
+import ArticuloInsumoService from "../../services/ArticuloInsumoService";
+import type ArticuloInsumo from "../../models/ArticuloInsumo";
 
 interface PageResponse {
   content: Insumo[];
@@ -26,13 +30,11 @@ interface PageResponse {
 }
 
 function GrillaInsumos() {
-  const [pageData, setPageData] = useState<PageResponse | null>(null);
+  const [insumos, setInsumos] = useState<ArticuloInsumo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Paginación
-  const [currentPage, setCurrentPage] = useState(0);
-  const [pageSize, setPageSize] = useState(10);
+  const [page, setPage] = useState(0);
+  const [size] = useState(10);
 
   // Modal Ver
   const [showModal, setShowModal] = useState(false);
@@ -41,54 +43,56 @@ function GrillaInsumos() {
   // Filtros
   const [filtroDenominacion, setFiltroDenominacion] = useState("");
   const [filtroCategoria, setFiltroCategoria] = useState("");
-  const [filtroEstado, setFiltroEstado] = useState("");
-  const [precioMin, setPrecioMin] = useState("");
-  const [precioMax, setPrecioMax] = useState("");
+  const [filtroEstado, setFiltroEstado] = useState(""); // "", "activo", "eliminado"
+  const [filtroPrecioMin, setFiltroPrecioMin] = useState("");
+  const [filtroPrecioMax, setFiltroPrecioMax] = useState("");
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
 
   useEffect(() => {
     cargarInsumos();
-  }, [currentPage, pageSize]);
+    CategoriaService.getAll().then(setCategorias);
+  }, []);
 
   // Resetear página cuando cambien los filtros
   useEffect(() => {
-    if (currentPage !== 0) {
-      setCurrentPage(0);
-    } else {
-      cargarInsumos();
-    }
-  }, [filtroDenominacion, filtroCategoria, filtroEstado, precioMin, precioMax]);
+    setPage(0);
+  }, [filtroDenominacion, filtroCategoria, filtroEstado, filtroPrecioMin, filtroPrecioMax]);
 
   const cargarInsumos = async () => {
     setLoading(true);
     setError(null);
     try {
-      // Construir parámetros de búsqueda
-      const params = new URLSearchParams({
-        page: currentPage.toString(),
-        size: pageSize.toString(),
-      });
-
-      // Agregar filtros si existen
-      if (filtroDenominacion) params.append('denominacion', filtroDenominacion);
-      if (filtroCategoria) params.append('categoria', filtroCategoria);
-      if (filtroEstado) params.append('estado', filtroEstado);
-      if (precioMin) params.append('precioMin', precioMin);
-      if (precioMax) params.append('precioMax', precioMax);
-
-      const data = await InsumoService.getAllPaginated(params);
-      setPageData(data);
+      const data = await ArticuloInsumoService.getAll();
+      setInsumos(data);
     } catch (err) {
-      setError("Error al cargar los insumos");
+      setError("Error al cargar los artículos manufacturados");
     } finally {
       setLoading(false);
     }
   };
 
+  // Filtro local (puedes reemplazar por API si tienes endpoints específicos)
+  const insumosFiltrados = insumos.filter(a =>
+    (!filtroDenominacion || a.denominacion.toLowerCase().includes(filtroDenominacion.toLowerCase())) &&
+    (!filtroCategoria || String(a.categoria?.id) === filtroCategoria) &&
+    (!filtroEstado ||
+      (filtroEstado === "activo" && !a.eliminado) ||
+      (filtroEstado === "eliminado" && a.eliminado)
+    ) &&
+    (!filtroPrecioMin || a.precioVenta >= Number(filtroPrecioMin)) &&
+    (!filtroPrecioMax || a.precioVenta <= Number(filtroPrecioMax))
+  );
+
+  // Calcular páginas totales basado en los elementos filtrados
+  const totalPages = Math.ceil(insumosFiltrados.length / size);
+  
+  // Aplicar paginación a los elementos filtrados
+  const insumosPaginados = insumosFiltrados.slice(page * size, (page + 1) * size);
+
   const eliminarInsumo = async (id: number) => {
     if (!window.confirm("¿Seguro que desea eliminar este insumo?")) return;
     try {
       await InsumoService.delete(id);
-      // Recargar la página actual
       cargarInsumos();
       alert("Insumo eliminado correctamente");
     } catch (err) {
@@ -97,7 +101,7 @@ function GrillaInsumos() {
   };
 
   const handleActualizar = (ins: Insumo) => {
-    window.location.href = `/articulo?id=${ins.id}`;
+    window.location.href = `/FormularioInsumo?id=${ins.id}`;
   };
 
   const handleVer = (ins: Insumo) => {
@@ -114,7 +118,6 @@ function GrillaInsumos() {
     if (!window.confirm("¿Seguro que desea dar de alta este insumo?")) return;
     try {
       await InsumoService.changeEliminado(id);
-      // Recargar la página actual
       cargarInsumos();
       alert("Insumo dado de alta correctamente");
     } catch (err) {
@@ -122,79 +125,12 @@ function GrillaInsumos() {
     }
   };
 
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
-
-  const handlePageSizeChange = (newSize: number) => {
-    setPageSize(newSize);
-    setCurrentPage(0); // Resetear a primera página
-  };
-
-  const renderPagination = () => {
-    if (!pageData || pageData.totalPages <= 1) return null;
-
-    const items = [];
-    const totalPages = pageData.totalPages;
-    const current = pageData.number;
-
-    // Botón Previous
-    items.push(
-      <Pagination.Prev
-        key="prev"
-        disabled={pageData.first}
-        onClick={() => handlePageChange(current - 1)}
-      />
-    );
-
-    // Páginas
-    const startPage = Math.max(0, current - 2);
-    const endPage = Math.min(totalPages - 1, current + 2);
-
-    if (startPage > 0) {
-      items.push(
-        <Pagination.Item key={0} onClick={() => handlePageChange(0)}>
-          1
-        </Pagination.Item>
-      );
-      if (startPage > 1) {
-        items.push(<Pagination.Ellipsis key="ellipsis-start" />);
-      }
-    }
-
-    for (let page = startPage; page <= endPage; page++) {
-      items.push(
-        <Pagination.Item
-          key={page}
-          active={page === current}
-          onClick={() => handlePageChange(page)}
-        >
-          {page + 1}
-        </Pagination.Item>
-      );
-    }
-
-    if (endPage < totalPages - 1) {
-      if (endPage < totalPages - 2) {
-        items.push(<Pagination.Ellipsis key="ellipsis-end" />);
-      }
-      items.push(
-        <Pagination.Item key={totalPages - 1} onClick={() => handlePageChange(totalPages - 1)}>
-          {totalPages}
-        </Pagination.Item>
-      );
-    }
-
-    // Botón Next
-    items.push(
-      <Pagination.Next
-        key="next"
-        disabled={pageData.last}
-        onClick={() => handlePageChange(current + 1)}
-      />
-    );
-
-    return <Pagination className="justify-content-center mt-3">{items}</Pagination>;
+  const limpiarFiltros = () => {
+    setFiltroDenominacion("");
+    setFiltroCategoria("");
+    setFiltroEstado("");
+    setFiltroPrecioMax("");
+    setFiltroPrecioMin("");
   };
 
   const columns = [
@@ -240,86 +176,113 @@ function GrillaInsumos() {
   if (error) return <div>{error}</div>;
 
   return (
-    <div>
+    <div className="position-relative">
       <h2>Insumos</h2>
-
-      {/* Filtros */}
-      <Form className="mb-3 d-flex flex-wrap gap-3 align-items-end">
-        <Form.Group>
-          <Form.Label>Denominación</Form.Label>
-          <Form.Control
+      <div className="filtrosybtn d-flex justify-content-between align-items-center">
+        <div className="m-4 d-flex flex-wrap gap-2 align-items-end">
+          <input
             type="text"
+            className="form-control"
+            placeholder="Buscar por denominación"
             value={filtroDenominacion}
-            onChange={(e) => setFiltroDenominacion(e.target.value)}
-            placeholder="Buscar..."
+            onChange={e => setFiltroDenominacion(e.target.value)}
+            style={{ maxWidth: 180 }}
           />
-        </Form.Group>
-        <Form.Group>
-          <Form.Label>Categoría</Form.Label>
-          <Form.Control
-            type="text"
+          <select
+            className="form-select"
             value={filtroCategoria}
-            onChange={(e) => setFiltroCategoria(e.target.value)}
-            placeholder="Buscar..."
-          />
-        </Form.Group>
-        <Form.Group>
-          <Form.Label>Estado</Form.Label>
-          <Form.Select value={filtroEstado} onChange={(e) => setFiltroEstado(e.target.value)}>
-            <option value="">Todos</option>
+            onChange={e => setFiltroCategoria(e.target.value)}
+            style={{ maxWidth: 180 }}
+          >
+            <option value="">Todas las categorías</option>
+            {categorias.map(cat => (
+              <option key={cat.id} value={cat.id?.toString()}>
+                {cat.denominacion}
+              </option>
+            ))}
+          </select>
+          <select
+            className="form-select"
+            value={filtroEstado}
+            onChange={e => setFiltroEstado(e.target.value)}
+            style={{ maxWidth: 140 }}
+          >
+            <option value="">Todos los estados</option>
             <option value="activo">Activo</option>
             <option value="eliminado">Eliminado</option>
-          </Form.Select>
-        </Form.Group>
-        <Form.Group>
-          <Form.Label>Precio Mínimo</Form.Label>
-          <Form.Control
+          </select>
+          <input
             type="number"
-            value={precioMin}
-            onChange={(e) => setPrecioMin(e.target.value)}
-            placeholder="Min"
+            className="form-control"
+            placeholder="Precio mín."
+            value={filtroPrecioMin}
+            onChange={e => setFiltroPrecioMin(e.target.value)}
+            style={{ maxWidth: 120 }}
           />
-        </Form.Group>
-        <Form.Group>
-          <Form.Label>Precio Máximo</Form.Label>
-          <Form.Control
+          <input
             type="number"
-            value={precioMax}
-            onChange={(e) => setPrecioMax(e.target.value)}
-            placeholder="Max"
+            className="form-control"
+            placeholder="Precio máx."
+            value={filtroPrecioMax}
+            onChange={e => setFiltroPrecioMax(e.target.value)}
+            style={{ maxWidth: 120 }}
           />
-        </Form.Group>
-        <Form.Group>
-          <Form.Label>Elementos por página</Form.Label>
-          <Form.Select 
-            value={pageSize} 
-            onChange={(e) => handlePageSizeChange(parseInt(e.target.value))}
-            style={{ width: '100px' }}
-          >
-            <option value={5}>5</option>
-            <option value={10}>10</option>
-            <option value={20}>20</option>
-            <option value={50}>50</option>
-          </Form.Select>
-        </Form.Group>
-      </Form>
-
-      {/* Información de resultados */}
-      {pageData && (
-        <div className="mb-3 text-muted">
-          Mostrando {pageData.content.length} de {pageData.totalElements} insumos
-          {pageData.totalPages > 1 && (
-            <span> - Página {pageData.number + 1} de {pageData.totalPages}</span>
-          )}
+          <Button variant="secondary" onClick={limpiarFiltros}>
+            Limpiar filtros
+          </Button>
         </div>
-      )}
+        <Link to='/FormularioInsumo' className="btn border-success" style={{ right: 10, top: 10 }}>
+          Crear Insumo
+        </Link>
+      </div>
 
       {/* Tabla */}
-      <ReusableTable columns={columns} data={pageData?.content || []} />
+      <div className="p-3 border rounded bg-white shadow-sm">
+        {insumosFiltrados.length === 0 ? (
+          <div className="text-center py-4">
+            <p className="text-muted mb-0">
+              No hay insumos para mostrar
+            </p>
+          </div>
+        ) : (
+          <>
+            {/* Tabla */}
+            <div className="table-responsive">
+              <ReusableTable columns={columns} data={insumosPaginados} />
+            </div>
 
-      {/* Paginación */}
-      {renderPagination()}
+            {/* Paginación */}
+            <div className="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
+              <div className="text-muted">
+                Mostrando {page * size + 1}-{Math.min((page + 1) * size, insumosFiltrados.length)} de {insumosFiltrados.length} insumos
+              </div>
+              <div className="d-flex align-items-center gap-2">
+                <Button
+                  variant="outline-secondary"
+                  size="sm"
+                  disabled={page === 0}
+                  onClick={() => setPage(page - 1)}
+                >
+                  <ChevronLeft />
+                </Button>
+                <span className="px-2">
+                  Página {page + 1} de {totalPages || 1}
+                </span>
+                <Button
+                  variant="outline-secondary"
+                  size="sm"
+                  disabled={page >= totalPages - 1 || totalPages === 0}
+                  onClick={() => setPage(page + 1)}
+                >
+                  <ChevronRight />
+                </Button>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
 
+      {/* Modal detalle */}
       <Modal show={showModal} onHide={handleCloseModal} centered>
         <Modal.Header closeButton>
           <Modal.Title>Detalle del Insumo</Modal.Title>
@@ -328,7 +291,7 @@ function GrillaInsumos() {
           {insumoSeleccionado && (
             <div>
               <p><b>Denominación:</b> {insumoSeleccionado.denominacion}</p>
-              <p><b>Categoría:</b> {insumoSeleccionado.categoria.denominacion}</p>
+              <p><b>Categoría:</b> {insumoSeleccionado.categoria?.denominacion}</p>
               <p><b>Unidad de Medida:</b> {insumoSeleccionado.unidadMedida?.denominacion || "-"}</p>
               <p><b>Precio Venta:</b> ${insumoSeleccionado.precioVenta}</p>
             </div>

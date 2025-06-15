@@ -20,7 +20,7 @@ import { useSucursal } from "../../context/SucursalContextEmpleado.tsx";
 
 import {useLocation} from "react-router-dom";
 import {useNavigate} from "react-router-dom";
-import GrillaCategorias from '../articulos/GrillaCategorias.tsx';
+import GrillaCategorias from './GrillaCategorias.tsx';
 import DashboardSection from './DashboardSection';
 import GrillaDelivery from "./GrillaDelivery.tsx";
 import {useEffect} from "react";
