@@ -2,6 +2,7 @@ package com.lab4.buen_sabor_backend.repository;
 
 import com.lab4.buen_sabor_backend.dto.ClienteDTO;
 import com.lab4.buen_sabor_backend.model.Cliente;
+import com.lab4.buen_sabor_backend.model.Empleado;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.*;
@@ -12,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface ClienteRepository extends MasterRepository<Cliente, Long> {
+public interface ClienteRepository extends MasterRepository<Cliente, Long>,JpaSpecificationExecutor<Cliente> {
 
     Optional<Cliente> findByUsuarioId(Long usuarioId);
 

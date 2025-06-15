@@ -7,6 +7,10 @@ import com.lab4.buen_sabor_backend.service.ClienteService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -67,6 +71,35 @@ public class ClienteController extends MasterControllerImpl<Cliente, ClienteDTO,
             logger.error("Error al desasociar domicilio {} del cliente {}: {}", domicilioId, clienteId, e.getMessage());
             return ResponseEntity.internalServerError().build();
         }
+    }
+
+
+    @GetMapping("/filtrados")
+    public ResponseEntity<Page<ClienteDTO>> obtenerClientesFiltrados(
+            @RequestParam(required = false) String busqueda, // Busca en nombre, apellido y email
+            @RequestParam(required = false) String email,    // Parámetro adicional para email específico
+            @RequestParam(required = false) String ordenar,  // "asc" o "desc"
+            @RequestParam(required = false) Boolean eliminado,
+            Pageable pageable
+    ) {
+        // Si se especifica ordenamiento, creamos un Sort personalizado
+        Sort sort = Sort.unsorted();
+        if (ordenar != null) {
+            if ("desc".equalsIgnoreCase(ordenar) || "z-a".equalsIgnoreCase(ordenar)) {
+                sort = Sort.by(Sort.Direction.DESC, "nombre");
+            } else if ("asc".equalsIgnoreCase(ordenar) || "a-z".equalsIgnoreCase(ordenar)) {
+                sort = Sort.by(Sort.Direction.ASC, "nombre");
+            }
+            // Crear nuevo Pageable con el ordenamiento
+            pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+        }
+
+        Page<Cliente> clientes = clienteService.buscarClientesFiltrados(
+                busqueda, email, eliminado, pageable
+        );
+        Page<ClienteDTO> result = clientes.map(clienteMapper::toDTO);
+
+        return ResponseEntity.ok(result);
     }
 
 

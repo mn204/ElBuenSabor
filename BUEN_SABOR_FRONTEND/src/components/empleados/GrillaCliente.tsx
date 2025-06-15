@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Cliente from "../../models/Cliente";
 import {
-    obtenerTodosLosClientes,
+    getClientesFiltrados,
     eliminarCliente,
     darDeAltaCliente,
     obtenerClientePorId
@@ -9,33 +9,36 @@ import {
 import { ReusableTable } from "../Tabla";
 import BotonVer from "../layout/BotonVer";
 import BotonEliminar from "../layout/BotonEliminar";
-import Form from "react-bootstrap/Form";
-import Button from "react-bootstrap/Button";
 import BotonAlta from "../layout/BotonAlta.tsx";
-import googleLogo from "../../assets/google_logo.png"; // ruta correcta según tu proyecto
-import { Modal } from "react-bootstrap";
-import {darDeAltaUsuario, eliminarUsuario} from "../../services/UsuarioService.ts";
-import PedidoClienteModal from "./pedidos/PedidoClienteModal.tsx"
-
-//TODO implementar ver los pedidos del cliente.
+import googleLogo from "../../assets/google_logo.png";
+import { Modal, Form, Button } from "react-bootstrap";
+import { darDeAltaUsuario, eliminarUsuario } from "../../services/UsuarioService.ts";
+import PedidoClienteModal from "./pedidos/PedidoClienteModal.tsx";
+import { ChevronLeft, ChevronRight } from "react-bootstrap-icons";
 
 const GrillaCliente = () => {
     const [clientes, setClientes] = useState<Cliente[]>([]);
-    const [filteredClientes, setFilteredClientes] = useState<Cliente[]>([]);
     const [search, setSearch] = useState("");
     const [estado, setEstado] = useState("todos");
     const [ordenAsc, setOrdenAsc] = useState(true);
+    const [loading, setLoading] = useState(false);
+
+    // Paginación
+    const [page, setPage] = useState(0);
+    const [totalPages, setTotalPages] = useState(1);
+    const size = 10; // Tamaño de página fijo
+
     const [showPedidosModal, setShowPedidosModal] = useState(false);
     const [clientePedidos, setClientePedidos] = useState<Cliente | null>(null);
-    const handleVerPedidos = (cliente: Cliente) => {
-        setClientePedidos(cliente);
-        setShowPedidosModal(true);
-    };
-
 
     const [clienteSeleccionado, setClienteSeleccionado] = useState<Cliente | null>(null);
     const [showModal, setShowModal] = useState(false);
     const [mostrarDomicilios, setMostrarDomicilios] = useState(false);
+
+    const handleVerPedidos = (cliente: Cliente) => {
+        setClientePedidos(cliente);
+        setShowPedidosModal(true);
+    };
 
     const handleCloseModal = () => {
         setShowModal(false);
@@ -43,48 +46,59 @@ const GrillaCliente = () => {
         setMostrarDomicilios(false);
     };
 
-
-    useEffect(() => {
-        cargarClientes();
-    }, []);
-
-    useEffect(() => {
-        filtrarClientes();
-    }, [clientes, search, estado, ordenAsc]);
-
+    // Cargar clientes con filtros y paginación
     const cargarClientes = async () => {
         try {
-            const data = await obtenerTodosLosClientes();
-            setClientes(data);
-        } catch (error) {
-            alert("Error al cargar los clientes");
-        }
-    };
+            setLoading(true);
 
-    const filtrarClientes = () => {
-        let filtrados = [...clientes];
+            // Preparar filtros
+            const filtros: {
+                busqueda?: string;
+                ordenar?: string;
+                eliminado?: boolean;
+            } = {};
 
-        if (estado !== "todos") {
-            const eliminado = estado === "inactivos";
-            filtrados = filtrados.filter(c => c.eliminado === eliminado);
-        }
+            // Búsqueda unificada (nombre, apellido o email)
+            if (search.trim() !== "") {
+                filtros.busqueda = search.trim();
+            }
 
-        if (search.trim() !== "") {
-            const texto = search.toLowerCase();
-            filtrados = filtrados.filter(c =>
-                `${c.nombre} ${c.apellido}`.toLowerCase().includes(texto) ||
-                c.usuario?.email?.toLowerCase().includes(texto)
+            // Manejar correctamente el filtro de estado
+            if (estado === "activos") {
+                filtros.eliminado = false;
+            } else if (estado === "inactivos") {
+                filtros.eliminado = true;
+            }
+            // Si estado === "todos", no asignamos filtros.eliminado (queda undefined)
+
+            // Configurar ordenamiento
+            filtros.ordenar = ordenAsc ? "asc" : "desc";
+
+            const result = await getClientesFiltrados(
+                filtros,
+                page,
+                size
             );
+
+            setClientes(result.content);
+            setTotalPages(result.totalPages);
+        } catch (error) {
+            console.error("Error al cargar clientes:", error);
+            alert("Error al cargar clientes");
+        } finally {
+            setLoading(false);
         }
-
-        filtrados.sort((a, b) => {
-            const nombreA = `${a.nombre} ${a.apellido}`.toLowerCase();
-            const nombreB = `${b.nombre} ${b.apellido}`.toLowerCase();
-            return ordenAsc ? nombreA.localeCompare(nombreB) : nombreB.localeCompare(nombreA);
-        });
-
-        setFilteredClientes(filtrados);
     };
+
+    // Efecto para cargar clientes cuando cambian los filtros
+    useEffect(() => {
+        setPage(0); // Resetear a primera página cuando cambian los filtros
+    }, [search, estado, ordenAsc]);
+
+    // Efecto para cargar clientes cuando cambia la página o los filtros
+    useEffect(() => {
+        cargarClientes();
+    }, [page, search, estado, ordenAsc]);
 
     const handleEliminar = async (id: number, idUsuario: number) => {
         if (!window.confirm("¿Seguro que desea eliminar este cliente?")) return;
@@ -155,7 +169,7 @@ const GrillaCliente = () => {
                     {!row.eliminado ? (
                         <BotonEliminar onClick={() => handleEliminar(row.id!, row.usuario.id)} />
                     ) : (
-                        <BotonAlta onClick={() => handleAlta(row.id!,row.usuario.id)} />
+                        <BotonAlta onClick={() => handleAlta(row.id!, row.usuario.id)} />
                     )}
                 </div>
             ),
@@ -166,6 +180,7 @@ const GrillaCliente = () => {
         <div>
             <h2 className="m-3">Clientes</h2>
 
+            {/* Filtros */}
             <div className="d-flex gap-3 mb-2 align-items-start">
                 <Form.Control
                     type="text"
@@ -185,8 +200,51 @@ const GrillaCliente = () => {
                 </Button>
             </div>
 
-            <ReusableTable data={filteredClientes} columns={columns} />
+            {/* Tabla con loading */}
+            {loading ? (
+                <div className="text-center p-4">
+                    <div className="spinner-border" role="status">
+                        <span className="visually-hidden">Cargando...</span>
+                    </div>
+                </div>
+            ) : (
+                <>
+                    <ReusableTable data={clientes} columns={columns} />
 
+                    {/* Paginación */}
+                    <div className="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
+                        <div className="text-muted">
+                            Mostrando {clientes.length} clientes
+                            {(search || estado !== "todos") && (
+                                <span> (con filtros aplicados)</span>
+                            )}
+                        </div>
+                        <div className="d-flex align-items-center gap-2">
+                            <Button
+                                variant="outline-secondary"
+                                size="sm"
+                                disabled={page === 0}
+                                onClick={() => setPage(page - 1)}
+                            >
+                                <ChevronLeft />
+                            </Button>
+                            <span className="px-2">
+                                Página {page + 1} de {totalPages || 1}
+                            </span>
+                            <Button
+                                variant="outline-secondary"
+                                size="sm"
+                                disabled={page >= totalPages - 1}
+                                onClick={() => setPage(page + 1)}
+                            >
+                                <ChevronRight />
+                            </Button>
+                        </div>
+                    </div>
+                </>
+            )}
+
+            {/* Modal de detalles del cliente */}
             <Modal show={showModal} onHide={handleCloseModal} centered size="lg">
                 <Modal.Header closeButton>
                     <Modal.Title>Cliente # {clienteSeleccionado?.id}</Modal.Title>
@@ -231,9 +289,9 @@ const GrillaCliente = () => {
                                     <ul className="list-group">
                                         {clienteSeleccionado.domicilios.map((dom, idx) => (
                                             <li key={idx} className="list-group-item">
-                                    <span>
-                                        <b>{dom.detalles || "Sin referencia"}:</b> {dom.calle} {dom.numero}, CP {dom.codigoPostal} - {dom.localidad.nombre}, {dom.localidad.provincia.nombre}, {dom.localidad.provincia.pais.nombre}
-                                    </span>
+                                                <span>
+                                                    <b>{dom.detalles || "Sin referencia"}:</b> {dom.calle} {dom.numero}, CP {dom.codigoPostal} - {dom.localidad.nombre}, {dom.localidad.provincia.nombre}, {dom.localidad.provincia.pais.nombre}
+                                                </span>
                                             </li>
                                         ))}
                                     </ul>
@@ -251,16 +309,16 @@ const GrillaCliente = () => {
                 <Modal.Footer>
                     <Button variant="secondary" onClick={handleCloseModal}>Cerrar</Button>
                 </Modal.Footer>
-                {clientePedidos && (
-                    <PedidoClienteModal
-                        show={showPedidosModal}
-                        onHide={() => setShowPedidosModal(false)}
-                        cliente={clientePedidos}
-                    />
-                )}
-
             </Modal>
 
+            {/* Modal de pedidos del cliente */}
+            {clientePedidos && (
+                <PedidoClienteModal
+                    show={showPedidosModal}
+                    onHide={() => setShowPedidosModal(false)}
+                    cliente={clientePedidos}
+                />
+            )}
         </div>
     );
 };

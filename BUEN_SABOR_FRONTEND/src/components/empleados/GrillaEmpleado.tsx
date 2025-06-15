@@ -17,7 +17,7 @@ import { useNavigate } from "react-router-dom";
 import Sucursal from "../../models/Sucursal";
 import { obtenerSucursales } from "../../services/SucursalService";
 import FormDatosEmpleado from "./FormDatosEmpleado";
-import { ChevronLeft, ChevronRight } from "react-bootstrap-icons"; // <-- Para iconos de paginación
+import { ChevronLeft, ChevronRight } from "react-bootstrap-icons";
 
 const GrillaEmpleado = () => {
     const [empleados, setEmpleados] = useState<Empleado[]>([]);
