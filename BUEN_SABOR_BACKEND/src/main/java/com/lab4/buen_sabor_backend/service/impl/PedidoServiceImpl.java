@@ -92,6 +92,7 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
             String clienteNombre,
             Long idPedido,
             Long idEmpleado, // <-- NUEVO PARÁMETRO
+            Boolean pagado,
             LocalDateTime fechaDesde,
             LocalDateTime fechaHasta,
             Pageable pageable
@@ -102,6 +103,7 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
                 .and(PedidoSpecification.clienteNombreContains(clienteNombre))
                 .and(PedidoSpecification.idEquals(idPedido))
                 .and(PedidoSpecification.empleadoIdEquals(idEmpleado)) // <-- NUEVA LÍNEA
+                .and(PedidoSpecification.pagadoEquals(pagado))
                 .and(PedidoSpecification.fechaBetween(fechaDesde, fechaHasta));
         return pedidoRepository.findAll(spec, pageable);
     }
@@ -123,6 +125,21 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
         return pdfService.generarFacturaPedido(pedido);
     }
 
+    //Cambiar pagado del pedido
+    @Override
+    @Transactional
+    public Pedido marcarComoPagado(Long id) {
+        Pedido pedido = pedidoRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Pedido no encontrado con ID: " + id));
+
+        if (!pedido.isPagado()) {
+            pedido.setPagado(true);
+            return pedidoRepository.save(pedido);
+        }
+        return pedido; // ya estaba pagado
+    }
+
+    //Cambiar estado del pedido
     @Override
     @Transactional
     public void cambiarEstadoPedido(Pedido pedidoRequest) {
@@ -310,4 +327,6 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
     public byte[] exportarPedidosAExcel(List<Pedido> pedidos) {
         return excelService.exportarPedidosAExcel(pedidos);
     }
+
+    //Grilla pedidos filtrados para Administrador y cajero
 }

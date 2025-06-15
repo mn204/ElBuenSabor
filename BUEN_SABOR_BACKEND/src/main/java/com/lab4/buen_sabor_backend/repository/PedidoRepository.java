@@ -23,4 +23,29 @@ public interface PedidoRepository extends MasterRepository<Pedido, Long>, JpaSpe
 
     //Busqueda para pedidos por pedido y sucursal.
     Optional<Pedido> findByIdAndSucursalId(Long idPedido, Long idSucursal);
+
+
+    //busqueda para pedido grilla administrador:
+    @Query("""
+    SELECT p FROM Pedido p
+    WHERE (:idSucursal IS NULL OR p.sucursal.id = :idSucursal)
+    AND (:estado IS NULL OR p.estado = :estado)
+    AND (:clienteNombre IS NULL OR LOWER(p.cliente.nombre) LIKE LOWER(CONCAT('%', :clienteNombre, '%')))
+    AND (:idPedido IS NULL OR p.id = :idPedido)
+    AND (:idEmpleado IS NULL OR p.empleado.id = :idEmpleado)
+    AND (:fechaDesde IS NULL OR p.fechaPedido >= :fechaDesde)
+    AND (:fechaHasta IS NULL OR p.fechaPedido <= :fechaHasta)
+    AND (:pagado IS NULL OR p.pagado = :pagado)
+""")
+    Page<Pedido> buscarPedidosFiltrados(
+            @Param("idSucursal") Long idSucursal,
+            @Param("estado") Estado estado,
+            @Param("clienteNombre") String clienteNombre,
+            @Param("idPedido") Long idPedido,
+            @Param("idEmpleado") Long idEmpleado,
+            @Param("fechaDesde") LocalDateTime fechaDesde,
+            @Param("fechaHasta") LocalDateTime fechaHasta,
+            @Param("pagado") Boolean pagado,
+            Pageable pageable
+    );
 }

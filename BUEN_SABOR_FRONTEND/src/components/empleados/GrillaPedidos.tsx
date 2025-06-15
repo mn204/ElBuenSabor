@@ -14,13 +14,12 @@ import { useAuth } from "../../context/AuthContext";
 import { useSucursal } from "../../context/SucursalContextEmpleado.tsx";
 import { obtenerSucursales } from "../../services/SucursalService.ts";
 import type Sucursal from "../../models/Sucursal.ts";
-
 interface Props {
     cliente?: Cliente;
 }
 
 const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
-    const { sucursalActual } = useSucursal();
+    const { sucursalActual, sucursalIdSeleccionada } = useSucursal();
     const { empleado, usuario } = useAuth();
 
     const getColorEstado = (estado: Estado): string => {
@@ -55,32 +54,27 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
         desde: null as Date | null,
         hasta: null as Date | null,
         idPedido: undefined as number | undefined,
-        clienteNombre: ""
+        clienteNombre: "",
+        pagado: ""
     });
 
     const fetchPedidos = async () => {
-        // Para admin, usar sucursal del filtro o la actual; para otros, solo la actual
         const sucursalId = usuario?.rol === 'ADMINISTRADOR' && filtros.sucursalId
             ? parseInt(filtros.sucursalId)
-            : sucursalActual?.id;
-
-        if (!sucursalId) {
-            console.error("No hay sucursal seleccionada");
-            return;
-        }
+            : sucursalIdSeleccionada; // Ahora puede ser null para "todas las sucursales"
 
         try {
             setLoading(true);
             const filtrosConvertidos = {
                 estado: filtros.estado || undefined,
                 clienteNombre: cliente ? `${cliente.nombre} ${cliente.apellido}` : (filtros.clienteNombre || undefined),
-                idPedido: filtros.idPedido,
                 fechaDesde: filtros.desde ? filtros.desde.toISOString() : undefined,
-                fechaHasta: filtros.hasta ? filtros.hasta.toISOString() : undefined
+                fechaHasta: filtros.hasta ? filtros.hasta.toISOString() : undefined,
+                pagado: filtros.pagado === "" ? undefined : filtros.pagado === "true"
             };
 
             const result = await pedidoService.getPedidosFiltrados(
-                sucursalId,
+                sucursalId, // Ahora puede ser null
                 filtrosConvertidos,
                 page,
                 size
@@ -96,27 +90,28 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
     };
 
     useEffect(() => {
-    const fetchSucursales = async () => {
-        if (usuario?.rol === 'ADMINISTRADOR') {
-            try {
-                const sucursalesData = await obtenerSucursales();
-                setSucursales(sucursalesData);
-            } catch (error) {
-                console.error("Error al cargar sucursales:", error);
+        const fetchSucursales = async () => {
+            if (usuario?.rol === 'ADMINISTRADOR') {
+                try {
+                    const sucursalesData = await obtenerSucursales();
+                    setSucursales(sucursalesData);
+                } catch (error) {
+                    console.error("Error al cargar sucursales:", error);
+                }
             }
-        }
-    };
+        };
 
-    if (usuario) {
-        fetchSucursales();
-    }
-}, [usuario]);
+        if (usuario) {
+            fetchSucursales();
+        }
+    }, [usuario]);
 
     useEffect(() => {
-        if (sucursalActual?.id) {
+        // Los empleados regulares necesitan sucursal, los admin pueden ver todas
+        if (usuario?.rol === 'ADMINISTRADOR' || sucursalActual?.id) {
             fetchPedidos();
         }
-    }, [page, sucursalActual?.id, filtros.estado, filtros.desde, filtros.hasta, filtros.idPedido, filtros.clienteNombre, filtros.sucursalId]);
+    }, [page, sucursalIdSeleccionada, filtros.estado, filtros.desde, filtros.hasta, filtros.idPedido, filtros.clienteNombre, filtros.sucursalId, filtros.pagado]);
 
     const handleVerDetalle = async (pedidoId: number) => {
         try {
@@ -177,6 +172,22 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
         }
     };
 
+    const handleMarcarPagado = async (pedidoId: number) => {
+        try {
+            const pedidoActualizado = await pedidoService.marcarComoPagado(pedidoId);
+
+            // Actualizar el estado local con el objeto devuelto
+            setPedidos(prev =>
+                prev.map(p =>
+                    p.id === pedidoId ? { ...p, pagado: pedidoActualizado.pagado } : p
+                )
+            );
+        } catch (error) {
+            console.error("Error al marcar como pagado:", error);
+            alert("Error al marcar el pedido como pagado");
+        }
+    };
+
     const handleDescargarFactura = async (pedidoId: number) => {
         try {
             let clienteId;
@@ -212,7 +223,8 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
             desde: null,
             hasta: null,
             idPedido: undefined,
-            clienteNombre: ""
+            clienteNombre: "",
+            pagado: ""
         });
         setPage(0);
     };
@@ -303,6 +315,7 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
         { key: "fecha", label: "Fecha", render: (_: any, row: Pedido) => formatFechaConOffset(row.fechaPedido) },
         { key: "total", label: "Total", render: (_: any, row: Pedido) => `$${row.total.toFixed(2)}` },
         { key: "tipoPago", label: "Medio de Pago", render: (_: any, row: Pedido) => row.formaPago },
+        { key: "pagado", label: "Pagado", render: (_: any, row: Pedido) => row.pagado ? "SI" : "NO" },
         { key: "estado", label: "Estado", render: (_: any, row: Pedido) => row.estado },
 
         {
@@ -331,8 +344,11 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
                         </Button>
                     </div>
                     <div className="d-flex gap-2">
-                        <Button variant="outline-secondary" size="sm" onClick={() => handleDescargarFactura(row.id!)}>Factura</Button>
                         <Button variant="primary" size="sm" onClick={() => handleVerDetalle(row.id!)}>Detalle</Button>
+                        <Button variant="outline-secondary" size="sm" onClick={() => handleDescargarFactura(row.id!)}>Factura</Button>
+                        {!row.pagado && (
+                            <Button variant="success" size="sm" onClick={() => handleMarcarPagado(row.id!)}>Marcar Pagado</Button>
+                        )}
                     </div>
                 </div>
             )
@@ -406,30 +422,15 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
                             {!cliente && (
                                 <Col>
                                     <Form.Control
-                                        placeholder="Nombre del cliente"
+                                        placeholder="Cliente"
                                         value={filtros.clienteNombre}
                                         onChange={(e) => setFiltros({ ...filtros, clienteNombre: e.target.value })}
                                     />
                                 </Col>
                             )}
-                            {usuario?.rol === 'ADMINISTRADOR' && (
-                                <Col>
-                                    <Form.Select
-                                        value={filtros.sucursalId}
-                                        onChange={(e) => setFiltros({ ...filtros, sucursalId: e.target.value })}
-                                    >
-                                        <option value="">Todas las sucursales</option>
-                                        {sucursales.map((sucursal) => (
-                                            <option key={sucursal.id} value={sucursal.id}>
-                                                {sucursal.nombre}
-                                            </option>
-                                        ))}
-                                    </Form.Select>
-                                </Col>
-                            )}
                             <Col>
                                 <Form.Select value={filtros.estado} onChange={(e) => setFiltros({ ...filtros, estado: e.target.value })}>
-                                    <option value="">Todos los estados</option>
+                                    <option value="">Estados</option>
                                     {Object.values(Estado).map((est) => (
                                         <option key={est} value={est}>{est}</option>
                                     ))}
@@ -454,6 +455,13 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
                                     showTimeSelect
                                     dateFormat="Pp"
                                 />
+                            </Col>
+                            <Col>
+                                <Form.Select value={filtros.pagado} onChange={(e) => setFiltros({ ...filtros, pagado: e.target.value })}>
+                                    <option value="">Todos (pagado/no pagado)</option>
+                                    <option value="true">SI (Pagado)</option>
+                                    <option value="false">NO (No pagado)</option>
+                                </Form.Select>
                             </Col>
                             <Col>
                                 <Form.Control

@@ -31,6 +31,9 @@ public class PedidoSpecification {
     public static Specification<Pedido> empleadoIdEquals(Long empleadoId) {
         return (root, query, cb) -> empleadoId == null ? null : cb.equal(root.get("empleado").get("id"), empleadoId);
     }
+    public static Specification<Pedido> pagadoEquals(Boolean pagado) {
+        return (root, query, cb) -> pagado == null ? null : cb.equal(root.get("pagado"), pagado);
+    }
     public static Specification<Pedido> sucursalNombreContains(String sucursalNombre) {
         return (root, query, cb) -> {
             if (sucursalNombre == null || sucursalNombre.isBlank()) return null;

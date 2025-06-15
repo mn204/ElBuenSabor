@@ -17,15 +17,19 @@ public interface PedidoService extends MasterService<Pedido, Long> {
 
     //Esto es para los Pedidos filtrados
 
-    //Esto es para los Pedidos filtrados
+    //Esto es para los Pedidos filtrados para delivery y cocina
     Page<Pedido> buscarPedidosFiltrados(Long idSucursal,
                                         Estado estado,
                                         String nombreCliente,
                                         Long idPedido,
                                         Long idEmpleado, // <-- NUEVO PARÁMETRO
+                                        Boolean pagado,
                                         LocalDateTime fechaDesde,
                                         LocalDateTime fechaHasta,
                                         Pageable pageable);
+
+    //Cambiar pagado del pedido
+    Pedido marcarComoPagado(Long id);
 
     //Cambiar Estado del Pedido
     void cambiarEstadoPedido(Pedido pedido);
@@ -39,4 +43,7 @@ public interface PedidoService extends MasterService<Pedido, Long> {
 
     // Generacion de Excel para pedidos
     byte[] exportarPedidosAExcel(List<Pedido> pedidos);
+
+    //Grilla pedidos filtrados para Administrador y cajero
+
 }

@@ -72,11 +72,12 @@ public class PedidoController extends MasterControllerImpl<Pedido, PedidoDTO, Lo
             @RequestParam(required = false) String clienteNombre,
             @RequestParam(required = false) Long idPedido,
             @RequestParam(required = false) Long idEmpleado,
+            @RequestParam(required = false) Boolean pagado,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fechaDesde,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fechaHasta,
             Pageable pageable
     ) {
-        Page <Pedido> pedidos = pedidoService.buscarPedidosFiltrados(idSucursal, estado, clienteNombre, idPedido, idEmpleado, fechaDesde, fechaHasta, pageable);
+        Page <Pedido> pedidos = pedidoService.buscarPedidosFiltrados(idSucursal, estado, clienteNombre, idPedido, idEmpleado, pagado, fechaDesde, fechaHasta, pageable);
         Page<PedidoDTO> result = pedidos.map(pedidoMapper::toDTO);
 
         return ResponseEntity.ok(result);
@@ -103,6 +104,14 @@ public class PedidoController extends MasterControllerImpl<Pedido, PedidoDTO, Lo
                 .build());
 
         return new ResponseEntity<>(pdf, headers, HttpStatus.OK);
+    }
+
+    //cambiar pagado del pedido
+    @PutMapping("/{id}/pagar")
+    public ResponseEntity<PedidoDTO> pagarPedido(@PathVariable Long id) {
+        Pedido pedidoActualizado = pedidoService.marcarComoPagado(id);
+        PedidoDTO pedidoDTO = pedidoMapper.toDTO(pedidoActualizado);
+        return ResponseEntity.ok(pedidoDTO);
     }
 
     //Cambiar estado del pedido

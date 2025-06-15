@@ -40,7 +40,7 @@ class PedidoService {
             return false;
         }
     }
-    async getPedidoPorId(idPedido: number) : Promise<Pedido> {
+    async getPedidoPorId(idPedido: number): Promise<Pedido> {
         try {
             const res = await fetch(`${API_URL}/${idPedido}`);
             if (!res.ok) throw new Error("Error al obtener pedido");
@@ -89,7 +89,8 @@ class PedidoService {
             estado?: string;
             clienteNombre?: string;
             idPedido?: number;
-            idEmpleado?: number; // <-- Agregué idEmpleado
+            idEmpleado?: number;
+            pagado?: boolean;
             fechaDesde?: string; // Formato ISO, ej: '2025-06-13T00:00:00'
             fechaHasta?: string;
         },
@@ -106,7 +107,8 @@ class PedidoService {
         if (filtros.estado) params.append("estado", filtros.estado);
         if (filtros.clienteNombre) params.append("clienteNombre", filtros.clienteNombre);
         if (filtros.idPedido !== undefined) params.append("idPedido", filtros.idPedido.toString());
-        if (filtros.idEmpleado !== undefined) params.append("idEmpleado", filtros.idEmpleado.toString()); // <-- Nueva línea
+        if (filtros.idEmpleado !== undefined) params.append("idEmpleado", filtros.idEmpleado.toString());
+        if (filtros.pagado !== undefined) params.append("pagado", filtros.pagado.toString());
         if (filtros.fechaDesde) params.append("fechaDesde", filtros.fechaDesde);
         if (filtros.fechaHasta) params.append("fechaHasta", filtros.fechaHasta);
 
@@ -134,6 +136,22 @@ class PedidoService {
             const errorText = await response.text();
             throw new Error("Error al cambiar el estado del pedido: " + errorText);
         }
+    }
+
+    async marcarComoPagado(id: number): Promise<Pedido> {
+        const response = await fetch(`${API_URL}/${id}/pagar`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error("Error al marcar como pagado: " + errorText);
+        }
+
+        return await response.json();
     }
 
     async exportarPedidos(pedidosSeleccionados: Pedido[]): Promise<Blob> {
