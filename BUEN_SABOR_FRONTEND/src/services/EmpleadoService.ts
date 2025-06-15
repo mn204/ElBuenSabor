@@ -93,3 +93,50 @@ export const darDeAltaEmpleado = async (id: number): Promise<void> => {
         throw new Error("Error al dar de alta el empleado");
     }
 }
+
+// obtener empleados filtrados
+export const getEmpleadosFiltrados = async (
+    idSucursal: number | null,
+    filtros: {
+        busqueda?: string; // Cambiar de nombre y email separados a un solo campo búsqueda
+        rol?: string;
+        ordenar?: string;
+        eliminado?: boolean;
+    },
+    page: number = 0,
+    size: number = 10
+): Promise<{ content: Empleado[]; totalPages: number; totalElements: number; number: number; size: number }> => {
+    const params = new URLSearchParams();
+
+    // Solo agregar idSucursal si no es null
+    if (idSucursal !== null) {
+        params.append("idSucursal", idSucursal.toString());
+    }
+
+    // Cambio clave: enviar búsqueda como nombre (el backend ya busca en nombre, apellido y email)
+    if (filtros.busqueda) {
+        params.append("nombre", filtros.busqueda);
+    }
+
+    if (filtros.rol) {
+        params.append("rol", filtros.rol);
+    }
+
+    if (filtros.ordenar) {
+        params.append("ordenar", filtros.ordenar);
+    }
+
+    // Solo agregar eliminado si está definido (no es undefined)
+    if (filtros.eliminado !== undefined) {
+        params.append("eliminado", filtros.eliminado.toString());
+    }
+
+    params.append("page", page.toString());
+    params.append("size", size.toString());
+
+    const response = await fetch(`${API_URL}/filtrados?${params.toString()}`);
+    if (!response.ok) {
+        throw new Error("Error al obtener empleados filtrados");
+    }
+    return await response.json();
+};

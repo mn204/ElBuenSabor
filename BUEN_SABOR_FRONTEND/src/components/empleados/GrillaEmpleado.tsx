@@ -1,71 +1,116 @@
 import { useEffect, useState } from "react";
 import Empleado from "../../models/Empleado";
 import {
-    obtenerTodosLosEmpleados,
     eliminarEmpleado,
     darDeAltaEmpleado,
-    obtenerEmpleadoPorId
+    obtenerEmpleadoPorId,
+    getEmpleadosFiltrados // <-- Nuevo import
 } from "../../services/EmpleadoService";
 import { ReusableTable } from "../Tabla";
 import BotonVer from "../layout/BotonVer";
 import BotonEliminar from "../layout/BotonEliminar";
 import BotonAlta from "../layout/BotonAlta";
-import Form from "react-bootstrap/Form";
-import Button from "react-bootstrap/Button";
-import { Modal } from "react-bootstrap";
-import {darDeAltaUsuario, eliminarUsuario} from "../../services/UsuarioService.ts";
+import { Modal , Form, Button} from "react-bootstrap";
+import { darDeAltaUsuario, eliminarUsuario } from "../../services/UsuarioService.ts";
 import BotonModificar from "../layout/BotonModificar.tsx";
 import { useNavigate } from "react-router-dom";
-import Sucursal from "../../models/Sucursal"; // asegurate de tener este modelo
-import { obtenerSucursales } from "../../services/SucursalService"; // importá el servicio
+import Sucursal from "../../models/Sucursal";
+import { obtenerSucursales } from "../../services/SucursalService";
 import FormDatosEmpleado from "./FormDatosEmpleado";
+import { ChevronLeft, ChevronRight } from "react-bootstrap-icons"; // <-- Para iconos de paginación
 
 const GrillaEmpleado = () => {
     const [empleados, setEmpleados] = useState<Empleado[]>([]);
-    const [filteredEmpleados, setFilteredEmpleados] = useState<Empleado[]>([]);
     const [search, setSearch] = useState("");
     const [estado, setEstado] = useState("todos");
     const [rolFiltro, setRolFiltro] = useState("todos");
     const [ordenAsc, setOrdenAsc] = useState(true);
+    const [sucursalFiltro, setSucursalFiltro] = useState("todas");
+
+    // Estados para paginación
+    const [page, setPage] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
+    const [loading, setLoading] = useState(false);
+    const size = 10; // Tamaño de página fijo
+
     const navigate = useNavigate();
     const [empleadoSeleccionado, setEmpleadoSeleccionado] = useState<Empleado | null>(null);
     const [showModal, setShowModal] = useState(false);
     const [showEditar, setShowEditar] = useState(false);
     const [sucursales, setSucursales] = useState<Sucursal[]>([]);
-    const [sucursalFiltro, setSucursalFiltro] = useState("todas");
-
 
     useEffect(() => {
-        cargarEmpleados();
-    }, []);
-
-    useEffect(() => {
-        const cargarSucursales = async () => {
-            try {
-                const data = await obtenerSucursales();
-                setSucursales(data);
-            } catch (error) {
-                console.error("Error al cargar sucursales", error);
-            }
-        };
-
         cargarSucursales();
     }, []);
 
+    // Cargar empleados cuando cambien los filtros o la página
     useEffect(() => {
-        filtrarEmpleados();
-    }, [empleados, search, estado, rolFiltro, ordenAsc, sucursalFiltro]);
+        cargarEmpleados();
+    }, [search, estado, rolFiltro, ordenAsc, sucursalFiltro, page]);
 
-
-    const cargarEmpleados = async () => {
+    const cargarSucursales = async () => {
         try {
-            const data = await obtenerTodosLosEmpleados();
-            setEmpleados(data);
+            const data = await obtenerSucursales();
+            setSucursales(data);
         } catch (error) {
-            alert("Error al cargar empleados");
+            console.error("Error al cargar sucursales", error);
         }
     };
 
+    const cargarEmpleados = async () => {
+        try {
+            setLoading(true);
+
+            // Preparar sucursalId
+            let sucursalId: number | null = null;
+            if (sucursalFiltro !== "todas") {
+                sucursalId = parseInt(sucursalFiltro);
+            }
+
+            // Preparar filtros
+            const filtros: {
+                busqueda?: string;
+                rol?: string;
+                ordenar?: string;
+                eliminado?: boolean;
+            } = {};
+
+            // Búsqueda unificada (nombre, apellido o email)
+            if (search.trim() !== "") {
+                filtros.busqueda = search.trim();
+            }
+
+            if (rolFiltro !== "todos") {
+                filtros.rol = rolFiltro;
+            }
+
+            // Manejar correctamente el filtro de estado
+            if (estado === "activos") {
+                filtros.eliminado = false;
+            } else if (estado === "inactivos") {
+                filtros.eliminado = true;
+            }
+            // Si estado === "todos", no asignamos filtros.eliminado (queda undefined)
+
+            // Configurar ordenamiento
+            filtros.ordenar = ordenAsc ? "asc" : "desc";
+
+            const result = await getEmpleadosFiltrados(
+                sucursalId,
+                filtros,
+                page,
+                size
+            );
+
+            setEmpleados(result.content);
+            setTotalPages(result.totalPages);
+        } catch (error) {
+            console.error("Error al cargar empleados:", error);
+            alert("Error al cargar empleados");
+        } finally {
+            setLoading(false);
+        }
+    };
     const handleCloseModal = () => {
         setShowModal(false);
         setEmpleadoSeleccionado(null);
@@ -81,43 +126,11 @@ const GrillaEmpleado = () => {
         }
     };
 
-    const filtrarEmpleados = () => {
-        let filtrados = [...empleados];
-
-        if (estado !== "todos") {
-            const eliminado = estado === "inactivos";
-            filtrados = filtrados.filter(e => e.eliminado === eliminado);
-        }
-
-        if (rolFiltro !== "todos") {
-            filtrados = filtrados.filter(e => e.usuario.rol === rolFiltro);
-        }
-
-        if (search.trim() !== "") {
-            const texto = search.toLowerCase();
-            filtrados = filtrados.filter(e =>
-                `${e.nombre} ${e.apellido}`.toLowerCase().includes(texto) ||
-                e.usuario?.email?.toLowerCase().includes(texto) ||
-                e.usuario?.rol?.toLowerCase().includes(texto)
-            );
-        }
-        if (sucursalFiltro !== "todas") {
-            filtrados = filtrados.filter(e => e.sucursal?.id?.toString() === sucursalFiltro);
-        }
-        filtrados.sort((a, b) => {
-            const nombreA = `${a.nombre} ${a.apellido}`.toLowerCase();
-            const nombreB = `${b.nombre} ${b.apellido}`.toLowerCase();
-            return ordenAsc ? nombreA.localeCompare(nombreB) : nombreB.localeCompare(nombreA);
-        });
-
-        setFilteredEmpleados(filtrados);
-    };
-
     const handleEliminar = async (id: number, idUsuario: number) => {
         if (!window.confirm("¿Seguro que desea eliminar este empleado?")) return;
         try {
             await eliminarEmpleado(id);
-            await eliminarUsuario(idUsuario)
+            await eliminarUsuario(idUsuario);
             await cargarEmpleados();
             alert("Empleado eliminado correctamente");
         } catch (error) {
@@ -135,6 +148,12 @@ const GrillaEmpleado = () => {
         } catch (error) {
             alert("Error al dar de alta el empleado");
         }
+    };
+
+    // Resetear página cuando cambien los filtros
+    const handleFiltroChange = (callback: () => void) => {
+        setPage(0);
+        callback();
     };
 
     const columns = [
@@ -166,7 +185,7 @@ const GrillaEmpleado = () => {
         {
             key: "sucursal",
             label: "Sucursal",
-            render: (_: any, row: Empleado) => row.sucursal?.nombre,
+            render: (_: any, row: Empleado) => row.sucursal?.nombre || "Sin asignar",
         },
         {
             key: "estado",
@@ -185,7 +204,7 @@ const GrillaEmpleado = () => {
                     }} />
 
                     {!row.eliminado ? (
-                        <BotonEliminar onClick={() => handleEliminar(row.id! , row.usuario.id)} />
+                        <BotonEliminar onClick={() => handleEliminar(row.id!, row.usuario.id)} />
                     ) : (
                         <BotonAlta onClick={() => handleAlta(row.id!, row.usuario.id)} />
                     )}
@@ -206,18 +225,24 @@ const GrillaEmpleado = () => {
             <div className="d-flex gap-3 mb-2 align-items-start">
                 <Form.Control
                     type="text"
-                    placeholder="Buscar por nombre, email o rol"
+                    placeholder="Buscar por nombre o email"
                     value={search}
-                    onChange={(e) => setSearch(e.target.value)}
+                    onChange={(e) => handleFiltroChange(() => setSearch(e.target.value))}
                 />
 
-                <Form.Select value={estado} onChange={(e) => setEstado(e.target.value)}>
+                <Form.Select
+                    value={estado}
+                    onChange={(e) => handleFiltroChange(() => setEstado(e.target.value))}
+                >
                     <option value="todos">Todos</option>
                     <option value="activos">Activos</option>
                     <option value="inactivos">Inactivos</option>
                 </Form.Select>
 
-                <Form.Select value={rolFiltro} onChange={(e) => setRolFiltro(e.target.value)}>
+                <Form.Select
+                    value={rolFiltro}
+                    onChange={(e) => handleFiltroChange(() => setRolFiltro(e.target.value))}
+                >
                     <option value="todos">Todos los roles</option>
                     <option value="ADMINISTRADOR">Administrador</option>
                     <option value="COCINERO">Cocinero</option>
@@ -225,18 +250,66 @@ const GrillaEmpleado = () => {
                     <option value="DELIVERY">Delivery</option>
                 </Form.Select>
 
-                <Form.Select value={sucursalFiltro} onChange={(e) => setSucursalFiltro(e.target.value)}>
+                <Form.Select
+                    value={sucursalFiltro}
+                    onChange={(e) => handleFiltroChange(() => setSucursalFiltro(e.target.value))}
+                >
                     <option value="todas">Todas las sucursales</option>
                     {sucursales.map(s => (
                         <option key={s.id} value={s.id}>{s.nombre}</option>
                     ))}
                 </Form.Select>
 
-                <Button variant="outline-secondary" onClick={() => setOrdenAsc(!ordenAsc)}>
+                <Button
+                    variant="outline-secondary"
+                    onClick={() => handleFiltroChange(() => setOrdenAsc(!ordenAsc))}
+                >
                     Orden: {ordenAsc ? "A-Z" : "Z-A"}
                 </Button>
             </div>
 
+            {loading ? (
+                <div className="text-center">
+                    <p>Cargando empleados...</p>
+                </div>
+            ) : (
+                <>
+                    <ReusableTable data={empleados} columns={columns} />
+
+                    {/* Paginación */}
+                    <div className="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
+                        <div className="text-muted">
+                            Mostrando {empleados.length} empleados
+                            {(search || estado !== "todos" || rolFiltro !== "todos" || sucursalFiltro !== "todas") && (
+                                <span> (con filtros aplicados)</span>
+                            )}
+                        </div>
+                        <div className="d-flex align-items-center gap-2">
+                            <Button
+                                variant="outline-secondary"
+                                size="sm"
+                                disabled={page === 0}
+                                onClick={() => setPage(page - 1)}
+                            >
+                                <ChevronLeft />
+                            </Button>
+                            <span className="px-2">
+                                Página {page + 1} de {totalPages || 1}
+                            </span>
+                            <Button
+                                variant="outline-secondary"
+                                size="sm"
+                                disabled={page >= totalPages - 1}
+                                onClick={() => setPage(page + 1)}
+                            >
+                                <ChevronRight />
+                            </Button>
+                        </div>
+                    </div>
+                </>
+            )}
+
+            {/* Modal Ver Empleado */}
             <Modal show={showModal} onHide={handleCloseModal} centered size="lg">
                 <Modal.Header closeButton>
                     <Modal.Title>Empleado # {empleadoSeleccionado?.id}</Modal.Title>
@@ -260,7 +333,7 @@ const GrillaEmpleado = () => {
                                 <p><b>Teléfono:</b> {empleadoSeleccionado.telefono}</p>
                                 <p><b>Email:</b> {empleadoSeleccionado.usuario.email}</p>
                                 <p><b>Rol:</b> {empleadoSeleccionado.usuario.rol}</p>
-                                <p><b>Sucursal:</b> {empleadoSeleccionado.sucursal?.nombre}</p>
+                                <p><b>Sucursal:</b> {empleadoSeleccionado.sucursal?.nombre || "Sin asignar"}</p>
                                 <p><b>Proveedor:</b> Contraseña</p>
                                 <p><b>Fecha Nacimiento:</b> {empleadoSeleccionado.fechaNacimiento.split('-').reverse().join('/')}</p>
                                 <p><b>Domicilio:</b> <b>{empleadoSeleccionado.domicilio.detalles || "Sin referencia"}:</b>{" "}
@@ -279,23 +352,20 @@ const GrillaEmpleado = () => {
                 </Modal.Footer>
             </Modal>
 
+            {/* Modal Editar Empleado */}
             {empleadoSeleccionado && (
                 <FormDatosEmpleado
                     show={showEditar}
                     onHide={() => setShowEditar(false)}
                     empleado={empleadoSeleccionado}
-                    editableAdmin={true} // <--- ACÁ
+                    editableAdmin={true}
                     onEmpleadoActualizado={(empleadoActualizado) => {
-                        setEmpleados(prev =>
-                            prev.map(e => e.id === empleadoActualizado.id ? empleadoActualizado : e)
-                        );
+                        // Recargar la grilla para reflejar los cambios
+                        cargarEmpleados();
                         setShowEditar(false);
                     }}
                 />
             )}
-
-
-            <ReusableTable data={filteredEmpleados} columns={columns} />
         </div>
     );
 };

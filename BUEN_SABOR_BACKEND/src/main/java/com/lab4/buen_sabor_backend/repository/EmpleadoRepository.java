@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface EmpleadoRepository extends MasterRepository<Empleado, Long> {
+public interface EmpleadoRepository extends MasterRepository<Empleado, Long>,JpaSpecificationExecutor<Empleado> {
     Optional<Empleado> findByUsuarioId(Long usuarioId);
 
 /*
