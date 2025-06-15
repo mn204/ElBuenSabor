@@ -26,7 +26,7 @@ public class ArticuloInsumoServiceImpl extends MasterServiceImpl<ArticuloInsumo,
         super(articuloInsumoRepository);
         this.articuloInsumoRepository = articuloInsumoRepository;
     }
-
+/*
     //Busqueda de Stock bajo
     @Override
     public List<ArticuloInsumo> obtenerConStockBajo(Long idSucursal) {
@@ -39,14 +39,15 @@ public class ArticuloInsumoServiceImpl extends MasterServiceImpl<ArticuloInsumo,
         return articuloInsumoRepository.findArticulosConStockBajoTodasSucursales();
     }
 
-
+*/
+/*
     @Override
     @Transactional
     public Optional<ArticuloInsumo> obtenerRecetaCompleta(Long id) {
         logger.info("Obteniendo receta completa para ArticuloInsumo con id: {}", id);
         return articuloInsumoRepository.obtenerRecetaCompleta(id);
     }
-
+    */
     @Override
     @Transactional
     public Optional<ArticuloInsumo> findByDenominacion(String denominacion) {
@@ -74,6 +75,7 @@ public class ArticuloInsumoServiceImpl extends MasterServiceImpl<ArticuloInsumo,
         logger.info("Obteniendo todos los ArticuloInsumo que son para elaborar");
         return articuloInsumoRepository.findAllEsParaElaborar();
     }
+    /*
 
     @Override
     @Transactional
@@ -81,6 +83,7 @@ public class ArticuloInsumoServiceImpl extends MasterServiceImpl<ArticuloInsumo,
         logger.info("Consultando stock de todos los insumos");
         return articuloInsumoRepository.consultarStockInsumos();
     }
+    */
     /*
     @Override
     @Transactional
@@ -107,18 +110,18 @@ public class ArticuloInsumoServiceImpl extends MasterServiceImpl<ArticuloInsumo,
     @Transactional
     public List<ArticuloInsumo> findAllActivosOrdenados() {
         logger.info("Obteniendo todos los ArticuloInsumo activos ordenados");
-        // Implementación simple - podrías agregar el método al repository si lo necesitas
+        // Implementación simple - podrías agregar el métodos al repository si lo necesitas
         return articuloInsumoRepository.findAllByEliminadoFalse()
                 .stream()
                 .sorted((a1, a2) -> a1.getDenominacion().compareToIgnoreCase(a2.getDenominacion()))
                 .toList();
     }
-
+/*
     @Override
     public List<ArticuloInsumo> findArticuloInsumoStockActualGratherThanAndEsParaElaborarFalse(int stock) {
         return articuloInsumoRepository.findArticuloInsumoBySucursalInsumo_StockActualGreaterThanAndEsParaElaborarFalse(stock);
     }
-
+*/
     @Override
     @Transactional
     public ArticuloInsumo save(ArticuloInsumo entity) {

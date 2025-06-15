@@ -35,15 +35,18 @@ public interface PedidoService extends MasterService<Pedido, Long> {
     void cambiarEstadoPedido(Pedido pedido);
 
     Optional<Pedido> findByIdAndCliente(Long idPedido, Long clienteId);
+    void actualizarEstadoPorPago(Long pedidoId, boolean estado);
 
     //byte[] generarFacturaPDF(Long pedidoId, Long clienteId);
     byte[] generarFacturaPDF(Long pedidoId, Long clienteId);
 
-    boolean verificarYDescontarStockPedido(Pedido pedido);
+    void verificarYDescontarStockPedido(Pedido pedido);
 
     // Generacion de Excel para pedidos
     byte[] exportarPedidosAExcel(List<Pedido> pedidos);
 
     //Grilla pedidos filtrados para Administrador y cajero
 
+    boolean verificarStockPedido(Pedido pedido);
+    Pedido findFirstByClienteIdOrderByIdDesc(Long clienteId);
 }

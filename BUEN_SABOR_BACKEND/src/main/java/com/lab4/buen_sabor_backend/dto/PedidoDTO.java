@@ -28,4 +28,5 @@ public class PedidoDTO extends MasterDTO {
     private DomicilioDTO domicilio;
     private FacturaDTO factura;
     private List<DetallePedidoDTO> detalles = new ArrayList<>();
+    private boolean pagado;
 }

@@ -11,4 +11,5 @@ public class CategoriaDTO extends MasterDTO {
     private String denominacion;
     private CategoriaDTO categoriaPadre;
     private boolean eliminado;
+    private String urlImagen;
 }

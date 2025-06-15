@@ -34,16 +34,4 @@ public class Sucursal extends Master {
 
     @ManyToMany(mappedBy = "sucursales")
     private Set<Promocion> promociones = new HashSet<>();
-
-    @OneToMany(mappedBy = "sucursal", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<SucursalInsumo> insumos = new HashSet<>();
-
-    @ManyToMany
-    @JoinTable(
-            name = "sucursal_categoria",
-            joinColumns = @JoinColumn(name = "sucursal_id"),
-            inverseJoinColumns = @JoinColumn(name = "categoria_id")
-    )
-    private Set<Categoria> categorias = new HashSet<>();
-
 }

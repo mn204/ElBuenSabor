@@ -8,8 +8,12 @@ import com.lab4.buen_sabor_backend.service.EmpleadoService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @RestController
 @RequestMapping("/api/empleado")
@@ -44,6 +48,36 @@ public class EmpleadoController extends MasterControllerImpl<Empleado, EmpleadoD
         return empleadoService.findByUsuarioId(usuarioId)
                 .map(empleado -> ResponseEntity.ok(empleadoMapper.toDTO(empleado)))
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/filtrados")
+    public ResponseEntity<Page<EmpleadoDTO>> obtenerEmpleadosFiltrados(
+            @RequestParam(required = false) String nombre,
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) String rol,
+            @RequestParam(required = false) Long idSucursal,
+            @RequestParam(required = false) String ordenar, // "asc" o "desc"
+            @RequestParam(required = false) Boolean eliminado, // QUITAR defaultValue
+            Pageable pageable
+    ) {
+        // Si se especifica ordenamiento, creamos un Sort personalizado
+        Sort sort = Sort.unsorted();
+        if (ordenar != null) {
+            if ("desc".equalsIgnoreCase(ordenar) || "z-a".equalsIgnoreCase(ordenar)) {
+                sort = Sort.by(Sort.Direction.DESC, "nombre");
+            } else if ("asc".equalsIgnoreCase(ordenar) || "a-z".equalsIgnoreCase(ordenar)) {
+                sort = Sort.by(Sort.Direction.ASC, "nombre");
+            }
+            // Crear nuevo Pageable con el ordenamiento
+            pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+        }
+
+        Page<Empleado> empleados = empleadoService.buscarEmpleadosFiltrados(
+                nombre, email, rol, idSucursal, eliminado, pageable
+        );
+        Page<EmpleadoDTO> result = empleados.map(empleadoMapper::toDTO);
+
+        return ResponseEntity.ok(result);
     }
 
 }

@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import type Categoria from "../../models/Categoria";
+import type Categoria from "../../../models/Categoria";
 import { useSearchParams } from "react-router-dom";
-import categoriaService from "../../services/CategoriaService";
+import categoriaService from "../../../services/CategoriaService";
 import { Button } from "react-bootstrap";
-import "../../styles/Categoria.css";
+import "../../../styles/Categoria.css";
 
 function FormCategoria() {
     const [denominacion, setDenominacion] = useState("");

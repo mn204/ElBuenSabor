@@ -14,6 +14,37 @@ class ArticuloInsumoService {
         }
     }
 
+    async getAllParaElaborar(): Promise<ArticuloInsumo[]> {
+        try {
+            const res = await fetch(`${API_URL}/para-elaborar`);
+            if (!res.ok) throw new Error("Error al obtener insumos");
+            return await res.json();
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
+
+    async getAllPaginated(params: URLSearchParams): Promise<{
+        content: ArticuloInsumo[];
+        pageable: {
+            pageNumber: number;
+            pageSize: number;
+        };
+        totalPages: number;
+        totalElements: number;
+        first: boolean;
+        last: boolean;
+        size: number;
+        number: number;
+    }> {
+        const response = await fetch(`${API_URL}/page?${params.toString()}`);
+        if (!response.ok) {
+            throw new Error('Error al obtener los insumos paginados');
+        }
+        return response.json();
+    }
+
     async delete(id: number): Promise<void> {
         try {
             const res = await fetch(`${API_URL}/${id}`, {

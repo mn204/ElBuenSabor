@@ -99,11 +99,8 @@ const PedidoCliente: React.FC = () => {
     };
 
     return (
-        <div className="d-flex justify-content-center min-vh-100 bg-light">
-            <div className="container-fluid" style={{ maxWidth: "1200px" }}>
-                <div className="mt-4 mx-3">
-                    <h2 className="text-center fw-bold mb-4 perfilTitle">Mis Pedidos</h2>
-
+        <div className="container mt-4 m-4 d-flex flex-column justify-content-center m-auto">
+            <h2 className="text-center fw-bold mb-4 perfilTitle">Mis Pedidos</h2>
                     {/* Filtros responsive */}
                     <Form className="mb-3">
                         <Row className="g-2">
@@ -236,9 +233,7 @@ const PedidoCliente: React.FC = () => {
                     {detallePedido && (
                         <PedidoDetalleModal show={showModal} onHide={() => setShowModal(false)} pedido={detallePedido} />
                     )}
-                </div>
             </div>
-        </div>
     );
 };
 

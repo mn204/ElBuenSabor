@@ -7,7 +7,11 @@ import com.lab4.buen_sabor_backend.repository.ClienteRepository;
 import com.lab4.buen_sabor_backend.repository.DomicilioRepository;
 import com.lab4.buen_sabor_backend.repository.MasterRepository;
 import com.lab4.buen_sabor_backend.service.ClienteService;
+import com.lab4.buen_sabor_backend.service.impl.specification.ClienteSpecification;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,6 +57,21 @@ public class ClienteServiceImpl extends MasterServiceImpl<Cliente, Long> impleme
         } catch (Exception e) {
             throw new RuntimeException("Error al desasociar domicilio del cliente", e);
         }
+    }
+
+    @Override
+    public Page<Cliente> buscarClientesFiltrados(
+            String busqueda, // Busca en nombre, apellido y email
+            String email,    // Parámetro adicional para email específico (opcional)
+            Boolean eliminado,
+            Pageable pageable
+    ) {
+        Specification<Cliente> spec = Specification
+                .where(ClienteSpecification.nombreContains(busqueda)) // Busca en nombre, apellido y email
+                .and(ClienteSpecification.emailContains(email)) // Filtro específico por email si se proporciona
+                .and(ClienteSpecification.eliminadoEquals(eliminado));
+
+        return clienteRepository.findAll(spec, pageable);
     }
 
 }

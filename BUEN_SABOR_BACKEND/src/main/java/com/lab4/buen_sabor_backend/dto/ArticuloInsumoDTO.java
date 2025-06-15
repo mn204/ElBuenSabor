@@ -9,5 +9,4 @@ import lombok.*;
 public class ArticuloInsumoDTO extends ArticuloDTO {
     private Double precioCompra;
     private Boolean esParaElaborar;
-    private SucursalInsumoDTO sucursalInsumo;
 }

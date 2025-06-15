@@ -2,8 +2,10 @@ package com.lab4.buen_sabor_backend.controller;
 
 import com.lab4.buen_sabor_backend.dto.PedidoDTO;
 import com.lab4.buen_sabor_backend.mapper.PedidoMapper;
+import com.lab4.buen_sabor_backend.model.MercadoPago.PreferenceMP;
 import com.lab4.buen_sabor_backend.model.Pedido;
 import com.lab4.buen_sabor_backend.model.enums.Estado;
+import com.lab4.buen_sabor_backend.service.MercadoPago.MercadoPagoService;
 import com.lab4.buen_sabor_backend.service.PedidoService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,12 +30,14 @@ public class PedidoController extends MasterControllerImpl<Pedido, PedidoDTO, Lo
     private static final Logger logger = LoggerFactory.getLogger(PedidoController.class);
     private final PedidoService pedidoService;
     private final PedidoMapper pedidoMapper;
+    private final MercadoPagoService mercadoPagoService;
 
     @Autowired
-    public PedidoController(PedidoService pedidoService, PedidoMapper pedidoMapper) {
+    public PedidoController(PedidoService pedidoService, PedidoMapper pedidoMapper, MercadoPagoService mercadoPagoService) {
         super(pedidoService);
         this.pedidoService = pedidoService;
         this.pedidoMapper = pedidoMapper;
+        this.mercadoPagoService = mercadoPagoService;
     }
 
     @Override
@@ -91,6 +95,12 @@ public class PedidoController extends MasterControllerImpl<Pedido, PedidoDTO, Lo
         return ResponseEntity.ok(pedidoMapper.toDTO(pedido));
     }
 
+    @GetMapping("/ultimo/cliente/{id}")
+    public ResponseEntity<PedidoDTO> getLastPedidoCliente(@PathVariable Long id) {
+        Pedido pedido = pedidoService.findFirstByClienteIdOrderByIdDesc(id);
+        return ResponseEntity.ok(pedidoMapper.toDTO(pedido));
+    }
+
     // GET para obtener el PDF de un pedido del cliente
     @GetMapping("/cliente/{clienteId}/pedido/{id}/factura")
     public ResponseEntity<byte[]> getFacturaPdf(@PathVariable Long clienteId, @PathVariable Long id) {
@@ -124,12 +134,28 @@ public class PedidoController extends MasterControllerImpl<Pedido, PedidoDTO, Lo
     @PostMapping("/verificar-y-procesar")
     public ResponseEntity<?> verificarYProcesar(@RequestBody Pedido pedido) {
         try {
-            boolean resultado = pedidoService.verificarYDescontarStockPedido(pedido);
+            pedidoService.verificarYDescontarStockPedido(pedido);
+            return ResponseEntity.ok(true); // Devuelve true si todo salió bien
+        } catch (Exception e) {
+            logger.error("Error en controlador: " + e.getMessage(), e);
+            return ResponseEntity.ok(false); // Devuelve false en caso de error
+        }
+    }
+
+    @PostMapping("/verificar-stock")
+    public ResponseEntity<?> verificarStockPedido(@RequestBody Pedido pedido) {
+        try {
+            boolean resultado = pedidoService.verificarStockPedido(pedido);
             return ResponseEntity.ok(resultado);
         } catch (Exception e) {
             logger.error("Error en controlador: ", e);
             return ResponseEntity.ok(false); // Devuelve false en caso de error
         }
+    }
+
+    @PostMapping("/create_preference_mp")
+    public PreferenceMP crearPreferenciaMercadoPago(@RequestBody Pedido pedido) {
+        return mercadoPagoService.getPreferenciaIdMercadoPago(pedido);
     }
 
     @PostMapping("/excel")

@@ -25,7 +25,6 @@ public class Categoria extends Master {
     @OneToMany(mappedBy = "categoria", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Articulo> articulos = new HashSet<>();
 
-    @ManyToMany(mappedBy = "categorias")
-    private Set<Sucursal> sucursales = new HashSet<>();
+    private String urlImagen;
 }
 

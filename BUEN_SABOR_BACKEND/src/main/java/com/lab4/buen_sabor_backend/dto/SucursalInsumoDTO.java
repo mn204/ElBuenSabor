@@ -13,4 +13,5 @@ public class SucursalInsumoDTO extends MasterDTO {
     private Double stockActual;
     private Double stockMaximo;
     private SucursalDTO sucursal;
+    private ArticuloInsumoDTO insumo;
 }

@@ -7,6 +7,7 @@ import BotonVer from "../layout/BotonVer";
 import BotonEliminar from "../layout/BotonEliminar";
 import BotonModificar from "../layout/BotonModificar";
 import BotonAlta from "../layout/BotonAlta";
+import { Link } from "react-router-dom";
 
 function GrillaCategorias() {
   const [categorias, setCategorias] = useState<Categoria[]>([]);
@@ -56,7 +57,7 @@ function GrillaCategorias() {
   };
 
   const handleActualizar = (cat: Categoria) => {
-    window.location.href = `/categoria?id=${cat.id}`;
+    window.location.href = `/FormularioCategoria?id=${cat.id}`;
   };
 
   const handleVer = (cat: Categoria) => {
@@ -96,8 +97,11 @@ function GrillaCategorias() {
   if (error) return <div>{error}</div>;
 
   return (
-    <div>
-      <h2>Categorías</h2>
+    <div className="position-relative">
+      <h2 className="mb-4">Categorías</h2>
+      <Link to="/FormularioCategoria" className="btn border-success position-absolute" style={{right: 0, top: 0}}>
+        Crear Categoria
+      </Link>
       <ul style={{ listStyleType: "none", paddingLeft: 0 }}>
         {categoriasArbol.map(cat => (
           <CategoriaNodoUI

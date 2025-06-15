@@ -25,6 +25,43 @@ export const obtenerTodosLosClientes = async (): Promise<Cliente[]> => {
     return await response.json();
 };
 
+// obtener clientes filtrados
+export const getClientesFiltrados = async (
+    filtros: {
+        busqueda?: string; // Busca en nombre, apellido y email
+        email?: string;    // Parámetro adicional para email específico
+        ordenar?: string;
+        eliminado?: boolean;
+    },
+    page: number = 0,
+    size: number = 10
+): Promise<{ content: Cliente[]; totalPages: number; totalElements: number; number: number; size: number }> => {
+    const params = new URLSearchParams();
+
+    if (filtros.busqueda) {
+        params.append("busqueda", filtros.busqueda);
+    }
+    if (filtros.email) {
+        params.append("email", filtros.email);
+    }
+    if (filtros.ordenar) {
+        params.append("ordenar", filtros.ordenar);
+    }
+    // Solo agregar eliminado si está definido (no es undefined)
+    if (filtros.eliminado !== undefined) {
+        params.append("eliminado", filtros.eliminado.toString());
+    }
+
+    params.append("page", page.toString());
+    params.append("size", size.toString());
+
+    const response = await fetch(`${API_URL}/filtrados?${params.toString()}`);
+    if (!response.ok) {
+        throw new Error("Error al obtener clientes filtrados");
+    }
+    return await response.json();
+};
+
 // Obtener solo clientes que no están eliminados
 export const obtenerClientesNoEliminados = async (): Promise<Cliente[]> => {
     const response = await fetch(`${API_URL}/noEliminado`);

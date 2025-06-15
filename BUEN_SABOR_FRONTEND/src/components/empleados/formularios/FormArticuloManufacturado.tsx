@@ -1,21 +1,21 @@
 import { useState } from "react";
-import ArticuloManufacturadoService from "../../services/ArticuloManufacturadoService";
-import ArticuloInsumo from "../../models/ArticuloInsumo";
-import Categoria from "../../models/Categoria";
-import DetalleArticuloManufacturado from "../../models/DetalleArticuloManufacturado";
-import ArticuloManufacturado from "../../models/ArticuloManufacturado";
-import UnidadMedida from "../../models/UnidadMedida";
-import ModalAgregarInsumo from "./ModalAgregarInsumo";
-import DetalleInsumosTable from "./DetalleInsumosTable";
+import ArticuloManufacturadoService from "../../../services/ArticuloManufacturadoService.ts";
+import ArticuloInsumo from "../../../models/ArticuloInsumo.ts";
+import Categoria from "../../../models/Categoria.ts";
+import DetalleArticuloManufacturado from "../../../models/DetalleArticuloManufacturado.ts";
+import ArticuloManufacturado from "../../../models/ArticuloManufacturado.ts";
+import UnidadMedida from "../../../models/UnidadMedida.ts";
+import ModalAgregarInsumo from "../../articulos/ModalAgregarInsumo.tsx";
+import DetalleInsumosTable from "../../articulos/DetalleInsumosTable.tsx";
 import FormArticuloFields from "./FormArticuloFields";
-import "../../styles/ArticuloManufacturado.css";
+import "../../../styles/ArticuloManufacturado.css";
 import Button from "react-bootstrap/Button";
-import { useManufacturado } from "../../hooks/useManufactuado.ts";
-import { useCargaDatosIniciales } from "../../hooks/useCargarDatosIinicales.ts";
-import { useModal } from "../../hooks/useModal.ts";
-import ImagenArticulo from "../../models/ImagenArticulo.ts";
-import TipoArticulo from "../../models/enums/TipoArticulo.ts";
-import { subirACloudinary } from "../../funciones/funciones.tsx";
+import { useManufacturado } from "../../../hooks/useManufactuado.ts";
+import { useCargaDatosIniciales } from "../../../hooks/useCargarDatosIinicales.ts";
+import { useModal } from "../../../hooks/useModal.ts";
+import ImagenArticulo from "../../../models/ImagenArticulo.ts";
+import TipoArticulo from "../../../models/enums/TipoArticulo.ts";
+import { subirACloudinary } from "../../../funciones/funciones.tsx";
 
 function FormArticuloManufacturado() {
   const {
@@ -161,7 +161,7 @@ const guardarOModificar = async () => {
   try {
     const manufacturado = await buildManufacturado();
     if (!manufacturado) return;
-
+    console.log(manufacturado.detalles)
     manufacturado.precioVenta = totalConGanancia;
     manufacturado.eliminado = eliminado;
     manufacturado.tipoArticulo = TipoArticulo.ArticuloManufacturado;
@@ -173,7 +173,6 @@ const guardarOModificar = async () => {
       alert("Artículo manufacturado guardado correctamente");
     }
     limpiarFormulario();
-    console.log("Manufacturado creado:", manufacturado);
     window.location.href = "/empleado/productos";
   } catch (error) {
     console.error(error);

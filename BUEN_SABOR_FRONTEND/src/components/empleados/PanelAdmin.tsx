@@ -8,6 +8,9 @@ import Cocina from '../../assets/svgAdmin/cocina.svg';
 import Delivery from '../../assets/svgAdmin/delivery.svg';
 import Facturacion from '../../assets/svgAdmin/facturacion.svg';
 import Productos from '../../assets/svgAdmin/productos.svg';
+import Insumos from '../../assets/svgAdmin/insumos.svg';
+import Categorias from '../../assets/svgAdmin/categorias.svg';
+import Stock from '../../assets/svgAdmin/stock.svg';
 import Estadisticas from '../../assets/svgAdmin/estadisticas.svg';
 import Usuario from '../../assets/svgAdmin/usuario-black.svg';
 import GrillaArticuloManufacturado from "../articulos/GrillaArticuloManufacturado.tsx";
@@ -20,10 +23,13 @@ import { useSucursal } from "../../context/SucursalContextEmpleado.tsx";
 
 import {useLocation} from "react-router-dom";
 import {useNavigate} from "react-router-dom";
-import GrillaCategorias from '../articulos/GrillaCategorias.tsx';
+import GrillaCategorias from './GrillaCategorias.tsx';
 import DashboardSection from './DashboardSection';
 import GrillaDelivery from "./GrillaDelivery.tsx";
 import {useEffect} from "react";
+import GrillaInsumos from './GrillaInsumos.tsx';
+import GrillaCocina from "./GrillaCocina.tsx";
+import GrillaStock from './GrillaStock.tsx';
 
 function PanelAdmin() {
 
@@ -36,18 +42,19 @@ function PanelAdmin() {
     const botones = [
         { nombre: 'Dashboard', icono: Dashboard, path: 'dashboard', rolesPermitidos: ['ADMINISTRADOR'] },
         { nombre: 'Pedidos', icono: Pedidos, path: 'pedidos', rolesPermitidos: ['ADMINISTRADOR', 'CAJERO'] },
-        { nombre: 'Cocina', icono: Cocina, path: 'cocina', rolesPermitidos: ['ADMINISTRADOR', 'CAJERO', 'COCINERO'] },
+        { nombre: 'Cocina', icono: Cocina, path: 'cocina', rolesPermitidos: ['ADMINISTRADOR', 'COCINERO'] },
         { nombre: 'Delivery', icono: Delivery, path: 'delivery', rolesPermitidos: ['ADMINISTRADOR', 'DELIVERY'] },
-        { nombre: 'Facturación', icono: Facturacion, path: 'facturacion', rolesPermitidos: ['ADMINISTRADOR', 'CAJERO'] },
         { nombre: 'Clientes', icono: Usuario, path: 'clientes', rolesPermitidos: ['ADMINISTRADOR'] },
         { nombre: 'Productos', icono: Productos, path: 'productos', rolesPermitidos: ['ADMINISTRADOR'] },
-        { nombre: 'Categorias', icono: Productos, path: 'categorias', rolesPermitidos: ['ADMINISTRADOR'] },
-        { nombre: 'Estadísticas', icono: Estadisticas, path: 'estadisticas', rolesPermitidos: ['ADMINISTRADOR'] },
+        { nombre: 'Insumos', icono: Insumos, path: 'insumos', rolesPermitidos: ['ADMINISTRADOR'] },
+        { nombre: 'Stock', icono: Stock, path: 'stock', rolesPermitidos: ['ADMINISTRADOR'] },
+        { nombre: 'Categorias', icono: Categorias, path: 'categorias', rolesPermitidos: ['ADMINISTRADOR'] },
         { nombre: 'Empleados', icono: Usuario, path: 'empleados', rolesPermitidos: ['ADMINISTRADOR'] },
+        { nombre: 'Estadísticas', icono: Estadisticas, path: 'estadisticas', rolesPermitidos: ['ADMINISTRADOR'] },
     ];
 
     const botonesVisibles = botones.filter(btn =>
-        btn.rolesPermitidos.includes(usuario?.rol)
+        btn.rolesPermitidos.includes(usuario!.rol)
     );
 
     // Obtener la ruta activa desde la URL (ej: 'cocina')
@@ -63,7 +70,7 @@ function PanelAdmin() {
         }
     }, [usuario, botonActual, navigate]);
     const renderContent = () => {
-        if (!botonActual || !botonActual.rolesPermitidos.includes(usuario?.rol)) {
+        if (!botonActual || !botonActual.rolesPermitidos.includes(usuario!.rol)) {
             return <div>No tenés permiso para ver esta sección.</div>;
         }
 
@@ -119,7 +126,8 @@ function PanelAdmin() {
             case 'Cocina':
                 return (
                     <div>
-                        <h4>{getTitulo('Cocina')}</h4>
+                        <h2>{getTitulo('Cocina')}</h2>
+                        <GrillaCocina/>
                     </div>
                 );
             case 'Delivery':
@@ -154,6 +162,18 @@ function PanelAdmin() {
                         <GrillaCategorias/>
                     </div>
                 );
+            case 'Insumos':
+                return(
+                    <div>
+                        <GrillaInsumos/>
+                    </div>
+                )
+            case 'Stock':
+                return(
+                    <div>
+                        <GrillaStock/>
+                    </div>
+                )
             default:
                 return <div>Bienvenido al panel de administración</div>;
         }

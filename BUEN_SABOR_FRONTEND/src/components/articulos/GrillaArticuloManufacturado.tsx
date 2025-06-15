@@ -5,17 +5,22 @@ import CategoriaService from "../../services/CategoriaService";
 import Categoria from "../../models/Categoria";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
+import { ChevronLeft, ChevronRight } from "react-bootstrap-icons";
 import { ReusableTable } from "../Tabla";
 import "../../styles/GrillaArticuloManufactura.css";
 import BotonEliminar from "../layout/BotonEliminar";
 import BotonModificar from "../layout/BotonModificar";
 import BotonVer from "../layout/BotonVer";
 import BotonAlta from "../layout/BotonAlta";
+import { Link } from "react-router-dom";
 
 function GrillaArticuloManufacturado() {
   const [articulos, setArticulos] = useState<ArticuloManufacturado[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [totalPages, setTotalPages] = useState(0);
+  const [page, setPage] = useState(0);
+  const [size] = useState(10);
 
   // Filtros
   const [filtroDenominacion, setFiltroDenominacion] = useState("");
@@ -40,6 +45,8 @@ function GrillaArticuloManufacturado() {
     try {
       const data = await ArticuloManufacturadoService.getAll();
       setArticulos(data);
+      // Simulamos paginación para el ejemplo
+      setTotalPages(Math.ceil(data.length / size));
     } catch (err) {
       setError("Error al cargar los artículos manufacturados");
     } finally {
@@ -58,6 +65,10 @@ function GrillaArticuloManufacturado() {
     (!filtroPrecioMin || a.precioVenta >= Number(filtroPrecioMin)) &&
     (!filtroPrecioMax || a.precioVenta <= Number(filtroPrecioMax))
   );
+
+  // Aplicar paginación local
+  const articulosPaginados = articulosFiltrados.slice(page * size, (page + 1) * size);
+
   const handleVer = (row: ArticuloManufacturado) => {
     setArticuloSeleccionado(row);
     setShowModal(true);
@@ -72,36 +83,35 @@ function GrillaArticuloManufacturado() {
     window.location.href = `/manufacturado?id=${row.id}`;
   };
 
-const eliminarArticulo = async (id: number) => {
-  if (!window.confirm("¿Seguro que desea eliminar este artículo manufacturado?")) return;
-  try {
-    await ArticuloManufacturadoService.delete(id);
-    setArticulos(prev =>
-      prev.map(a =>
-        a.id === id ? { ...a, eliminado: true } : a
-      )
-    );
-    alert("Artículo manufacturado eliminado correctamente");
-  } catch (err) {
-    alert("Error al eliminar el artículo manufacturado");
-  }
-};
+  const eliminarArticulo = async (id: number) => {
+    if (!window.confirm("¿Seguro que desea eliminar este artículo manufacturado?")) return;
+    try {
+      await ArticuloManufacturadoService.delete(id);
+      setArticulos(prev =>
+        prev.map(a =>
+          a.id === id ? { ...a, eliminado: true } : a
+        )
+      );
+      alert("Artículo manufacturado eliminado correctamente");
+    } catch (err) {
+      alert("Error al eliminar el artículo manufacturado");
+    }
+  };
 
-const darDeAlta = async (id: number) => {
-  if (!window.confirm("¿Seguro que desea dar de alta este artículo manufacturado?")) return;
-  try {
-    await ArticuloManufacturadoService.changeEliminado(id);
-    setArticulos(prev =>
-      prev.map(a =>
-        a.id === id ? { ...a, eliminado: false } : a
-      )
-    );
-    alert("Artículo manufacturado dado de alta correctamente");
-  } catch (err) {
-    alert("Error al dar de alta el artículo manufacturado");
-  }
-};
-  // ...resto de tu código (eliminarArticulo, handleActualizar, etc.)...
+  const darDeAlta = async (id: number) => {
+    if (!window.confirm("¿Seguro que desea dar de alta este artículo manufacturado?")) return;
+    try {
+      await ArticuloManufacturadoService.changeEliminado(id);
+      setArticulos(prev =>
+        prev.map(a =>
+          a.id === id ? { ...a, eliminado: false } : a
+        )
+      );
+      alert("Artículo manufacturado dado de alta correctamente");
+    } catch (err) {
+      alert("Error al dar de alta el artículo manufacturado");
+    }
+  };
 
   // Definición de columnas para la tabla reusable
   const columns = [
@@ -122,18 +132,18 @@ const darDeAlta = async (id: number) => {
       className: "acciones-column d-flex justify-content-center gap-1",
       render: (_: any, row: ArticuloManufacturado) => (
         <div>
-          <BotonVer 
+          <BotonVer
             onClick={() => handleVer(row)}
           />
           <BotonModificar
             onClick={() => handleActualizar(row)}
           />
-          {!row.eliminado ? (  
+          {!row.eliminado ? (
             <BotonEliminar
               onClick={() => eliminarArticulo(row.id!)}
             />
           ) : (
-            <BotonAlta onClick={() => darDeAlta(row.id!)}/>
+            <BotonAlta onClick={() => darDeAlta(row.id!)} />
           )}
         </div>
       ),
@@ -141,69 +151,116 @@ const darDeAlta = async (id: number) => {
   ];
 
   return (
-    <div>
-      <h2>Artículos Manufacturado</h2>
+    <div className="position-relative">
       {/* Filtros */}
-      <div className="mb-3 d-flex flex-wrap gap-2 align-items-end">
-        <input
-          type="text"
-          className="form-control"
-          placeholder="Buscar por denominación"
-          value={filtroDenominacion}
-          onChange={e => setFiltroDenominacion(e.target.value)}
-          style={{ maxWidth: 180 }}
-        />
-        <select
-          className="form-select"
-          value={filtroCategoria}
-          onChange={e => setFiltroCategoria(e.target.value)}
-          style={{ maxWidth: 180 }}
-        >
-          <option value="">Todas las categorías</option>
-          {categorias.map(cat => (
-            <option key={cat.id} value={cat.id}>{cat.denominacion}</option>
-          ))}
-        </select>
-        <select
-          className="form-select"
-          value={filtroEstado}
-          onChange={e => setFiltroEstado(e.target.value)}
-          style={{ maxWidth: 140 }}
-        >
-          <option value="">Todos los estados</option>
-          <option value="activo">Activo</option>
-          <option value="eliminado">Eliminado</option>
-        </select>
-        <input
-          type="number"
-          className="form-control"
-          placeholder="Precio mín."
-          value={filtroPrecioMin}
-          onChange={e => setFiltroPrecioMin(e.target.value)}
-          style={{ maxWidth: 120 }}
-        />
-        <input
-          type="number"
-          className="form-control"
-          placeholder="Precio máx."
-          value={filtroPrecioMax}
-          onChange={e => setFiltroPrecioMax(e.target.value)}
-          style={{ maxWidth: 120 }}
-        />
-        <Button variant="secondary" onClick={() => {
-          setFiltroDenominacion("");
-          setFiltroCategoria("");
-          setFiltroEstado("");
-          setFiltroPrecioMin("");
-          setFiltroPrecioMax("");
-        }}>
-          Limpiar filtros
-        </Button>
+      <div className="filtrosybtn d-flex justify-content-between align-items-center">
+        <div className="m-4 d-flex flex-wrap gap-2 align-items-end">
+          <input
+            type="text"
+            className="form-control"
+            placeholder="Buscar por denominación"
+            value={filtroDenominacion}
+            onChange={e => setFiltroDenominacion(e.target.value)}
+            style={{ maxWidth: 180 }}
+          />
+          <select
+            className="form-select"
+            value={filtroCategoria}
+            onChange={e => setFiltroCategoria(e.target.value)}
+            style={{ maxWidth: 180 }}
+          >
+            <option value="">Todas las categorías</option>
+            {categorias.map(cat => (
+              <option key={cat.id} value={cat.id}>{cat.denominacion}</option>
+            ))}
+          </select>
+          <select
+            className="form-select"
+            value={filtroEstado}
+            onChange={e => setFiltroEstado(e.target.value)}
+            style={{ maxWidth: 140 }}
+          >
+            <option value="">Todos los estados</option>
+            <option value="activo">Activo</option>
+            <option value="eliminado">Eliminado</option>
+          </select>
+          <input
+            type="number"
+            className="form-control"
+            placeholder="Precio mín."
+            value={filtroPrecioMin}
+            onChange={e => setFiltroPrecioMin(e.target.value)}
+            style={{ maxWidth: 120 }}
+          />
+          <input
+            type="number"
+            className="form-control"
+            placeholder="Precio máx."
+            value={filtroPrecioMax}
+            onChange={e => setFiltroPrecioMax(e.target.value)}
+            style={{ maxWidth: 120 }}
+          />
+          <Button variant="secondary" onClick={() => {
+            setFiltroDenominacion("");
+            setFiltroCategoria("");
+            setFiltroEstado("");
+            setFiltroPrecioMin("");
+            setFiltroPrecioMax("");
+            setPage(0);
+          }}>
+            Limpiar filtros
+          </Button>
+        </div>
+        <Link className="btn border-success" style={{ right: 10, top: 10 }} to = "/FormularioManufacturado">
+          Crear Artículo Manufacturado
+        </Link>
       </div>
-      <Button variant="primary" className="crearManufacturadoBtn mb-3" onClick={() => window.location.href = "/manufacturado"}>
-        Crear Artículo Manufacturado
-      </Button>
-      <ReusableTable columns={columns} data={articulosFiltrados} />
+
+      {/* Tabla con paginación */}
+      <div className="p-3 border rounded bg-white shadow-sm">
+        {articulosPaginados.length === 0 ? (
+          <div className="text-center py-4">
+            <p className="text-muted mb-0">
+              No hay artículos manufacturados para mostrar
+            </p>
+          </div>
+        ) : (
+          <>
+            {/* Tabla */}
+            <div className="table-responsive">
+              <ReusableTable columns={columns} data={articulosPaginados} />
+            </div>
+
+            {/* Paginación */}
+            <div className="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
+              <div className="text-muted">
+                Mostrando {articulosPaginados.length} artículos de {articulosFiltrados.length} total
+              </div>
+              <div className="d-flex align-items-center gap-2">
+                <Button
+                  variant="outline-secondary"
+                  size="sm"
+                  disabled={page === 0}
+                  onClick={() => setPage(page - 1)}
+                >
+                  <ChevronLeft />
+                </Button>
+                <span className="px-2">
+                  Página {page + 1} de {Math.ceil(articulosFiltrados.length / size) || 1}
+                </span>
+                <Button
+                  variant="outline-secondary"
+                  size="sm"
+                  disabled={page >= Math.ceil(articulosFiltrados.length / size) - 1}
+                  onClick={() => setPage(page + 1)}
+                >
+                  <ChevronRight />
+                </Button>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
 
       <Modal show={showModal} onHide={handleCloseModal} centered>
         <Modal.Header closeButton>
@@ -214,7 +271,7 @@ const darDeAlta = async (id: number) => {
             <div>
               {articuloSeleccionado.imagenes[0] ? (
                 <img src={articuloSeleccionado.imagenes[0].denominacion} className="imgModalArtManu" alt="" />
-              ):(
+              ) : (
                 <div></div>
               )}
               <p><b>Denominación:</b> {articuloSeleccionado.denominacion}</p>
