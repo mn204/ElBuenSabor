@@ -27,20 +27,6 @@ public class ArticuloInsumoServiceImpl extends MasterServiceImpl<ArticuloInsumo,
         this.articuloInsumoRepository = articuloInsumoRepository;
     }
 /*
-    //Busqueda de Stock bajo
-    @Override
-    public List<ArticuloInsumo> obtenerConStockBajo(Long idSucursal) {
-        return articuloInsumoRepository.findArticulosConStockBajo(idSucursal);
-    }
-
-    // Búsqueda de stock bajo para todas las sucursale
-    @Override
-    public List<ArticuloInsumo> obtenerConStockBajoTodasSucursales() {
-        return articuloInsumoRepository.findArticulosConStockBajoTodasSucursales();
-    }
-
-*/
-/*
     @Override
     @Transactional
     public Optional<ArticuloInsumo> obtenerRecetaCompleta(Long id) {
@@ -75,31 +61,7 @@ public class ArticuloInsumoServiceImpl extends MasterServiceImpl<ArticuloInsumo,
         logger.info("Obteniendo todos los ArticuloInsumo que son para elaborar");
         return articuloInsumoRepository.findAllEsParaElaborar();
     }
-    /*
 
-    @Override
-    @Transactional
-    public List<Object[]> consultarStockInsumos() {
-        logger.info("Consultando stock de todos los insumos");
-        return articuloInsumoRepository.consultarStockInsumos();
-    }
-    */
-    /*
-    @Override
-    @Transactional
-    public ArticuloInsumo cambiarEstadoAlta(Long id, boolean alta) {
-        logger.info("Cambiando estado de alta para ArticuloInsumo id: {} a: {}", id, alta);
-
-        ArticuloInsumo articulo = articuloInsumoRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("ArticuloInsumo no encontrado con id: " + id));
-
-        articulo.setAlta(alta);
-        ArticuloInsumo saved = articuloInsumoRepository.save(articulo);
-
-        logger.info("Estado de alta cambiado exitosamente para ArticuloInsumo: {}", saved.getDenominacion());
-        return saved;
-    }
-    */
     @Override
     @Transactional
     public boolean existsByDenominacion(String denominacion) {
@@ -116,12 +78,7 @@ public class ArticuloInsumoServiceImpl extends MasterServiceImpl<ArticuloInsumo,
                 .sorted((a1, a2) -> a1.getDenominacion().compareToIgnoreCase(a2.getDenominacion()))
                 .toList();
     }
-/*
-    @Override
-    public List<ArticuloInsumo> findArticuloInsumoStockActualGratherThanAndEsParaElaborarFalse(int stock) {
-        return articuloInsumoRepository.findArticuloInsumoBySucursalInsumo_StockActualGreaterThanAndEsParaElaborarFalse(stock);
-    }
-*/
+
     @Override
     @Transactional
     public ArticuloInsumo save(ArticuloInsumo entity) {

@@ -55,22 +55,7 @@ public class ArticuloInsumoController extends MasterControllerImpl<ArticuloInsum
         List<ArticuloInsumoDTO> ingredientesDTO = articuloInsumoMapper.toDTOsList(ingredientes);
         return ResponseEntity.ok(ingredientesDTO);
     }
-/*
-    //Buscamos Insumos con bajo Stock
-    @GetMapping("/stock-bajo")
-    public ResponseEntity<List<ArticuloInsumoDTO>> getStockBajo(@RequestParam(required = false) Long idSucursal) {
-        List<ArticuloInsumo> articulos;
 
-        if (idSucursal != null) {
-            articulos = articuloInsumoService.obtenerConStockBajo(idSucursal);
-        } else {
-            articulos = articuloInsumoService.obtenerConStockBajoTodasSucursales();
-        }
-
-        List<ArticuloInsumoDTO> dtoList = articuloInsumoMapper.toDTOsList(articulos);
-        return ResponseEntity.ok(dtoList);
-    }
-*/
     @GetMapping("/noEliminados")
     public ResponseEntity<List<ArticuloInsumoDTO>> getAllElimanodFalse() {
         logger.info("Obteniendo grilla de ingredientes");
@@ -203,13 +188,4 @@ public class ArticuloInsumoController extends MasterControllerImpl<ArticuloInsum
         logger.info("Actualizando ingrediente id: {} con denominación: {}", id, dto.getDenominacion());
         return super.update(id, dto);
     }
-/*
-    @GetMapping("/stock/{stock}")
-    public ResponseEntity<List<ArticuloInsumoDTO>> obtenerStock(@PathVariable int stock) {
-        List<ArticuloInsumoDTO> productos = articuloInsumoService.findArticuloInsumoStockActualGratherThanAndEsParaElaborarFalse(stock)
-                .stream()
-                .map(articuloInsumoMapper::toDTO)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(productos);
-    }*/
 }

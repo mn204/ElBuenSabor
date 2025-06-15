@@ -91,7 +91,7 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
             Estado estado,
             String clienteNombre,
             Long idPedido,
-            Long idEmpleado, // <-- NUEVO PARÁMETRO
+            Long idEmpleado,
             Boolean pagado,
             LocalDateTime fechaDesde,
             LocalDateTime fechaHasta,
@@ -102,7 +102,7 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
                 .and(PedidoSpecification.estadoEquals(estado))
                 .and(PedidoSpecification.clienteNombreContains(clienteNombre))
                 .and(PedidoSpecification.idEquals(idPedido))
-                .and(PedidoSpecification.empleadoIdEquals(idEmpleado)) // <-- NUEVA LÍNEA
+                .and(PedidoSpecification.empleadoIdEquals(idEmpleado))
                 .and(PedidoSpecification.pagadoEquals(pagado))
                 .and(PedidoSpecification.fechaBetween(fechaDesde, fechaHasta));
         return pedidoRepository.findAll(spec, pageable);
@@ -144,7 +144,6 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
         return pedido; // ya estaba pagado
     }
 
-    //Cambiar estado del pedido
     @Override
     public boolean verificarStockPedido(Pedido pedido) {
         try {
@@ -243,7 +242,7 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
         }
     }
 
-
+    //Cambiar estado del pedido
     @Override
     @Transactional
     public void cambiarEstadoPedido(Pedido pedidoRequest) {
@@ -431,6 +430,7 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
         return pedidoRepository.findFirstByClienteIdOrderByIdDesc(clienteId);
     }
 
+    // Generacion de Excel para los pedidos.
     @Override
     public byte[] exportarPedidosAExcel(List<Pedido> pedidos) {
         return excelService.exportarPedidosAExcel(pedidos);

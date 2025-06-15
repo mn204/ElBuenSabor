@@ -15,8 +15,6 @@ public interface PedidoService extends MasterService<Pedido, Long> {
                                                  LocalDateTime desde, LocalDateTime hasta, String nombreArticulo,
                                                  Pageable pageable);
 
-    //Esto es para los Pedidos filtrados
-
     //Esto es para los Pedidos filtrados para delivery y cocina
     Page<Pedido> buscarPedidosFiltrados(Long idSucursal,
                                         Estado estado,
