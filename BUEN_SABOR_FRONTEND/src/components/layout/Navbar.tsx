@@ -9,6 +9,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import RegisterCliente from '../auth/RegisterCliente.tsx';
 import { useAuth } from "../../context/AuthContext.tsx";
 import { useSucursal } from "../../context/SucursalContextEmpleado.tsx";
+import { useSucursalUsuario } from '../../context/SucursalContext.tsx';
 
 function Navbar() {
     const [showModal, setShowModal] = useState(false);
@@ -16,7 +17,8 @@ function Navbar() {
     const [busqueda, setBusqueda] = useState("");
     const navigate = useNavigate();
     const { isAuthenticated, getUserDisplayName, logout, usuario, user, empleado } = useAuth();
-    const { sucursalActual, sucursales, cambiarSucursal , esModoTodasSucursales} = useSucursal();
+    const { sucursalActual, sucursales, cambiarSucursal, esModoTodasSucursales } = useSucursal();
+    const { sucursalActualUsuario, sucursalesUsuario, cambiarSucursalUsuario } = useSucursalUsuario();
 
     const handleOpenLogin = () => {
         setIsLoginView(true);
@@ -76,7 +78,25 @@ function Navbar() {
                             <span>EL BUEN SABOR</span>
                         </Link>
                     </div>
-
+                    {usuario?.rol === "CLIENTE" &&
+                        <div className="sucursal text-white d-flex align-items-center">
+                            <label htmlFor="selectSucursalUsuario" className="me-2">Sucursal:</label>
+                            <Form.Select
+                                id="selectSucursalUsuario"
+                                value={sucursalActualUsuario?.id || ""}
+                                onChange={(e) => {
+                                    const id = parseInt(e.target.value);
+                                    const sucursal = sucursalesUsuario.find(s => s.id === id);
+                                    if (sucursal) cambiarSucursalUsuario(sucursal);
+                                }}
+                                style={{ width: 'auto', minWidth: '200px' }}
+                            >
+                                {sucursalesUsuario.map(s => (
+                                    <option key={s.id} value={s.id}>{s.nombre}</option>
+                                ))}
+                            </Form.Select>
+                        </div>
+                    }
                     <div className="navCenter">
                         {(!isAuthenticated || usuario?.rol === "CLIENTE") ? (
                             <Buscador

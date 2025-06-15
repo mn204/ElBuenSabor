@@ -1,26 +1,44 @@
-import { useState, useEffect } from "react";
-import ArticuloManufacturadoService from "../../services/ArticuloManufacturadoService";
-import ArticuloManufacturado from "../../models/ArticuloManufacturado";
+import { useState, useEffect, useCallback } from "react";
+import InsumoService from "../../services/ArticuloInsumoService";
 import CategoriaService from "../../services/CategoriaService";
+import Insumo from "../../models/ArticuloInsumo";
 import Categoria from "../../models/Categoria";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
-import { ChevronLeft, ChevronRight } from "react-bootstrap-icons";
 import { ReusableTable } from "../Tabla";
-import "../../styles/GrillaArticuloManufactura.css";
+import BotonVer from "../layout/BotonVer";
 import BotonEliminar from "../layout/BotonEliminar";
 import BotonModificar from "../layout/BotonModificar";
-import BotonVer from "../layout/BotonVer";
 import BotonAlta from "../layout/BotonAlta";
 import { Link } from "react-router-dom";
+import { ChevronLeft, ChevronRight } from "react-bootstrap-icons";
+import ArticuloInsumoService from "../../services/ArticuloInsumoService";
+import type ArticuloInsumo from "../../models/ArticuloInsumo";
 
-function GrillaArticuloManufacturado() {
-  const [articulos, setArticulos] = useState<ArticuloManufacturado[]>([]);
+interface PageResponse {
+  content: Insumo[];
+  pageable: {
+    pageNumber: number;
+    pageSize: number;
+  };
+  totalPages: number;
+  totalElements: number;
+  first: boolean;
+  last: boolean;
+  size: number;
+  number: number;
+}
+
+function GrillaInsumos() {
+  const [insumos, setInsumos] = useState<ArticuloInsumo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [totalPages, setTotalPages] = useState(0);
   const [page, setPage] = useState(0);
   const [size] = useState(10);
+
+  // Modal Ver
+  const [showModal, setShowModal] = useState(false);
+  const [insumoSeleccionado, setInsumoSeleccionado] = useState<Insumo | null>(null);
 
   // Filtros
   const [filtroDenominacion, setFiltroDenominacion] = useState("");
@@ -30,23 +48,22 @@ function GrillaArticuloManufacturado() {
   const [filtroPrecioMax, setFiltroPrecioMax] = useState("");
   const [categorias, setCategorias] = useState<Categoria[]>([]);
 
-  // Modal
-  const [showModal, setShowModal] = useState(false);
-  const [articuloSeleccionado, setArticuloSeleccionado] = useState<ArticuloManufacturado | null>(null);
-
   useEffect(() => {
-    cargarArticulos();
+    cargarInsumos();
     CategoriaService.getAll().then(setCategorias);
   }, []);
 
-  const cargarArticulos = async () => {
+  // Resetear página cuando cambien los filtros
+  useEffect(() => {
+    setPage(0);
+  }, [filtroDenominacion, filtroCategoria, filtroEstado, filtroPrecioMin, filtroPrecioMax]);
+
+  const cargarInsumos = async () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await ArticuloManufacturadoService.getAll();
-      setArticulos(data);
-      // Simulamos paginación para el ejemplo
-      setTotalPages(Math.ceil(data.length / size));
+      const data = await ArticuloInsumoService.getAll();
+      setInsumos(data);
     } catch (err) {
       setError("Error al cargar los artículos manufacturados");
     } finally {
@@ -55,7 +72,7 @@ function GrillaArticuloManufacturado() {
   };
 
   // Filtro local (puedes reemplazar por API si tienes endpoints específicos)
-  const articulosFiltrados = articulos.filter(a =>
+  const insumosFiltrados = insumos.filter(a =>
     (!filtroDenominacion || a.denominacion.toLowerCase().includes(filtroDenominacion.toLowerCase())) &&
     (!filtroCategoria || String(a.categoria?.id) === filtroCategoria) &&
     (!filtroEstado ||
@@ -66,56 +83,68 @@ function GrillaArticuloManufacturado() {
     (!filtroPrecioMax || a.precioVenta <= Number(filtroPrecioMax))
   );
 
-  // Aplicar paginación local
-  const articulosPaginados = articulosFiltrados.slice(page * size, (page + 1) * size);
+  // Calcular páginas totales basado en los elementos filtrados
+  const totalPages = Math.ceil(insumosFiltrados.length / size);
+  
+  // Aplicar paginación a los elementos filtrados
+  const insumosPaginados = insumosFiltrados.slice(page * size, (page + 1) * size);
 
-  const handleVer = (row: ArticuloManufacturado) => {
-    setArticuloSeleccionado(row);
+  const eliminarInsumo = async (id: number) => {
+    if (!window.confirm("¿Seguro que desea eliminar este insumo?")) return;
+    try {
+      await InsumoService.delete(id);
+      cargarInsumos();
+      alert("Insumo eliminado correctamente");
+    } catch (err) {
+      alert("Error al eliminar el insumo");
+    }
+  };
+
+  const handleActualizar = (ins: Insumo) => {
+    window.location.href = `/FormularioInsumo?id=${ins.id}`;
+  };
+
+  const handleVer = (ins: Insumo) => {
+    setInsumoSeleccionado(ins);
     setShowModal(true);
   };
 
   const handleCloseModal = () => {
     setShowModal(false);
-    setArticuloSeleccionado(null);
-  };
-
-  const handleActualizar = (row: ArticuloManufacturado) => {
-    window.location.href = `/manufacturado?id=${row.id}`;
-  };
-
-  const eliminarArticulo = async (id: number) => {
-    if (!window.confirm("¿Seguro que desea eliminar este artículo manufacturado?")) return;
-    try {
-      await ArticuloManufacturadoService.delete(id);
-      setArticulos(prev =>
-        prev.map(a =>
-          a.id === id ? { ...a, eliminado: true } : a
-        )
-      );
-      alert("Artículo manufacturado eliminado correctamente");
-    } catch (err) {
-      alert("Error al eliminar el artículo manufacturado");
-    }
+    setInsumoSeleccionado(null);
   };
 
   const darDeAlta = async (id: number) => {
-    if (!window.confirm("¿Seguro que desea dar de alta este artículo manufacturado?")) return;
+    if (!window.confirm("¿Seguro que desea dar de alta este insumo?")) return;
     try {
-      await ArticuloManufacturadoService.changeEliminado(id);
-      setArticulos(prev =>
-        prev.map(a =>
-          a.id === id ? { ...a, eliminado: false } : a
-        )
-      );
-      alert("Artículo manufacturado dado de alta correctamente");
+      await InsumoService.changeEliminado(id);
+      cargarInsumos();
+      alert("Insumo dado de alta correctamente");
     } catch (err) {
-      alert("Error al dar de alta el artículo manufacturado");
+      alert("Error al dar de alta el Insumo");
     }
   };
 
-  // Definición de columnas para la tabla reusable
+  const limpiarFiltros = () => {
+    setFiltroDenominacion("");
+    setFiltroCategoria("");
+    setFiltroEstado("");
+    setFiltroPrecioMax("");
+    setFiltroPrecioMin("");
+  };
+
   const columns = [
     { key: "denominacion", label: "Denominación" },
+    {
+      key: "categoria",
+      label: "Categoría",
+      render: (_: any, row: Insumo) => row.categoria?.denominacion || "-",
+    },
+    {
+      key: "unidadMedida",
+      label: "Unidad de Medida",
+      render: (_: any, row: Insumo) => row.unidadMedida?.denominacion || "-",
+    },
     {
       key: "precioVenta",
       label: "Precio Venta",
@@ -129,19 +158,12 @@ function GrillaArticuloManufacturado() {
     {
       key: "acciones",
       label: "Acciones",
-      className: "acciones-column d-flex justify-content-center gap-1",
-      render: (_: any, row: ArticuloManufacturado) => (
-        <div>
-          <BotonVer
-            onClick={() => handleVer(row)}
-          />
-          <BotonModificar
-            onClick={() => handleActualizar(row)}
-          />
+      render: (_: any, row: Insumo) => (
+        <div className="d-flex justify-content-center">
+          <BotonVer onClick={() => handleVer(row)} />
+          <BotonModificar onClick={() => handleActualizar(row)} />
           {!row.eliminado ? (
-            <BotonEliminar
-              onClick={() => eliminarArticulo(row.id!)}
-            />
+            <BotonEliminar onClick={() => eliminarInsumo(row.id!)} />
           ) : (
             <BotonAlta onClick={() => darDeAlta(row.id!)} />
           )}
@@ -150,9 +172,12 @@ function GrillaArticuloManufacturado() {
     },
   ];
 
+  if (loading) return <div>Cargando insumos...</div>;
+  if (error) return <div>{error}</div>;
+
   return (
     <div className="position-relative">
-      {/* Filtros */}
+      <h2>Insumos</h2>
       <div className="filtrosybtn d-flex justify-content-between align-items-center">
         <div className="m-4 d-flex flex-wrap gap-2 align-items-end">
           <input
@@ -171,7 +196,9 @@ function GrillaArticuloManufacturado() {
           >
             <option value="">Todas las categorías</option>
             {categorias.map(cat => (
-              <option key={cat.id} value={cat.id}>{cat.denominacion}</option>
+              <option key={cat.id} value={cat.id?.toString()}>
+                {cat.denominacion}
+              </option>
             ))}
           </select>
           <select
@@ -200,41 +227,34 @@ function GrillaArticuloManufacturado() {
             onChange={e => setFiltroPrecioMax(e.target.value)}
             style={{ maxWidth: 120 }}
           />
-          <Button variant="secondary" onClick={() => {
-            setFiltroDenominacion("");
-            setFiltroCategoria("");
-            setFiltroEstado("");
-            setFiltroPrecioMin("");
-            setFiltroPrecioMax("");
-            setPage(0);
-          }}>
+          <Button variant="secondary" onClick={limpiarFiltros}>
             Limpiar filtros
           </Button>
         </div>
-        <Link className="btn border-success" style={{ right: 10, top: 10 }} to = "/FormularioManufacturado">
-          Crear Artículo Manufacturado
+        <Link to='/FormularioInsumo' className="btn border-success" style={{ right: 10, top: 10 }}>
+          Crear Insumo
         </Link>
       </div>
 
-      {/* Tabla con paginación */}
+      {/* Tabla */}
       <div className="p-3 border rounded bg-white shadow-sm">
-        {articulosPaginados.length === 0 ? (
+        {insumosFiltrados.length === 0 ? (
           <div className="text-center py-4">
             <p className="text-muted mb-0">
-              No hay artículos manufacturados para mostrar
+              No hay insumos para mostrar
             </p>
           </div>
         ) : (
           <>
             {/* Tabla */}
             <div className="table-responsive">
-              <ReusableTable columns={columns} data={articulosPaginados} />
+              <ReusableTable columns={columns} data={insumosPaginados} />
             </div>
 
             {/* Paginación */}
             <div className="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
               <div className="text-muted">
-                Mostrando {articulosPaginados.length} artículos de {articulosFiltrados.length} total
+                Mostrando {page * size + 1}-{Math.min((page + 1) * size, insumosFiltrados.length)} de {insumosFiltrados.length} insumos
               </div>
               <div className="d-flex align-items-center gap-2">
                 <Button
@@ -246,12 +266,12 @@ function GrillaArticuloManufacturado() {
                   <ChevronLeft />
                 </Button>
                 <span className="px-2">
-                  Página {page + 1} de {Math.ceil(articulosFiltrados.length / size) || 1}
+                  Página {page + 1} de {totalPages || 1}
                 </span>
                 <Button
                   variant="outline-secondary"
                   size="sm"
-                  disabled={page >= Math.ceil(articulosFiltrados.length / size) - 1}
+                  disabled={page >= totalPages - 1 || totalPages === 0}
                   onClick={() => setPage(page + 1)}
                 >
                   <ChevronRight />
@@ -262,45 +282,27 @@ function GrillaArticuloManufacturado() {
         )}
       </div>
 
+      {/* Modal detalle */}
       <Modal show={showModal} onHide={handleCloseModal} centered>
         <Modal.Header closeButton>
-          <Modal.Title>Detalle del Artículo Manufacturado</Modal.Title>
+          <Modal.Title>Detalle del Insumo</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {articuloSeleccionado && (
+          {insumoSeleccionado && (
             <div>
-              {articuloSeleccionado.imagenes[0] ? (
-                <img src={articuloSeleccionado.imagenes[0].denominacion} className="imgModalArtManu" alt="" />
-              ) : (
-                <div></div>
-              )}
-              <p><b>Denominación:</b> {articuloSeleccionado.denominacion}</p>
-              <p><b>Descripción:</b> {articuloSeleccionado.descripcion}</p>
-              <p><b>Precio Venta:</b> ${articuloSeleccionado.precioVenta}</p>
-              <p><b>Categoría:</b> {articuloSeleccionado.categoria?.denominacion}</p>
-              <p><b>Unidad de Medida:</b> {articuloSeleccionado.unidadMedida?.denominacion}</p>
-              <p><b>Tiempo Estimado:</b> {articuloSeleccionado.tiempoEstimadoMinutos} min</p>
-              <p><b>Preparación:</b> {articuloSeleccionado.preparacion}</p>
-              <p><b>Estado:</b> {articuloSeleccionado.eliminado ? "Eliminado" : "Activo"}</p>
-              <b>Detalles:</b>
-              <ul>
-                {articuloSeleccionado.detalles?.map((det, idx) => (
-                  <li key={idx}>
-                    {det.articuloInsumo?.denominacion} - {det.cantidad} {det.articuloInsumo?.unidadMedida?.denominacion}
-                  </li>
-                ))}
-              </ul>
+              <p><b>Denominación:</b> {insumoSeleccionado.denominacion}</p>
+              <p><b>Categoría:</b> {insumoSeleccionado.categoria?.denominacion}</p>
+              <p><b>Unidad de Medida:</b> {insumoSeleccionado.unidadMedida?.denominacion || "-"}</p>
+              <p><b>Precio Venta:</b> ${insumoSeleccionado.precioVenta}</p>
             </div>
           )}
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={handleCloseModal}>
-            Cerrar
-          </Button>
+          <Button variant="secondary" onClick={handleCloseModal}>Cerrar</Button>
         </Modal.Footer>
       </Modal>
     </div>
   );
 }
 
-export default GrillaArticuloManufacturado;
+export default GrillaInsumos;

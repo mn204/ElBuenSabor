@@ -46,12 +46,14 @@ const PedidoDetalleModal: React.FC<Props> = ({ show, onHide, pedido }) => {
         <p><strong>Forma de pago:</strong> {pedido.formaPago}</p>
         <p><strong>Forma de entrega:</strong> {pedido.tipoEnvio}</p>
         <p className="mb-0"><strong>Domicilio:</strong></p>
+        {pedido.domicilio && 
         <p>
           {pedido.domicilio.detalles && <>Referencia: {pedido.domicilio.detalles}. </>}
-          {pedido.domicilio.calle} {pedido.domicilio.numero}, CP {pedido.domicilio.codigoPostal}, {pedido.domicilio.localidad.nombre}
+          {pedido.domicilio.calle} {pedido.domicilio.numero}, CP {pedido.domicilio.codigoPostal}, {pedido.domicilio.localidad?.nombre}
           {pedido.domicilio.piso && `, Piso ${pedido.domicilio.piso}`}
           {pedido.domicilio.nroDepartamento && `, Depto ${pedido.domicilio.nroDepartamento}`}
         </p>
+        }
 
         <Table striped bordered>
           <thead>

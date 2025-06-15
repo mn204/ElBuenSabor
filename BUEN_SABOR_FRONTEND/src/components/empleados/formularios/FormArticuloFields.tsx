@@ -1,7 +1,7 @@
-import Categoria from "../../models/Categoria";
-import UnidadMedida from "../../models/UnidadMedida";
-import ModalCategoriaArbol from "./ModalCategoriaArbol";
-import type ImagenArticulo from "../../models/ImagenArticulo";
+import Categoria from "../../../models/Categoria";
+import UnidadMedida from "../../../models/UnidadMedida";
+import ModalCategoriaArbol from "../../articulos/ModalCategoriaArbol";
+import type ImagenArticulo from "../../../models/ImagenArticulo";
 
 interface Props {
   denominacion: string;

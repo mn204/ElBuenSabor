@@ -16,7 +16,7 @@ export default class Pedido {
     estado!: Estado;
     tipoEnvio!: TipoEnvio;
     formaPago!: FormaPago;
-    fechaPedido: Date = new Date();
+    fechaPedido: string = "";
     sucursal!: Sucursal;
     cliente!: Cliente;
     domicilio!: Domicilio;

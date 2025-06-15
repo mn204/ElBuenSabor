@@ -20,11 +20,13 @@ import { useSucursal } from "../../context/SucursalContextEmpleado.tsx";
 
 import {useLocation} from "react-router-dom";
 import {useNavigate} from "react-router-dom";
-import GrillaCategorias from '../articulos/GrillaCategorias.tsx';
+import GrillaCategorias from './GrillaCategorias.tsx';
 import DashboardSection from './DashboardSection';
 import GrillaDelivery from "./GrillaDelivery.tsx";
 import {useEffect} from "react";
+import GrillaInsumos from './GrillaInsumos.tsx';
 import GrillaCocina from "./GrillaCocina.tsx";
+import GrillaStock from './GrillaStock.tsx';
 
 function PanelAdmin() {
 
@@ -42,13 +44,15 @@ function PanelAdmin() {
         { nombre: 'Facturación', icono: Facturacion, path: 'facturacion', rolesPermitidos: ['ADMINISTRADOR', 'CAJERO'] },
         { nombre: 'Clientes', icono: Usuario, path: 'clientes', rolesPermitidos: ['ADMINISTRADOR'] },
         { nombre: 'Productos', icono: Productos, path: 'productos', rolesPermitidos: ['ADMINISTRADOR'] },
+        { nombre: 'Insumos', icono: Productos, path: 'insumos', rolesPermitidos: ['ADMINISTRADOR'] },
         { nombre: 'Categorias', icono: Productos, path: 'categorias', rolesPermitidos: ['ADMINISTRADOR'] },
         { nombre: 'Estadísticas', icono: Estadisticas, path: 'estadisticas', rolesPermitidos: ['ADMINISTRADOR'] },
         { nombre: 'Empleados', icono: Usuario, path: 'empleados', rolesPermitidos: ['ADMINISTRADOR'] },
+        { nombre: 'Stock', icono: Productos, path: 'stock', rolesPermitidos: ['ADMINISTRADOR'] },
     ];
 
     const botonesVisibles = botones.filter(btn =>
-        btn.rolesPermitidos.includes(usuario?.rol)
+        btn.rolesPermitidos.includes(usuario!.rol)
     );
 
     // Obtener la ruta activa desde la URL (ej: 'cocina')
@@ -64,7 +68,7 @@ function PanelAdmin() {
         }
     }, [usuario, botonActual, navigate]);
     const renderContent = () => {
-        if (!botonActual || !botonActual.rolesPermitidos.includes(usuario?.rol)) {
+        if (!botonActual || !botonActual.rolesPermitidos.includes(usuario!.rol)) {
             return <div>No tenés permiso para ver esta sección.</div>;
         }
 
@@ -156,6 +160,18 @@ function PanelAdmin() {
                         <GrillaCategorias/>
                     </div>
                 );
+            case 'Insumos':
+                return(
+                    <div>
+                        <GrillaInsumos/>
+                    </div>
+                )
+            case 'Stock':
+                return(
+                    <div>
+                        <GrillaStock/>
+                    </div>
+                )
             default:
                 return <div>Bienvenido al panel de administración</div>;
         }

@@ -112,6 +112,11 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
         return pedidoRepository.findByIdAndClienteId(idPedido, clienteId);
     }
 
+    @Override
+    public void actualizarEstadoPorPago(Long pedidoId, boolean estado) {
+        pedidoRepository.changeEstado(pedidoId, estado);
+    }
+
     //Generar PDF para el Cliente.
     @Override
     @Transactional
@@ -122,44 +127,8 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
 
         return pdfService.generarFacturaPedido(pedido);
     }
-
     @Override
-    @Transactional
-    public void cambiarEstadoPedido(Pedido pedidoRequest) {
-        Pedido pedido = pedidoRepository.findByIdAndSucursalId(pedidoRequest.getId(), pedidoRequest.getSucursal().getId())
-                .orElseThrow(() -> new RuntimeException("Pedido no encontrado para esa sucursal."));
-
-        Empleado empleado = empleadoRepository.findById(pedidoRequest.getEmpleado().getId())
-                .orElseThrow(() -> new RuntimeException("Empleado no encontrado."));
-
-        Rol rol = empleado.getUsuario().getRol();
-        Estado estadoActual = pedido.getEstado();
-        Estado nuevoEstado = pedidoRequest.getEstado();
-
-        if (!puedeCambiarEstado(rol, estadoActual, nuevoEstado)) {
-            throw new RuntimeException("Cambio de estado no permitido para el rol " + rol);
-        }
-
-        pedido.setEstado(nuevoEstado);
-        pedidoRepository.save(pedido);
-    }
-
-    private boolean puedeCambiarEstado(Rol rol, Estado actual, Estado nuevo) {
-        if (rol == Rol.ADMINISTRADOR || rol == Rol.CAJERO) return true;
-
-        // No se puede retroceder (excepto ADMIN y CAJERO)
-        if (nuevo.ordinal() < actual.ordinal()) return false;
-
-        return switch (rol) {
-            case CLIENTE -> actual == Estado.PENDIENTE && nuevo == Estado.CANCELADO;
-            case DELIVERY -> actual == Estado.EN_DELIVERY && nuevo == Estado.ENTREGADO;
-            case COCINERO -> actual == Estado.PREPARACION && nuevo == Estado.LISTO;
-            default -> false;
-        };
-    }
-
-    @Override
-    public boolean verificarYDescontarStockPedido(Pedido pedido) {
+    public boolean verificarStockPedido(Pedido pedido) {
         try {
             // Map< ID del SucursalInsumo, RequerimientoInfo >
             Map<Long, RequerimientoInfo> requerimientos = new HashMap<>();
@@ -175,9 +144,10 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
                     ArticuloInsumo insumo = articuloInsumoService.getById(art.getId());
 
                     if (!insumo.getEsParaElaborar()) {
-                        SucursalInsumo si = insumo.getSucursalInsumo();
-                        if (!si.getSucursal().getId().equals(sucursal.getId())) {
-                            return false; // No hay stock en esta sucursal
+
+                        SucursalInsumo si = sucursalInsumoService.findBySucursalIdAndArticuloInsumoId(sucursal.getId(), insumo.getId());
+                        if (si == null) {
+                            return false; // No existe Sucursal insumo en esta sucursal
                         }
 
                         // Consolidar requerimientos por ID de SucursalInsumo
@@ -199,10 +169,9 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
 
                         for (DetalleArticuloManufacturado dam : man.getDetalles()) {
                             ArticuloInsumo ai = dam.getArticuloInsumo();
-                            SucursalInsumo si = ai.getSucursalInsumo();
-
-                            if (!si.getSucursal().getId().equals(sucursal.getId())) {
-                                return false; // No hay insumos en esta sucursal
+                            SucursalInsumo si = sucursalInsumoService.findBySucursalIdAndArticuloInsumoId(sucursal.getId(), ai.getId());
+                            if (si == null) {
+                                return false; // No existe Sucursal insumo en esta sucursal
                             }
 
                             double cantidadRequerida = dam.getCantidad() * cantidadPed;
@@ -248,11 +217,144 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
             }
 
             // Si llegamos aquí, hay stock suficiente - proceder con la transacción
-            return guardarPedidoConTransaccion(pedido, requerimientos);
+            return true;
 
         } catch (Exception e) {
             logger.error("Error al procesar pedido: ", e);
             return false;
+        }
+    }
+
+
+    @Override
+    @Transactional
+    public void cambiarEstadoPedido(Pedido pedidoRequest) {
+        Pedido pedido = pedidoRepository.findByIdAndSucursalId(pedidoRequest.getId(), pedidoRequest.getSucursal().getId())
+                .orElseThrow(() -> new RuntimeException("Pedido no encontrado para esa sucursal."));
+
+        Empleado empleado = empleadoRepository.findById(pedidoRequest.getEmpleado().getId())
+                .orElseThrow(() -> new RuntimeException("Empleado no encontrado."));
+
+        Rol rol = empleado.getUsuario().getRol();
+        Estado estadoActual = pedido.getEstado();
+        Estado nuevoEstado = pedidoRequest.getEstado();
+
+        if (!puedeCambiarEstado(rol, estadoActual, nuevoEstado)) {
+            throw new RuntimeException("Cambio de estado no permitido para el rol " + rol);
+        }
+
+        pedido.setEstado(nuevoEstado);
+        pedidoRepository.save(pedido);
+    }
+
+    private boolean puedeCambiarEstado(Rol rol, Estado actual, Estado nuevo) {
+        if (rol == Rol.ADMINISTRADOR || rol == Rol.CAJERO) return true;
+
+        // No se puede retroceder (excepto ADMIN y CAJERO)
+        if (nuevo.ordinal() < actual.ordinal()) return false;
+
+        return switch (rol) {
+            case CLIENTE -> actual == Estado.PENDIENTE && nuevo == Estado.CANCELADO;
+            case DELIVERY -> actual == Estado.EN_DELIVERY && nuevo == Estado.ENTREGADO;
+            case COCINERO -> actual == Estado.PREPARACION && nuevo == Estado.LISTO;
+            default -> false;
+        };
+    }
+
+    @Override
+    public void verificarYDescontarStockPedido(Pedido pedido) throws RuntimeException {
+        // Map< ID del SucursalInsumo, RequerimientoInfo >
+        Map<Long, RequerimientoInfo> requerimientos = new HashMap<>();
+        Sucursal sucursal = pedido.getSucursal();
+        double totalCosto = 0.0;
+
+        for (DetallePedido detPed : pedido.getDetalles()) {
+            Articulo art = detPed.getArticulo();
+            int cantidadPed = detPed.getCantidad();
+
+            try {
+                // Intentar como insumo directo
+                ArticuloInsumo insumo = articuloInsumoService.getById(art.getId());
+
+                if (!insumo.getEsParaElaborar()) {
+                    SucursalInsumo si = sucursalInsumoService.findBySucursalIdAndArticuloInsumoId(sucursal.getId(), insumo.getId());
+                    if (si == null) {
+                        throw new RuntimeException("No hay stock del insumo ID: " + art.getId() + " en la sucursal: " + sucursal.getNombre());
+                    }
+                    // Consolidar requerimientos por ID de SucursalInsumo
+                    Long siId = si.getId();
+                    requerimientos.merge(siId,
+                            new RequerimientoInfo(si, (double)cantidadPed, insumo.getPrecioCompra() * cantidadPed),
+                            (existing, nuevo) -> new RequerimientoInfo(
+                                    existing.getSucursalInsumo(),
+                                    existing.getCantidadRequerida() + nuevo.getCantidadRequerida(),
+                                    existing.getCostoTotal() + nuevo.getCostoTotal()
+                            )
+                    );
+                }
+
+            } catch (EntityNotFoundException e) {
+                // Es un artículo manufacturado
+                try {
+                    ArticuloManufacturado man = articuloManufacturadoService.getById(art.getId());
+
+                    for (DetalleArticuloManufacturado dam : man.getDetalles()) {
+                        ArticuloInsumo ai = dam.getArticuloInsumo();
+
+                        SucursalInsumo si = sucursalInsumoService.findBySucursalIdAndArticuloInsumoId(sucursal.getId(), ai.getId());
+                        if (si == null) {
+                            throw new RuntimeException("No hay stock del insumo ID: " + art.getId() + " en la sucursal: " + sucursal.getNombre());
+                        }
+
+                        double cantidadRequerida = dam.getCantidad() * cantidadPed;
+                        double costoComponente = ai.getPrecioCompra() * cantidadRequerida;
+
+                        // Consolidar requerimientos por ID de SucursalInsumo
+                        Long siId = si.getId();
+                        requerimientos.merge(siId,
+                                new RequerimientoInfo(si, cantidadRequerida, costoComponente),
+                                (existing, nuevo) -> new RequerimientoInfo(
+                                        existing.getSucursalInsumo(),
+                                        existing.getCantidadRequerida() + nuevo.getCantidadRequerida(),
+                                        existing.getCostoTotal() + nuevo.getCostoTotal()
+                                )
+                        );
+                    }
+                } catch (EntityNotFoundException ex) {
+                    // Artículo no existe
+                    throw new RuntimeException("Artículo con ID: " + art.getId() + " no encontrado");
+                }
+            }
+        }
+
+        // Calcular costo total
+        totalCosto = requerimientos.values().stream()
+                .mapToDouble(RequerimientoInfo::getCostoTotal)
+                .sum();
+        pedido.setTotalCosto(totalCosto);
+
+        // Verificar stock disponible antes de proceder
+        for (RequerimientoInfo req : requerimientos.values()) {
+            SucursalInsumo si = req.getSucursalInsumo();
+            double requerido = req.getCantidadRequerida();
+
+            // Refrescar el stock actual desde la base de datos para evitar datos obsoletos
+            si = sucursalInsumoService.getById(si.getId());
+
+            if (si.getStockActual() < requerido) {
+                throw new RuntimeException("Stock insuficiente para insumo ID: " + si.getId() +
+                        ". Requerido: " + requerido + ", Disponible: " + si.getStockActual());
+            }
+        }
+
+        // Si llegamos aquí, hay stock suficiente - proceder con la transacción
+        try {
+            if (!guardarPedidoConTransaccion(pedido, requerimientos)) {
+                throw new RuntimeException("Error al guardar el pedido en la transacción");
+            }
+        } catch (Exception e) {
+            logger.error("Error al procesar pedido: ", e);
+            throw new RuntimeException("Error al procesar el pedido: " + e.getMessage(), e);
         }
     }
 
@@ -304,6 +406,11 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
         public SucursalInsumo getSucursalInsumo() { return sucursalInsumo; }
         public double getCantidadRequerida() { return cantidadRequerida; }
         public double getCostoTotal() { return costoTotal; }
+    }
+
+    @Override
+    public Pedido findFirstByClienteIdOrderByIdDesc(Long clienteId) {
+        return pedidoRepository.findFirstByClienteIdOrderByIdDesc(clienteId);
     }
 
     @Override

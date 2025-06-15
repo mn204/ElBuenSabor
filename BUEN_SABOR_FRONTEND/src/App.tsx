@@ -5,19 +5,12 @@ import Footer from './components/layout/Footer'
 import { Route, Routes } from 'react-router-dom'
 import Home from './components/layout/Home'
 import Perfil from './components/auth/Perfil'
-import FormArticuloManufacturado from './components/articulos/FormArticuloManufacturado'
-import GrillaArticuloManufacturado from './components/articulos/GrillaArticuloManufacturado'
-import GrillaCategorias from './components/articulos/GrillaCategorias'
-import GrillaInsumos from './components/articulos/GrillaInsumos'
-import GrillaUnidadMedida from "./components/articulos/GrillaUnidadMedida";
-import GrillaImagenArticulo from "./components/articulos/GrillaImagenArticulo";
-import GrillaHistoricoCompra from "./components/articulos/GrillaHistoricoCompra";
-import GrillaHistoricoVenta from "./components/articulos/GrillaHistoricoVenta";
+import FormArticuloManufacturado from './components/empleados/formularios/FormArticuloManufacturado.tsx'
 import RegisterEmpleado from "./components/auth/RegisterEmpleado.tsx";
 import { Carrito } from './components/articulos/Carrito.tsx'
 import Busqueda from './components/articulos/Busqueda.tsx'
 import VistaArticulo from './components/articulos/VistaArticulo.tsx'
-import FormInsumos from './components/articulos/FormInsumos.tsx'
+import FormInsumos from './components/empleados/formularios/FormInsumos.tsx'
 import { AuthProvider, useAuth } from './context/AuthContext.tsx'
 import ProtectedRoute from './context/ProtectedRoute.tsx'
 import Rol from './models/enums/Rol.ts'
@@ -29,6 +22,9 @@ import PanelAdmin from "./components/empleados/PanelAdmin.tsx";
 import DomiciliosCliente from "./components/clientes/DomiciliosCliente.tsx";
 import { SucursalProvider } from './context/SucursalContextEmpleado.tsx'
 import PedidoCliente from './components/clientes/PedidoCliente.tsx';
+import { SucursalProviderUsuario } from './context/SucursalContext.tsx';
+import FormCategoria from './components/empleados/formularios/FormCategoria.tsx';
+import FormStock from './components/empleados/formularios/FormStock.tsx';
 
 
 function AppContent() {
@@ -86,57 +82,27 @@ function AppContent() {
           </ProtectedRoute>
         } />
 
-        <Route path="/manufacturado" element={
+        <Route path="/FormularioManufacturado" element={
           <ProtectedRoute requiredRoles={[Rol.ADMIN, Rol.COCINERO]}>
             <FormArticuloManufacturado />
           </ProtectedRoute>
         } />
 
-        <Route path="/manufacturados" element={
-          <ProtectedRoute requiredRoles={[Rol.ADMIN, Rol.COCINERO]}>
-            <GrillaArticuloManufacturado />
-          </ProtectedRoute>
-        } />
-
-        <Route path="/categorias" element={
+        <Route path="/FormularioCategoria" element={
           <ProtectedRoute requiredRoles={[Rol.ADMIN]}>
-            <GrillaCategorias />
+            <FormCategoria />
           </ProtectedRoute>
         } />
 
-        <Route path="/articulos" element={
-          <ProtectedRoute requiredRoles={[Rol.ADMIN, Rol.COCINERO]}>
-            <GrillaInsumos />
-          </ProtectedRoute>
-        } />
-
-        <Route path="/unidades" element={
-          <ProtectedRoute requiredRoles={[Rol.ADMIN]}>
-            <GrillaUnidadMedida />
-          </ProtectedRoute>
-        } />
-
-        <Route path="/imagenes" element={
-          <ProtectedRoute requiredRoles={[Rol.ADMIN]}>
-            <GrillaImagenArticulo />
-          </ProtectedRoute>
-        } />
-
-        <Route path="/historicocompra" element={
-          <ProtectedRoute requiredRoles={[Rol.ADMIN, Rol.CAJERO]}>
-            <GrillaHistoricoCompra />
-          </ProtectedRoute>
-        } />
-
-        <Route path="/historicoventa" element={
-          <ProtectedRoute requiredRoles={[Rol.ADMIN, Rol.CAJERO]}>
-            <GrillaHistoricoVenta />
-          </ProtectedRoute>
-        } />
-
-        <Route path="/categoria" element={
+        <Route path="/FormularioInsumo" element={
           <ProtectedRoute requiredRoles={[Rol.ADMIN]}>
             <FormInsumos />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/FormularioStock" element={
+          <ProtectedRoute requiredRoles={[Rol.ADMIN]}>
+            <FormStock />
           </ProtectedRoute>
         } />
 
@@ -173,7 +139,9 @@ function App() {
   return (
     <AuthProvider>
       <SucursalProvider>
+      <SucursalProviderUsuario>
         <AppContent />
+      </SucursalProviderUsuario>
       </SucursalProvider>
     </AuthProvider>
   );

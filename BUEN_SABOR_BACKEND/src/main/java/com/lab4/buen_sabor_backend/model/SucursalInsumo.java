@@ -20,7 +20,7 @@ public class SucursalInsumo extends Master {
     @JoinColumn(name = "sucursal_id")
     private Sucursal sucursal;
 
-
-    @OneToMany(mappedBy = "sucursalInsumo", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<ArticuloInsumo> articulosInsumo = new HashSet<>();
+    @ManyToOne
+    @JoinColumn(name = "insumo_id")
+    private ArticuloInsumo articuloInsumo;
 }

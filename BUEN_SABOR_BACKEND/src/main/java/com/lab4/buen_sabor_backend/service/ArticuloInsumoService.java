@@ -9,12 +9,12 @@ import java.util.Optional;
 public interface ArticuloInsumoService extends MasterService<ArticuloInsumo, Long> {
     /**
      * Obtiene la receta completa de un artículo insumo con sus sucursales y existencias
-     */
-    Optional<ArticuloInsumo> obtenerRecetaCompleta(Long id);
-
+     *//*
+    Optional<ArticuloInsumo> obtenerRecetaCompleta(Long id);*/
+/*
     //Busqueda de Stock Bajo
     List<ArticuloInsumo> obtenerConStockBajo(Long idSucursal);
-
+*/
     /**
      * Busca un ingrediente por nombre exacto (case insensitive)
      */
@@ -39,8 +39,9 @@ public interface ArticuloInsumoService extends MasterService<ArticuloInsumo, Lon
      * Consulta el stock actual de todos los insumos
      * @return Lista de arrays [ArticuloInsumo, StockTotal]
      */
+/*
     List<Object[]> consultarStockInsumos();
-
+*/
     /**
      * Activa o desactiva un ingrediente (alta/baja)
 
@@ -56,7 +57,7 @@ public interface ArticuloInsumoService extends MasterService<ArticuloInsumo, Lon
      * Obtiene ingredientes activos ordenados por denominación
      */
     List<ArticuloInsumo> findAllActivosOrdenados();
-
+/*
     List<ArticuloInsumo> findArticuloInsumoStockActualGratherThanAndEsParaElaborarFalse(int stock);
-}
+*/}
 

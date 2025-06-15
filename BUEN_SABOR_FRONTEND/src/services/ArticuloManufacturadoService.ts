@@ -25,6 +25,26 @@ class ArticuloManufacturadoService {
         }
     }
 
+    async getAllPaginated(params: URLSearchParams): Promise<{
+        content: ArticuloManufacturado[];
+        pageable: {
+            pageNumber: number;
+            pageSize: number;
+        };
+        totalPages: number;
+        totalElements: number;
+        first: boolean;
+        last: boolean;
+        size: number;
+        number: number;
+    }> {
+        const response = await fetch(`${API_URL}/page?${params.toString()}`);
+        if (!response.ok) {
+            throw new Error('Error al obtener los artículos manufacturados paginados');
+        }
+        return response.json();
+    }
+
     async create(articulo: ArticuloManufacturado): Promise<ArticuloManufacturado> {
         try {
             const res = await fetch(`${API_URL}`, {

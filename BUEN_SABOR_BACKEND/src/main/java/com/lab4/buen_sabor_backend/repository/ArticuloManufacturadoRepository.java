@@ -47,7 +47,7 @@ public interface ArticuloManufacturadoRepository extends MasterRepository<Articu
 
     // Verificar si existe por denominación excluyendo un ID específico (para updates)
     boolean existsByDenominacionIgnoreCaseAndEliminadoFalseAndIdNot(String denominacion, Long id);
-
+/*
     @Query("""
     SELECT am FROM ArticuloManufacturado am
     WHERE NOT EXISTS (
@@ -61,6 +61,6 @@ public interface ArticuloManufacturadoRepository extends MasterRepository<Articu
     )
 """)
     List<ArticuloManufacturado> findManufacturadosConStockDisponiblePorSucursal(@Param("sucursalId") int sucursalId);
-
+*/
 
 }

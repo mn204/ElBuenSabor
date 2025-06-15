@@ -65,6 +65,7 @@ public class ArticuloManufacturadoServiceImpl extends MasterServiceImpl<Articulo
         }
 
         for(DetalleArticuloManufacturado detalle : entity.getDetalles()) {
+            System.out.println(detalle.getArticuloInsumo().getDenominacion());
             detalle.setArticuloManufacturado(entity);
         }
 
@@ -166,13 +167,13 @@ public class ArticuloManufacturadoServiceImpl extends MasterServiceImpl<Articulo
     public boolean existeByDenominacionExcluyendoId(String denominacion, Long id) {
         return articuloManufacturadoRepository.existsByDenominacionIgnoreCaseAndEliminadoFalseAndIdNot(denominacion, id);
     }
-
+/*
     @Override
     public List<ArticuloManufacturado> findManufacturadosConStockDisponiblePorSucursal(int sucursalId) {
         logger.info("Buscando productos con stock disponible en sucursal ID: {}", sucursalId);
         return articuloManufacturadoRepository.findManufacturadosConStockDisponiblePorSucursal(sucursalId);
     }
-
+*/
 
     private void validarDatosBasicos(ArticuloManufacturado producto) {
         if (producto.getDenominacion() == null || producto.getDenominacion().trim().isEmpty()) {

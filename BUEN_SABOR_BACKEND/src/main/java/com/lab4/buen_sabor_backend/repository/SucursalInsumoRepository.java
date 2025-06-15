@@ -5,4 +5,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface SucursalInsumoRepository extends MasterRepository<SucursalInsumo, Long> {
+
+    SucursalInsumo findBySucursalIdAndArticuloInsumoId(Long sucursalId, Long articuloInsumoId);
+
 }

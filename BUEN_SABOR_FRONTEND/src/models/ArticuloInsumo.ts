@@ -5,4 +5,5 @@ export default class ArticuloInsumo extends Articulo {
     precioCompra: number = 0;
     esParaElaborar!: boolean;
     sucursalInsumo?: SucursalInsumo;
+    tiempoEstimadoMinutos?: number = 0;
 }

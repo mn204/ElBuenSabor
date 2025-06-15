@@ -12,11 +12,11 @@ import java.util.Optional;
 
 @Repository
 public interface ArticuloInsumoRepository extends MasterRepository<ArticuloInsumo, Long> {
-
+/*
     // Buscar receta completa de un producto (usualmente por ID)
     @Query("SELECT a FROM ArticuloInsumo a LEFT JOIN FETCH a.sucursalInsumo si  WHERE a.id = :id")
-    Optional<ArticuloInsumo> obtenerRecetaCompleta(@Param("id") Long id);
-
+    Optional<ArticuloInsumo> obtenerRecetaCompleta(@Param("id") Long id);*
+/*
     //Busqueda de Stock bajo
     @Query("""
     SELECT a FROM ArticuloInsumo a 
@@ -24,7 +24,7 @@ public interface ArticuloInsumoRepository extends MasterRepository<ArticuloInsum
       AND a.sucursalInsumo.stockActual <= a.sucursalInsumo.stockMinimo
 """)
     List<ArticuloInsumo> findArticulosConStockBajo(@Param("sucursalId") Long sucursalId);
-
+*/
     // Buscar ingrediente por nombre exacto (case insensitive)
     Optional<ArticuloInsumo> findByDenominacionIgnoreCase(String denominacion);
 
@@ -39,6 +39,7 @@ public interface ArticuloInsumoRepository extends MasterRepository<ArticuloInsum
     List<ArticuloInsumo> findAllEsParaElaborar();
 
     // Consultar y controlar el stock actual (sumando existencias por insumo)
+/*
     @Query("""
            SELECT a, SUM(si.stockActual)
            FROM ArticuloInsumo a
@@ -47,6 +48,7 @@ public interface ArticuloInsumoRepository extends MasterRepository<ArticuloInsum
            GROUP BY a
            """)
     List<Object[]> consultarStockInsumos();  // Devuelve lista de [ArticuloInsumo, StockTotal]
-
+    */
+/*
     List<ArticuloInsumo> findArticuloInsumoBySucursalInsumo_StockActualGreaterThanAndEsParaElaborarFalse(int stockActual);
-}
+*/}
