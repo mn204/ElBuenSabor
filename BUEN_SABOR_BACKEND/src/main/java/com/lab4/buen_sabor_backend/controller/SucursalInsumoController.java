@@ -7,9 +7,10 @@ import com.lab4.buen_sabor_backend.service.SucursalInsumoService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/sucursal-insumo")
@@ -36,5 +37,12 @@ public class SucursalInsumoController extends MasterControllerImpl<SucursalInsum
     @Override
     protected SucursalInsumoDTO toDTO(SucursalInsumo entity) {
         return sucursalInsumoMapper.toDTO(entity);
+    }
+
+    @GetMapping("/stock-bajo")
+    public ResponseEntity<List<SucursalInsumoDTO>> getStockBajo(@RequestParam(required = false) Long idSucursal) {
+        List<SucursalInsumo> sucursalInsumos = sucursalInsumoService.obtenerConStockBajo(idSucursal);
+        List<SucursalInsumoDTO> sucursalInsumosDTO = sucursalInsumoMapper.toDTOsList(sucursalInsumos);
+        return ResponseEntity.ok(sucursalInsumosDTO);
     }
 }

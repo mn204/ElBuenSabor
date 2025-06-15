@@ -6,7 +6,7 @@ import org.mapstruct.*;
 
 import java.util.*;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {ArticuloInsumoMapper.class})
 public interface ArticuloInsumoMapper extends MasterMapper<ArticuloInsumo, ArticuloInsumoDTO> {
 
     ArticuloInsumoDTO toDTO(ArticuloInsumo source);
