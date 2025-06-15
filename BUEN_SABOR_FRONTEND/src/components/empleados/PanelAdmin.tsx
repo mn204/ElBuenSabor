@@ -20,11 +20,12 @@ import { useSucursal } from "../../context/SucursalContextEmpleado.tsx";
 
 import {useLocation} from "react-router-dom";
 import {useNavigate} from "react-router-dom";
-import GrillaCategorias from './GrillaCategorias.tsx';
+import GrillaCategorias from '../articulos/GrillaCategorias.tsx';
 import DashboardSection from './DashboardSection';
 import GrillaDelivery from "./GrillaDelivery.tsx";
 import {useEffect} from "react";
 import GrillaInsumos from './GrillaInsumos.tsx';
+import GrillaCocina from "./GrillaCocina.tsx";
 
 function PanelAdmin() {
 
@@ -37,7 +38,7 @@ function PanelAdmin() {
     const botones = [
         { nombre: 'Dashboard', icono: Dashboard, path: 'dashboard', rolesPermitidos: ['ADMINISTRADOR'] },
         { nombre: 'Pedidos', icono: Pedidos, path: 'pedidos', rolesPermitidos: ['ADMINISTRADOR', 'CAJERO'] },
-        { nombre: 'Cocina', icono: Cocina, path: 'cocina', rolesPermitidos: ['ADMINISTRADOR', 'CAJERO', 'COCINERO'] },
+        { nombre: 'Cocina', icono: Cocina, path: 'cocina', rolesPermitidos: ['ADMINISTRADOR', 'COCINERO'] },
         { nombre: 'Delivery', icono: Delivery, path: 'delivery', rolesPermitidos: ['ADMINISTRADOR', 'DELIVERY'] },
         { nombre: 'Facturación', icono: Facturacion, path: 'facturacion', rolesPermitidos: ['ADMINISTRADOR', 'CAJERO'] },
         { nombre: 'Clientes', icono: Usuario, path: 'clientes', rolesPermitidos: ['ADMINISTRADOR'] },
@@ -121,7 +122,8 @@ function PanelAdmin() {
             case 'Cocina':
                 return (
                     <div>
-                        <h4>{getTitulo('Cocina')}</h4>
+                        <h2>{getTitulo('Cocina')}</h2>
+                        <GrillaCocina/>
                     </div>
                 );
             case 'Delivery':
