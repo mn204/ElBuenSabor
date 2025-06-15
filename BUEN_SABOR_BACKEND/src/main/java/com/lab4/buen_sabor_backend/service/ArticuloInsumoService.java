@@ -33,6 +33,7 @@ public interface ArticuloInsumoService extends MasterService<ArticuloInsumo, Lon
      * Obtiene todos los ingredientes que son para elaborar
      */
     List<ArticuloInsumo> findAllEsParaElaborar();
+    List<ArticuloInsumo> findAllNoEsParaElaborar();
 
     /**
      * Verifica si un ingrediente existe por denominación (para evitar duplicados)
