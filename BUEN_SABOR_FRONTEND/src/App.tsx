@@ -25,6 +25,7 @@ import PedidoCliente from './components/clientes/PedidoCliente.tsx';
 import { SucursalProviderUsuario } from './context/SucursalContext.tsx';
 import FormCategoria from './components/empleados/formularios/FormCategoria.tsx';
 import FormStock from './components/empleados/formularios/FormStock.tsx';
+import FormPromocion from './components/empleados/formularios/FormPromocion.tsx';
 
 
 function AppContent() {
@@ -103,6 +104,12 @@ function AppContent() {
         <Route path="/FormularioStock" element={
           <ProtectedRoute requiredRoles={[Rol.ADMIN]}>
             <FormStock />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/FormularioPromocion" element={
+          <ProtectedRoute requiredRoles={[Rol.ADMIN]}>
+            <FormPromocion />
           </ProtectedRoute>
         } />
 

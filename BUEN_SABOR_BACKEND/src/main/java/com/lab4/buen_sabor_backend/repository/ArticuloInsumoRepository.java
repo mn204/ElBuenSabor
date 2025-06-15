@@ -28,4 +28,5 @@ public interface ArticuloInsumoRepository extends MasterRepository<ArticuloInsum
     // Obtener todos los ingredientes que son ParaElaborar (no eliminados y son para Elaborar)
     @Query("SELECT a FROM ArticuloInsumo a WHERE a.eliminado = false AND a.esParaElaborar = true")
     List<ArticuloInsumo> findAllEsParaElaborar();
+    List<ArticuloInsumo> findArticuloInsumosByEsParaElaborarFalse();
 }

@@ -111,6 +111,14 @@ public class ArticuloInsumoController extends MasterControllerImpl<ArticuloInsum
         return ResponseEntity.ok(ingredientesDTO);
     }
 
+    @GetMapping("/no-para-elaborar")
+    public ResponseEntity<List<ArticuloInsumoDTO>> obtenerNoParaElaborar() {
+        logger.info("Obteniendo ingredientes para elaborar");
+        List<ArticuloInsumo> ingredientes = articuloInsumoService.findAllNoEsParaElaborar();
+        List<ArticuloInsumoDTO> ingredientesDTO = articuloInsumoMapper.toDTOsList(ingredientes);
+        return ResponseEntity.ok(ingredientesDTO);
+    }
+
     /**
      * Cambia el estado de alta/baja de un ingrediente
      */

@@ -14,6 +14,17 @@ class ArticuloInsumoService {
         }
     }
 
+    async getAllNoParaElaborar(): Promise<ArticuloInsumo[]> {
+        try {
+            const res = await fetch(`${API_URL}/no-para-elaborar`);
+            if (!res.ok) throw new Error("Error al obtener insumos");
+            return await res.json();
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
+
     async getAllParaElaborar(): Promise<ArticuloInsumo[]> {
         try {
             const res = await fetch(`${API_URL}/para-elaborar`);
