@@ -17,7 +17,7 @@ public interface ArticuloInsumoService extends MasterService<ArticuloInsumo, Lon
     //List<ArticuloInsumo> obtenerConStockBajo(Long idSucursal);
 
     // Búsqueda de stock bajo para todas las sucursales
-    List<ArticuloInsumo> obtenerConStockBajoTodasSucursales();
+    //List<ArticuloInsumo> obtenerConStockBajoTodasSucursales();
 
     /*
     Optional<ArticuloInsumo> obtenerRecetaCompleta(Long id);*/
