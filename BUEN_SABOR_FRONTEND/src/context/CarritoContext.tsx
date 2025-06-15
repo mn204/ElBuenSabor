@@ -222,6 +222,7 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
       // Por:
       pedido.horaEstimadaFinalizacion = obtenerHoraFinalizacion(pedido);
       pedido.fechaPedido = obtenerFechaArgentina();
+      pedido.estado = Estado.PENDIENTE;
       const exito = await PedidoService.create(pedido);
       if (exito) {
         alert("Pedido guardado exitosamente");

@@ -11,7 +11,7 @@ MySQL - 10.4.32-MariaDB : Database - buen_sabor
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
-USE `buen_sabor`;
+USE `buen_sabor2`;
 
 -- 1. TABLAS BASE (sin dependencias)
 

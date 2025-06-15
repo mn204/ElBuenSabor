@@ -14,9 +14,5 @@ public class ArticuloInsumo extends Articulo {
 
     private Double precioCompra;
     private Boolean esParaElaborar;
-
-    @ManyToOne
-    @JoinColumn(name = "sucursal_insumo_id")
-    private SucursalInsumo sucursalInsumo;
 }
 

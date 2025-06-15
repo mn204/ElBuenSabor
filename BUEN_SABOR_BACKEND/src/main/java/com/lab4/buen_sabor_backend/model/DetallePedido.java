@@ -21,4 +21,8 @@ public class DetallePedido extends Master{
     @ManyToOne
     @JoinColumn(name = "articulo_id")
     private Articulo articulo;
+
+    @ManyToOne
+    @JoinColumn(name = "promocion_id")
+    private Promocion promocion;
 }

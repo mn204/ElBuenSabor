@@ -10,4 +10,5 @@ public class DetallePedidoDTO extends MasterDTO {
     private Double subTotal;
     private ArticuloDTO articulo;
     private boolean eliminado;
+    private PromocionDTO promocion;
 }

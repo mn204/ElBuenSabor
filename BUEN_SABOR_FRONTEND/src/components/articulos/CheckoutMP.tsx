@@ -15,6 +15,7 @@ function CheckoutMP({ pedido }: { pedido: Pedido }) {
       const response: PreferenceMP = await savePreferenceMP(pedido);
       if (response && response.id) {
         setIdPreference(response.id);
+        console.log(idPreference)
       } else {
         alert("Error al generar la preferencia de Mercado Pago");
       }

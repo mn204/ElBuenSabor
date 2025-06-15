@@ -113,7 +113,7 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
     }
 
     @Override
-    public void actualizarEstadoPorPago(Long pedidoId, Estado estado) {
+    public void actualizarEstadoPorPago(Long pedidoId, boolean estado) {
         pedidoRepository.changeEstado(pedidoId, estado);
     }
 
@@ -144,9 +144,10 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
                     ArticuloInsumo insumo = articuloInsumoService.getById(art.getId());
 
                     if (!insumo.getEsParaElaborar()) {
-                        SucursalInsumo si = insumo.getSucursalInsumo();
-                        if (!si.getSucursal().getId().equals(sucursal.getId())) {
-                            return false; // No hay stock en esta sucursal
+
+                        SucursalInsumo si = sucursalInsumoService.findBySucursalIdAndArticuloInsumoId(sucursal.getId(), insumo.getId());
+                        if (si == null) {
+                            return false; // No existe Sucursal insumo en esta sucursal
                         }
 
                         // Consolidar requerimientos por ID de SucursalInsumo
@@ -168,10 +169,9 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
 
                         for (DetalleArticuloManufacturado dam : man.getDetalles()) {
                             ArticuloInsumo ai = dam.getArticuloInsumo();
-                            SucursalInsumo si = ai.getSucursalInsumo();
-
-                            if (!si.getSucursal().getId().equals(sucursal.getId())) {
-                                return false; // No hay insumos en esta sucursal
+                            SucursalInsumo si = sucursalInsumoService.findBySucursalIdAndArticuloInsumoId(sucursal.getId(), ai.getId());
+                            if (si == null) {
+                                return false; // No existe Sucursal insumo en esta sucursal
                             }
 
                             double cantidadRequerida = dam.getCantidad() * cantidadPed;
@@ -277,11 +277,10 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
                 ArticuloInsumo insumo = articuloInsumoService.getById(art.getId());
 
                 if (!insumo.getEsParaElaborar()) {
-                    SucursalInsumo si = insumo.getSucursalInsumo();
-                    if (!si.getSucursal().getId().equals(sucursal.getId())) {
+                    SucursalInsumo si = sucursalInsumoService.findBySucursalIdAndArticuloInsumoId(sucursal.getId(), insumo.getId());
+                    if (si == null) {
                         throw new RuntimeException("No hay stock del insumo ID: " + art.getId() + " en la sucursal: " + sucursal.getNombre());
                     }
-
                     // Consolidar requerimientos por ID de SucursalInsumo
                     Long siId = si.getId();
                     requerimientos.merge(siId,
@@ -301,10 +300,10 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
 
                     for (DetalleArticuloManufacturado dam : man.getDetalles()) {
                         ArticuloInsumo ai = dam.getArticuloInsumo();
-                        SucursalInsumo si = ai.getSucursalInsumo();
 
-                        if (!si.getSucursal().getId().equals(sucursal.getId())) {
-                            throw new RuntimeException("No hay insumos del artículo manufacturado ID: " + art.getId() + " en la sucursal: " + sucursal.getNombre());
+                        SucursalInsumo si = sucursalInsumoService.findBySucursalIdAndArticuloInsumoId(sucursal.getId(), ai.getId());
+                        if (si == null) {
+                            throw new RuntimeException("No hay stock del insumo ID: " + art.getId() + " en la sucursal: " + sucursal.getNombre());
                         }
 
                         double cantidadRequerida = dam.getCantidad() * cantidadPed;

@@ -26,21 +26,21 @@ public class ArticuloInsumoServiceImpl extends MasterServiceImpl<ArticuloInsumo,
         super(articuloInsumoRepository);
         this.articuloInsumoRepository = articuloInsumoRepository;
     }
-
+/*
     //Busqueda de Stock bajo
     @Override
     public List<ArticuloInsumo> obtenerConStockBajo(Long idSucursal) {
         return articuloInsumoRepository.findArticulosConStockBajo(idSucursal);
     }
-
-
+*/
+/*
     @Override
     @Transactional
     public Optional<ArticuloInsumo> obtenerRecetaCompleta(Long id) {
         logger.info("Obteniendo receta completa para ArticuloInsumo con id: {}", id);
         return articuloInsumoRepository.obtenerRecetaCompleta(id);
     }
-
+*/
     @Override
     @Transactional
     public Optional<ArticuloInsumo> findByDenominacion(String denominacion) {
@@ -68,6 +68,7 @@ public class ArticuloInsumoServiceImpl extends MasterServiceImpl<ArticuloInsumo,
         logger.info("Obteniendo todos los ArticuloInsumo que son para elaborar");
         return articuloInsumoRepository.findAllEsParaElaborar();
     }
+    /*
 
     @Override
     @Transactional
@@ -75,6 +76,7 @@ public class ArticuloInsumoServiceImpl extends MasterServiceImpl<ArticuloInsumo,
         logger.info("Consultando stock de todos los insumos");
         return articuloInsumoRepository.consultarStockInsumos();
     }
+    */
     /*
     @Override
     @Transactional
@@ -107,12 +109,12 @@ public class ArticuloInsumoServiceImpl extends MasterServiceImpl<ArticuloInsumo,
                 .sorted((a1, a2) -> a1.getDenominacion().compareToIgnoreCase(a2.getDenominacion()))
                 .toList();
     }
-
+/*
     @Override
     public List<ArticuloInsumo> findArticuloInsumoStockActualGratherThanAndEsParaElaborarFalse(int stock) {
         return articuloInsumoRepository.findArticuloInsumoBySucursalInsumo_StockActualGreaterThanAndEsParaElaborarFalse(stock);
     }
-
+*/
     @Override
     @Transactional
     public ArticuloInsumo save(ArticuloInsumo entity) {

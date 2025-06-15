@@ -31,7 +31,7 @@ public interface PedidoService extends MasterService<Pedido, Long> {
     void cambiarEstadoPedido(Pedido pedido);
 
     Optional<Pedido> findByIdAndCliente(Long idPedido, Long clienteId);
-    void actualizarEstadoPorPago(Long pedidoId, Estado estado);
+    void actualizarEstadoPorPago(Long pedidoId, boolean estado);
 
     //byte[] generarFacturaPDF(Long pedidoId, Long clienteId);
     byte[] generarFacturaPDF(Long pedidoId, Long clienteId);

@@ -48,7 +48,7 @@ public class MercadoPagoController {
             System.out.printf("Pago ID: %d, Pedido ID: %d, Estado: %s%n", paymentId, pedidoId, paymentStatus);
 
             // 👉 Llamado al service
-            pedidoService.actualizarEstadoPorPago(pedidoId, Estado.PREPARACION);
+            pedidoService.actualizarEstadoPorPago(pedidoId, true);
 
         } catch (MPApiException | MPException e) {
             e.printStackTrace();

@@ -55,7 +55,7 @@ public class ArticuloInsumoController extends MasterControllerImpl<ArticuloInsum
         List<ArticuloInsumoDTO> ingredientesDTO = articuloInsumoMapper.toDTOsList(ingredientes);
         return ResponseEntity.ok(ingredientesDTO);
     }
-
+/*
     //Buscamos Insumos con bajo Stock
     @GetMapping("/stock-bajo/{idSucursal}")
     public ResponseEntity<List<ArticuloInsumoDTO>> getStockBajo(@PathVariable Long idSucursal) {
@@ -65,7 +65,7 @@ public class ArticuloInsumoController extends MasterControllerImpl<ArticuloInsum
                 .toList();
         return ResponseEntity.ok(dtoList);
     }
-
+*/
     @GetMapping("/noEliminados")
     public ResponseEntity<List<ArticuloInsumoDTO>> getAllElimanodFalse() {
         logger.info("Obteniendo grilla de ingredientes");
@@ -143,7 +143,7 @@ public class ArticuloInsumoController extends MasterControllerImpl<ArticuloInsum
 
     /**
      * Obtiene la receta completa de un ingrediente (con sucursales y existencias)
-     */
+     *//*
     @GetMapping("/{id}/receta-completa")
     public ResponseEntity<ArticuloInsumoDTO> obtenerRecetaCompleta(@PathVariable Long id) {
         logger.info("Obteniendo receta completa para ingrediente id: {}", id);
@@ -156,17 +156,18 @@ public class ArticuloInsumoController extends MasterControllerImpl<ArticuloInsum
             return ResponseEntity.notFound().build();
         }
     }
-
+*/
     /**
      * Consulta el stock actual de todos los insumos
      */
+    /*
     @GetMapping("/stock")
     public ResponseEntity<List<Object[]>> consultarStockInsumos() {
         logger.info("Consultando stock de insumos");
         List<Object[]> stockInfo = articuloInsumoService.consultarStockInsumos();
         return ResponseEntity.ok(stockInfo);
     }
-
+*/
     /**
      * Verifica si existe un ingrediente con la denominación dada
      */
@@ -197,7 +198,7 @@ public class ArticuloInsumoController extends MasterControllerImpl<ArticuloInsum
         logger.info("Actualizando ingrediente id: {} con denominación: {}", id, dto.getDenominacion());
         return super.update(id, dto);
     }
-
+/*
     @GetMapping("/stock/{stock}")
     public ResponseEntity<List<ArticuloInsumoDTO>> obtenerStock(@PathVariable int stock) {
         List<ArticuloInsumoDTO> productos = articuloInsumoService.findArticuloInsumoStockActualGratherThanAndEsParaElaborarFalse(stock)
@@ -205,5 +206,5 @@ public class ArticuloInsumoController extends MasterControllerImpl<ArticuloInsum
                 .map(articuloInsumoMapper::toDTO)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(productos);
-    }
+    }*/
 }

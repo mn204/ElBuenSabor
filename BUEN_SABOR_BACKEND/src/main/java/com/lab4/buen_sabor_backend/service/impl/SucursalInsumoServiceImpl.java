@@ -9,9 +9,16 @@ import org.springframework.stereotype.Service;
 @Service
 public class SucursalInsumoServiceImpl extends MasterServiceImpl<SucursalInsumo, Long> implements SucursalInsumoService {
 
+    private final SucursalInsumoRepository sucursalInsumoRepository;
+
     @Autowired
-    public SucursalInsumoServiceImpl(SucursalInsumoRepository sucursalInsumoRepository) {
+    public SucursalInsumoServiceImpl(SucursalInsumoRepository sucursalInsumoRepository, SucursalInsumoRepository sucursalInsumoRepository1) {
         super(sucursalInsumoRepository);
+        this.sucursalInsumoRepository = sucursalInsumoRepository1;
     }
 
+    @Override
+    public SucursalInsumo findBySucursalIdAndArticuloInsumoId(Long sucursalId, Long articuloInsumoId) {
+        return sucursalInsumoRepository.findBySucursalIdAndArticuloInsumoId(sucursalId, articuloInsumoId);
+    }
 }

@@ -19,8 +19,8 @@ public interface PedidoRepository extends MasterRepository<Pedido, Long>, JpaSpe
 
     @Modifying
     @Transactional
-    @Query("UPDATE Pedido p SET p.estado = :estado WHERE p.id = :pedidoId")
-    void changeEstado(@Param("pedidoId") Long pedidoId, @Param("estado") Estado estado);
+    @Query("UPDATE Pedido p SET p.pagado = :estado WHERE p.id = :pedidoId")
+    void changeEstado(@Param("pedidoId") Long pedidoId, @Param("estado") boolean estado);
 
     /*
         // Buscar pedidos por cliente o estado

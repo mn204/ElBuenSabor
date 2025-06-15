@@ -26,6 +26,7 @@ import GrillaDelivery from "./GrillaDelivery.tsx";
 import {useEffect} from "react";
 import GrillaInsumos from './GrillaInsumos.tsx';
 import GrillaCocina from "./GrillaCocina.tsx";
+import GrillaStock from './GrillaStock.tsx';
 
 function PanelAdmin() {
 
@@ -47,10 +48,11 @@ function PanelAdmin() {
         { nombre: 'Categorias', icono: Productos, path: 'categorias', rolesPermitidos: ['ADMINISTRADOR'] },
         { nombre: 'Estadísticas', icono: Estadisticas, path: 'estadisticas', rolesPermitidos: ['ADMINISTRADOR'] },
         { nombre: 'Empleados', icono: Usuario, path: 'empleados', rolesPermitidos: ['ADMINISTRADOR'] },
+        { nombre: 'Stock', icono: Productos, path: 'stock', rolesPermitidos: ['ADMINISTRADOR'] },
     ];
 
     const botonesVisibles = botones.filter(btn =>
-        btn.rolesPermitidos.includes(usuario?.rol)
+        btn.rolesPermitidos.includes(usuario!.rol)
     );
 
     // Obtener la ruta activa desde la URL (ej: 'cocina')
@@ -66,7 +68,7 @@ function PanelAdmin() {
         }
     }, [usuario, botonActual, navigate]);
     const renderContent = () => {
-        if (!botonActual || !botonActual.rolesPermitidos.includes(usuario?.rol)) {
+        if (!botonActual || !botonActual.rolesPermitidos.includes(usuario!.rol)) {
             return <div>No tenés permiso para ver esta sección.</div>;
         }
 
@@ -162,6 +164,12 @@ function PanelAdmin() {
                 return(
                     <div>
                         <GrillaInsumos/>
+                    </div>
+                )
+            case 'Stock':
+                return(
+                    <div>
+                        <GrillaStock/>
                     </div>
                 )
             default:

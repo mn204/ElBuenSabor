@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
-import ArticuloInsumo from "../../models/ArticuloInsumo";
-import UnidadMedida from "../../models/UnidadMedida";
-import Categoria from "../../models/Categoria";
-import articuloInsumoService from "../../services/ArticuloInsumoService";
-import unidadMedidaService from "../../services/UnidadMedidaService";
-import categoriaService from "../../services/CategoriaService";
+import ArticuloInsumo from "../../../models/ArticuloInsumo";
+import UnidadMedida from "../../../models/UnidadMedida";
+import Categoria from "../../../models/Categoria";
+import articuloInsumoService from "../../../services/ArticuloInsumoService";
+import unidadMedidaService from "../../../services/UnidadMedidaService";
+import categoriaService from "../../../services/CategoriaService";
 import { Button } from "react-bootstrap";
 import { useSearchParams } from "react-router-dom";
-import ImagenArticulo from "../../models/ImagenArticulo";
-import { subirACloudinary } from "../../funciones/funciones";
+import ImagenArticulo from "../../../models/ImagenArticulo";
+import { subirACloudinary } from "../../../funciones/funciones";
 
 function FormInsumos() {
     const [denominacion, setDenominacion] = useState("");

@@ -5,12 +5,12 @@ import Footer from './components/layout/Footer'
 import { Route, Routes } from 'react-router-dom'
 import Home from './components/layout/Home'
 import Perfil from './components/auth/Perfil'
-import FormArticuloManufacturado from './components/articulos/FormArticuloManufacturado'
+import FormArticuloManufacturado from './components/empleados/formularios/FormArticuloManufacturado.tsx'
 import RegisterEmpleado from "./components/auth/RegisterEmpleado.tsx";
 import { Carrito } from './components/articulos/Carrito.tsx'
 import Busqueda from './components/articulos/Busqueda.tsx'
 import VistaArticulo from './components/articulos/VistaArticulo.tsx'
-import FormInsumos from './components/articulos/FormInsumos.tsx'
+import FormInsumos from './components/empleados/formularios/FormInsumos.tsx'
 import { AuthProvider, useAuth } from './context/AuthContext.tsx'
 import ProtectedRoute from './context/ProtectedRoute.tsx'
 import Rol from './models/enums/Rol.ts'
@@ -23,7 +23,8 @@ import DomiciliosCliente from "./components/clientes/DomiciliosCliente.tsx";
 import { SucursalProvider } from './context/SucursalContextEmpleado.tsx'
 import PedidoCliente from './components/clientes/PedidoCliente.tsx';
 import { SucursalProviderUsuario } from './context/SucursalContext.tsx';
-import FormCategoria from './components/articulos/FormCategoria.tsx';
+import FormCategoria from './components/empleados/formularios/FormCategoria.tsx';
+import FormStock from './components/empleados/formularios/FormStock.tsx';
 
 
 function AppContent() {
@@ -96,6 +97,12 @@ function AppContent() {
         <Route path="/FormularioInsumo" element={
           <ProtectedRoute requiredRoles={[Rol.ADMIN]}>
             <FormInsumos />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/FormularioStock" element={
+          <ProtectedRoute requiredRoles={[Rol.ADMIN]}>
+            <FormStock />
           </ProtectedRoute>
         } />
 

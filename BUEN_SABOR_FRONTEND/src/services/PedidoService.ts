@@ -25,6 +25,7 @@ class PedidoService {
             });
 
             const stockDisponible: boolean = await response.json();
+            console.log(stockDisponible)
             return stockDisponible;
         } catch (error) {
             alert(error)
