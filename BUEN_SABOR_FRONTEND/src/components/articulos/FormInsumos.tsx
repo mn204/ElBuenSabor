@@ -82,7 +82,7 @@ function FormInsumos() {
                 await articuloInsumoService.create(insumo);
             }
             alert("Insumo guardado exitosamente");
-            window.location.href = "/articulos"; // Redirige a la lista de insumos
+            window.location.href = "/empleado/insumos"; // Redirige a la lista de insumos
         } catch (error) {
             alert("Error al guardar el insumo");
         }

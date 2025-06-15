@@ -65,6 +65,7 @@ public class ArticuloManufacturadoServiceImpl extends MasterServiceImpl<Articulo
         }
 
         for(DetalleArticuloManufacturado detalle : entity.getDetalles()) {
+            System.out.println(detalle.getArticuloInsumo().getDenominacion());
             detalle.setArticuloManufacturado(entity);
         }
 

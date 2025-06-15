@@ -5,17 +5,38 @@ import CategoriaService from "../../services/CategoriaService";
 import Categoria from "../../models/Categoria";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
+import Pagination from "react-bootstrap/Pagination";
+import Form from "react-bootstrap/Form";
 import { ReusableTable } from "../Tabla";
 import "../../styles/GrillaArticuloManufactura.css";
 import BotonEliminar from "../layout/BotonEliminar";
 import BotonModificar from "../layout/BotonModificar";
 import BotonVer from "../layout/BotonVer";
 import BotonAlta from "../layout/BotonAlta";
+import { Link } from "react-router-dom";
+
+interface PageResponse {
+  content: ArticuloManufacturado[];
+  pageable: {
+    pageNumber: number;
+    pageSize: number;
+  };
+  totalPages: number;
+  totalElements: number;
+  first: boolean;
+  last: boolean;
+  size: number;
+  number: number;
+}
 
 function GrillaArticuloManufacturado() {
-  const [articulos, setArticulos] = useState<ArticuloManufacturado[]>([]);
+  const [pageData, setPageData] = useState<PageResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Paginación
+  const [currentPage, setCurrentPage] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
 
   // Filtros
   const [filtroDenominacion, setFiltroDenominacion] = useState("");
@@ -32,14 +53,36 @@ function GrillaArticuloManufacturado() {
   useEffect(() => {
     cargarArticulos();
     CategoriaService.getAll().then(setCategorias);
-  }, []);
+  }, [currentPage, pageSize]);
+
+  // Resetear página cuando cambien los filtros
+  useEffect(() => {
+    if (currentPage !== 0) {
+      setCurrentPage(0);
+    } else {
+      cargarArticulos();
+    }
+  }, [filtroDenominacion, filtroCategoria, filtroEstado, filtroPrecioMin, filtroPrecioMax]);
 
   const cargarArticulos = async () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await ArticuloManufacturadoService.getAll();
-      setArticulos(data);
+      // Construir parámetros de búsqueda
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        size: pageSize.toString(),
+      });
+
+      // Agregar filtros si existen
+      if (filtroDenominacion) params.append('denominacion', filtroDenominacion);
+      if (filtroCategoria) params.append('categoria', filtroCategoria);
+      if (filtroEstado) params.append('estado', filtroEstado);
+      if (filtroPrecioMin) params.append('precioMin', filtroPrecioMin);
+      if (filtroPrecioMax) params.append('precioMax', filtroPrecioMax);
+
+      const data = await ArticuloManufacturadoService.getAllPaginated(params);
+      setPageData(data);
     } catch (err) {
       setError("Error al cargar los artículos manufacturados");
     } finally {
@@ -47,17 +90,6 @@ function GrillaArticuloManufacturado() {
     }
   };
 
-  // Filtro local (puedes reemplazar por API si tienes endpoints específicos)
-  const articulosFiltrados = articulos.filter(a =>
-    (!filtroDenominacion || a.denominacion.toLowerCase().includes(filtroDenominacion.toLowerCase())) &&
-    (!filtroCategoria || String(a.categoria?.id) === filtroCategoria) &&
-    (!filtroEstado ||
-      (filtroEstado === "activo" && !a.eliminado) ||
-      (filtroEstado === "eliminado" && a.eliminado)
-    ) &&
-    (!filtroPrecioMin || a.precioVenta >= Number(filtroPrecioMin)) &&
-    (!filtroPrecioMax || a.precioVenta <= Number(filtroPrecioMax))
-  );
   const handleVer = (row: ArticuloManufacturado) => {
     setArticuloSeleccionado(row);
     setShowModal(true);
@@ -69,47 +101,133 @@ function GrillaArticuloManufacturado() {
   };
 
   const handleActualizar = (row: ArticuloManufacturado) => {
-    window.location.href = `/manufacturado?id=${row.id}`;
+    window.location.href = `/FormularioManufacturado?id=${row.id}`;
   };
 
-const eliminarArticulo = async (id: number) => {
-  if (!window.confirm("¿Seguro que desea eliminar este artículo manufacturado?")) return;
-  try {
-    await ArticuloManufacturadoService.delete(id);
-    setArticulos(prev =>
-      prev.map(a =>
-        a.id === id ? { ...a, eliminado: true } : a
-      )
-    );
-    alert("Artículo manufacturado eliminado correctamente");
-  } catch (err) {
-    alert("Error al eliminar el artículo manufacturado");
-  }
-};
+  const eliminarArticulo = async (id: number) => {
+    if (!window.confirm("¿Seguro que desea eliminar este artículo manufacturado?")) return;
+    try {
+      await ArticuloManufacturadoService.delete(id);
+      // Recargar la página actual
+      cargarArticulos();
+      alert("Artículo manufacturado eliminado correctamente");
+    } catch (err) {
+      alert("Error al eliminar el artículo manufacturado");
+    }
+  };
 
-const darDeAlta = async (id: number) => {
-  if (!window.confirm("¿Seguro que desea dar de alta este artículo manufacturado?")) return;
-  try {
-    await ArticuloManufacturadoService.changeEliminado(id);
-    setArticulos(prev =>
-      prev.map(a =>
-        a.id === id ? { ...a, eliminado: false } : a
-      )
+  const darDeAlta = async (id: number) => {
+    if (!window.confirm("¿Seguro que desea dar de alta este artículo manufacturado?")) return;
+    try {
+      await ArticuloManufacturadoService.changeEliminado(id);
+      // Recargar la página actual
+      cargarArticulos();
+      alert("Artículo manufacturado dado de alta correctamente");
+    } catch (err) {
+      alert("Error al dar de alta el artículo manufacturado");
+    }
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handlePageSizeChange = (newSize: number) => {
+    setPageSize(newSize);
+    setCurrentPage(0); // Resetear a primera página
+  };
+
+  const limpiarFiltros = () => {
+    setFiltroDenominacion("");
+    setFiltroCategoria("");
+    setFiltroEstado("");
+    setFiltroPrecioMin("");
+    setFiltroPrecioMax("");
+  };
+
+  const renderPagination = () => {
+    if (!pageData || pageData.totalPages <= 1) return null;
+
+    const items = [];
+    const totalPages = pageData.totalPages;
+    const current = pageData.number;
+
+    // Botón Previous
+    items.push(
+      <Pagination.Prev
+        key="prev"
+        disabled={pageData.first}
+        onClick={() => handlePageChange(current - 1)}
+      />
     );
-    alert("Artículo manufacturado dado de alta correctamente");
-  } catch (err) {
-    alert("Error al dar de alta el artículo manufacturado");
-  }
-};
-  // ...resto de tu código (eliminarArticulo, handleActualizar, etc.)...
+
+    // Páginas
+    const startPage = Math.max(0, current - 2);
+    const endPage = Math.min(totalPages - 1, current + 2);
+
+    if (startPage > 0) {
+      items.push(
+        <Pagination.Item key={0} onClick={() => handlePageChange(0)}>
+          1
+        </Pagination.Item>
+      );
+      if (startPage > 1) {
+        items.push(<Pagination.Ellipsis key="ellipsis-start" />);
+      }
+    }
+
+    for (let page = startPage; page <= endPage; page++) {
+      items.push(
+        <Pagination.Item
+          key={page}
+          active={page === current}
+          onClick={() => handlePageChange(page)}
+        >
+          {page + 1}
+        </Pagination.Item>
+      );
+    }
+
+    if (endPage < totalPages - 1) {
+      if (endPage < totalPages - 2) {
+        items.push(<Pagination.Ellipsis key="ellipsis-end" />);
+      }
+      items.push(
+        <Pagination.Item key={totalPages - 1} onClick={() => handlePageChange(totalPages - 1)}>
+          {totalPages}
+        </Pagination.Item>
+      );
+    }
+
+    // Botón Next
+    items.push(
+      <Pagination.Next
+        key="next"
+        disabled={pageData.last}
+        onClick={() => handlePageChange(current + 1)}
+      />
+    );
+
+    return <Pagination className="justify-content-center mt-3">{items}</Pagination>;
+  };
 
   // Definición de columnas para la tabla reusable
   const columns = [
     { key: "denominacion", label: "Denominación" },
     {
+      key: "categoria",
+      label: "Categoría",
+      render: (_: any, row: ArticuloManufacturado) => row.categoria?.denominacion || "-",
+    },
+    {
       key: "precioVenta",
       label: "Precio Venta",
       render: (value: number) => `$${value}`,
+    },
+    {
+      key: "tiempoEstimadoMinutos",
+      label: "Tiempo Est. (min)",
+      render: (value: number) => value || "-",
     },
     {
       key: "eliminado",
@@ -121,89 +239,123 @@ const darDeAlta = async (id: number) => {
       label: "Acciones",
       className: "acciones-column d-flex justify-content-center gap-1",
       render: (_: any, row: ArticuloManufacturado) => (
-        <div>
-          <BotonVer 
-            onClick={() => handleVer(row)}
-          />
-          <BotonModificar
-            onClick={() => handleActualizar(row)}
-          />
-          {!row.eliminado ? (  
-            <BotonEliminar
-              onClick={() => eliminarArticulo(row.id!)}
-            />
+        <div className="d-flex justify-content-center">
+          <BotonVer onClick={() => handleVer(row)} />
+          <BotonModificar onClick={() => handleActualizar(row)} />
+          {!row.eliminado ? (
+            <BotonEliminar onClick={() => eliminarArticulo(row.id!)} />
           ) : (
-            <BotonAlta onClick={() => darDeAlta(row.id!)}/>
+            <BotonAlta onClick={() => darDeAlta(row.id!)} />
           )}
         </div>
       ),
     },
   ];
 
+  if (loading) return <div>Cargando artículos manufacturados...</div>;
+  if (error) return <div>{error}</div>;
+
   return (
-    <div>
-      <h2>Artículos Manufacturado</h2>
+    <div className="position-relative">
+      <h2>Artículos Manufacturados</h2>
+
       {/* Filtros */}
-      <div className="mb-3 d-flex flex-wrap gap-2 align-items-end">
-        <input
-          type="text"
-          className="form-control"
-          placeholder="Buscar por denominación"
-          value={filtroDenominacion}
-          onChange={e => setFiltroDenominacion(e.target.value)}
-          style={{ maxWidth: 180 }}
-        />
-        <select
-          className="form-select"
-          value={filtroCategoria}
-          onChange={e => setFiltroCategoria(e.target.value)}
-          style={{ maxWidth: 180 }}
-        >
-          <option value="">Todas las categorías</option>
-          {categorias.map(cat => (
-            <option key={cat.id} value={cat.id}>{cat.denominacion}</option>
-          ))}
-        </select>
-        <select
-          className="form-select"
-          value={filtroEstado}
-          onChange={e => setFiltroEstado(e.target.value)}
-          style={{ maxWidth: 140 }}
-        >
-          <option value="">Todos los estados</option>
-          <option value="activo">Activo</option>
-          <option value="eliminado">Eliminado</option>
-        </select>
-        <input
-          type="number"
-          className="form-control"
-          placeholder="Precio mín."
-          value={filtroPrecioMin}
-          onChange={e => setFiltroPrecioMin(e.target.value)}
-          style={{ maxWidth: 120 }}
-        />
-        <input
-          type="number"
-          className="form-control"
-          placeholder="Precio máx."
-          value={filtroPrecioMax}
-          onChange={e => setFiltroPrecioMax(e.target.value)}
-          style={{ maxWidth: 120 }}
-        />
-        <Button variant="secondary" onClick={() => {
-          setFiltroDenominacion("");
-          setFiltroCategoria("");
-          setFiltroEstado("");
-          setFiltroPrecioMin("");
-          setFiltroPrecioMax("");
-        }}>
-          Limpiar filtros
-        </Button>
+      <div className="filtrosybtn d-flex justify-content-between align-items-center">
+        <Form className="m-4 d-flex flex-wrap gap-3 align-items-end">
+          <Form.Group>
+            <Form.Label>Denominación</Form.Label>
+            <Form.Control
+              type="text"
+              value={filtroDenominacion}
+              onChange={(e) => setFiltroDenominacion(e.target.value)}
+              placeholder="Buscar..."
+              style={{ maxWidth: 180 }}
+            />
+          </Form.Group>
+          <Form.Group>
+            <Form.Label>Categoría</Form.Label>
+            <Form.Select
+              value={filtroCategoria}
+              onChange={(e) => setFiltroCategoria(e.target.value)}
+              style={{ maxWidth: 180 }}
+            >
+              <option value="">Todas las categorías</option>
+              {categorias.map(cat => (
+                <option key={cat.id} value={cat.id}>{cat.denominacion}</option>
+              ))}
+            </Form.Select>
+          </Form.Group>
+          <Form.Group>
+            <Form.Label>Estado</Form.Label>
+            <Form.Select
+              value={filtroEstado}
+              onChange={(e) => setFiltroEstado(e.target.value)}
+              style={{ maxWidth: 140 }}
+            >
+              <option value="">Todos</option>
+              <option value="activo">Activo</option>
+              <option value="eliminado">Eliminado</option>
+            </Form.Select>
+          </Form.Group>
+          <Form.Group>
+            <Form.Label>Precio Mínimo</Form.Label>
+            <Form.Control
+              type="number"
+              value={filtroPrecioMin}
+              onChange={(e) => setFiltroPrecioMin(e.target.value)}
+              placeholder="Min"
+              style={{ maxWidth: 120 }}
+            />
+          </Form.Group>
+          <Form.Group>
+            <Form.Label>Precio Máximo</Form.Label>
+            <Form.Control
+              type="number"
+              value={filtroPrecioMax}
+              onChange={(e) => setFiltroPrecioMax(e.target.value)}
+              placeholder="Max"
+              style={{ maxWidth: 120 }}
+            />
+          </Form.Group>
+          <Form.Group>
+            <Form.Label>Elementos por página</Form.Label>
+            <Form.Select 
+              value={pageSize} 
+              onChange={(e) => handlePageSizeChange(parseInt(e.target.value))}
+              style={{ width: '100px' }}
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </Form.Select>
+          </Form.Group>
+          <Form.Group>
+            <Button variant="secondary" onClick={limpiarFiltros}>
+              Limpiar filtros
+            </Button>
+          </Form.Group>
+        </Form>
+        <Link className="btn border-success" style={{ right: 10, top: 10 }} to="/FormularioManufacturado">
+          Crear Artículo Manufacturado
+        </Link>
       </div>
-      <Button variant="primary" className="crearManufacturadoBtn mb-3" onClick={() => window.location.href = "/manufacturado"}>
-        Crear Artículo Manufacturado
-      </Button>
-      <ReusableTable columns={columns} data={articulosFiltrados} />
+
+      {/* Información de resultados */}
+      {pageData && (
+        <div className="mb-3 text-muted">
+          Mostrando {pageData.content.length} de {pageData.totalElements} artículos manufacturados
+          {pageData.totalPages > 1 && (
+            <span> - Página {pageData.number + 1} de {pageData.totalPages}</span>
+          )}
+        </div>
+      )}
+
+      {/* Tabla */}
+      <ReusableTable columns={columns} data={pageData?.content || []} />
+
+      {/* Paginación */}
+      {renderPagination()}
 
       <Modal show={showModal} onHide={handleCloseModal} centered>
         <Modal.Header closeButton>
@@ -214,7 +366,7 @@ const darDeAlta = async (id: number) => {
             <div>
               {articuloSeleccionado.imagenes[0] ? (
                 <img src={articuloSeleccionado.imagenes[0].denominacion} className="imgModalArtManu" alt="" />
-              ):(
+              ) : (
                 <div></div>
               )}
               <p><b>Denominación:</b> {articuloSeleccionado.denominacion}</p>

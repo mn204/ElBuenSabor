@@ -7,7 +7,7 @@ export function useModal(){
 
   useEffect(() => {
     if (showModal) {
-      ArticuloInsumoService.getAll().then(setArticulosInsumo);
+      ArticuloInsumoService.getAllParaElaborar().then(setArticulosInsumo);
     }
   }, [showModal]);
   return { showModal, setShowModal, articulosInsumo };

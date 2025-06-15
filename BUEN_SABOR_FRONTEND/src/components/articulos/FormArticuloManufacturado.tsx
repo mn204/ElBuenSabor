@@ -161,7 +161,7 @@ const guardarOModificar = async () => {
   try {
     const manufacturado = await buildManufacturado();
     if (!manufacturado) return;
-
+    console.log(manufacturado.detalles)
     manufacturado.precioVenta = totalConGanancia;
     manufacturado.eliminado = eliminado;
     manufacturado.tipoArticulo = TipoArticulo.ArticuloManufacturado;
@@ -173,7 +173,6 @@ const guardarOModificar = async () => {
       alert("Artículo manufacturado guardado correctamente");
     }
     limpiarFormulario();
-    console.log("Manufacturado creado:", manufacturado);
     window.location.href = "/empleado/productos";
   } catch (error) {
     console.error(error);

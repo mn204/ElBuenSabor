@@ -20,10 +20,11 @@ import { useSucursal } from "../../context/SucursalContextEmpleado.tsx";
 
 import {useLocation} from "react-router-dom";
 import {useNavigate} from "react-router-dom";
-import GrillaCategorias from '../articulos/GrillaCategorias.tsx';
+import GrillaCategorias from './GrillaCategorias.tsx';
 import DashboardSection from './DashboardSection';
 import GrillaDelivery from "./GrillaDelivery.tsx";
 import {useEffect} from "react";
+import GrillaInsumos from './GrillaInsumos.tsx';
 
 function PanelAdmin() {
 
@@ -41,6 +42,7 @@ function PanelAdmin() {
         { nombre: 'Facturación', icono: Facturacion, path: 'facturacion', rolesPermitidos: ['ADMINISTRADOR', 'CAJERO'] },
         { nombre: 'Clientes', icono: Usuario, path: 'clientes', rolesPermitidos: ['ADMINISTRADOR'] },
         { nombre: 'Productos', icono: Productos, path: 'productos', rolesPermitidos: ['ADMINISTRADOR'] },
+        { nombre: 'Insumos', icono: Productos, path: 'insumos', rolesPermitidos: ['ADMINISTRADOR'] },
         { nombre: 'Categorias', icono: Productos, path: 'categorias', rolesPermitidos: ['ADMINISTRADOR'] },
         { nombre: 'Estadísticas', icono: Estadisticas, path: 'estadisticas', rolesPermitidos: ['ADMINISTRADOR'] },
         { nombre: 'Empleados', icono: Usuario, path: 'empleados', rolesPermitidos: ['ADMINISTRADOR'] },
@@ -154,6 +156,12 @@ function PanelAdmin() {
                         <GrillaCategorias/>
                     </div>
                 );
+            case 'Insumos':
+                return(
+                    <div>
+                        <GrillaInsumos/>
+                    </div>
+                )
             default:
                 return <div>Bienvenido al panel de administración</div>;
         }
