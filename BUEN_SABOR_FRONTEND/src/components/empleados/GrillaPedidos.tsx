@@ -347,7 +347,7 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
                         <Button variant="primary" size="sm" onClick={() => handleVerDetalle(row.id!)}>Detalle</Button>
                         <Button variant="outline-secondary" size="sm" onClick={() => handleDescargarFactura(row.id!)}>Factura</Button>
                         {!row.pagado && (
-                            <Button variant="success" size="sm" onClick={() => handleMarcarPagado(row.id!)}>Marcar Pagado</Button>
+                            <Button variant="success" size="sm" onClick={() => handleMarcarPagado(row.id!)}>Pagado ✓</Button>
                         )}
                     </div>
                 </div>

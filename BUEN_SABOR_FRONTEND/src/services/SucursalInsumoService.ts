@@ -17,6 +17,18 @@ class SucursalInsumoService{
             throw error;
         }
     }
+
+    async getStockBajo(idSucursal?: number | null): Promise<SucursalInsumo[]> {
+        try {
+            const sucursalId = idSucursal != null ? `?idSucursal=${idSucursal}` : "";
+            const res = await fetch(`${API_URL}/stock-bajo${sucursalId}`);
+            if (!res.ok) throw new Error("Error al obtener stock bajo");
+            return await res.json();
+        } catch (error) {
+            console.error("Error en getStockBajo:", error);
+            throw error;
+        }
+    }
 }
 
 export default new SucursalInsumoService();

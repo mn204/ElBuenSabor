@@ -1,38 +1,35 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useSucursal } from '../../context/SucursalContextEmpleado';
-import ArticuloInsumoService from '../../services/ArticuloInsumoService';
-import ArticuloInsumo from '../../models/ArticuloInsumo';
+import SucursalInsumo from '../../models/SucursalInsumo';
+import SucursalInsumoService from '../../services/SucursalInsumoService';
+import { useSucursalUsuario } from '../../context/SucursalContext';
 
 interface DashboardSectionProps {
-    sucursalActual?: ReturnType<typeof useSucursal>['sucursalActual'];
     esModoTodasSucursales?: boolean;
     sucursalIdSeleccionada: number | null;
 }
 
 const DashboardSection: React.FC<DashboardSectionProps> = ({
-    sucursalActual,
     esModoTodasSucursales = false,
     sucursalIdSeleccionada
 }) => {
     const navigate = useNavigate();
-    const [stockBajo, setStockBajo] = useState<ArticuloInsumo[]>([]);
+    const { sucursalActualUsuario } = useSucursalUsuario();
+    const [stockBajo, setStockBajo] = useState<SucursalInsumo[]>([]);
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         const fetchStockBajo = async () => {
             setLoading(true);
             try {
-                let data: ArticuloInsumo[] = [];
-                
+                let data: SucursalInsumo[] = [];
+
                 if (esModoTodasSucursales) {
-                    // Obtener stock bajo para todas las sucursales
-                    data = await ArticuloInsumoService.obtenerArticulosConStockBajo2(null);
+                    data = await SucursalInsumoService.getStockBajo(null);
                 } else if (sucursalIdSeleccionada) {
-                    // Obtener stock bajo para la sucursal específica
-                    data = await ArticuloInsumoService.obtenerArticulosConStockBajo2(sucursalIdSeleccionada);
+                    data = await SucursalInsumoService.getStockBajo(sucursalIdSeleccionada);
                 }
-                
+
                 setStockBajo(data);
             } catch (error) {
                 console.error('Error al obtener insumos con stock bajo', error);
@@ -42,7 +39,6 @@ const DashboardSection: React.FC<DashboardSectionProps> = ({
             }
         };
 
-        // Solo ejecutar si tenemos datos válidos
         if (esModoTodasSucursales || sucursalIdSeleccionada) {
             fetchStockBajo();
             const interval = setInterval(fetchStockBajo, 60000);
@@ -55,8 +51,8 @@ const DashboardSection: React.FC<DashboardSectionProps> = ({
     const getTitleText = () => {
         if (esModoTodasSucursales) {
             return "Dashboard - Todas las Sucursales";
-        } else if (sucursalActual) {
-            return `Dashboard - ${sucursalActual.nombre}`;
+        } else if (sucursalActualUsuario) {
+            return `Dashboard - ${sucursalActualUsuario.nombre}`;
         } else {
             return "Dashboard";
         }
@@ -70,12 +66,12 @@ const DashboardSection: React.FC<DashboardSectionProps> = ({
                     <strong>Datos:</strong> Información consolidada de todas las ubicaciones
                 </div>
             );
-        } else if (sucursalActual) {
+        } else if (sucursalActualUsuario) {
             return (
                 <div className="mt-3 mb-4">
-                    <strong>Sucursal Actual:</strong> {sucursalActual.nombre}<br />
-                    <strong>Horario:</strong> {sucursalActual.horarioApertura} - {sucursalActual.horarioCierre}<br />
-                    <strong>Dirección:</strong> {sucursalActual.domicilio?.calle} {sucursalActual.domicilio?.numero}
+                    <strong>Sucursal Actual:</strong> {sucursalActualUsuario.nombre}<br />
+                    <strong>Horario:</strong> {sucursalActualUsuario.horarioApertura} - {sucursalActualUsuario.horarioCierre}<br />
+                    <strong>Dirección:</strong> {sucursalActualUsuario.domicilio?.calle} {sucursalActualUsuario.domicilio?.numero}
                 </div>
             );
         }
@@ -86,7 +82,7 @@ const DashboardSection: React.FC<DashboardSectionProps> = ({
         <div>
             <h4>{getTitleText()}</h4>
             <p>Bienvenido al panel de administración</p>
-            
+
             {getSucursalInfo()}
 
             <div className="d-flex justify-content-center gap-3 mb-4">
@@ -129,12 +125,12 @@ const DashboardSection: React.FC<DashboardSectionProps> = ({
                         ) : (
                             stockBajo.map((item, index) => (
                                 <tr key={index}>
-                                    <td>{item.denominacion}</td>
-                                    <td>{item.unidadMedida.denominacion}</td>
-                                    <td>{item.sucursalInsumo?.stockActual}</td>
-                                    <td>{item.sucursalInsumo?.stockMinimo}</td>
+                                    <td>{item.articuloInsumo?.denominacion}</td>
+                                    <td>{item.articuloInsumo?.unidadMedida?.denominacion}</td>
+                                    <td>{item.stockActual}</td>
+                                    <td>{item.stockMinimo}</td>
                                     {esModoTodasSucursales && (
-                                        <td>{item.sucursalInsumo?.sucursal?.nombre || 'N/A'}</td>
+                                        <td>{item.sucursal?.nombre || 'N/A'}</td>
                                     )}
                                 </tr>
                             ))

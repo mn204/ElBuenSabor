@@ -1,3 +1,4 @@
+import type ArticuloInsumo from "./ArticuloInsumo";
 import type Sucursal from "./Sucursal";
 
 export default class SucursalInsumo {
@@ -6,5 +7,6 @@ export default class SucursalInsumo {
     stockMaximo: number = 0;
     stockActual: number = 0;
     sucursal!: Sucursal;
+    articuloInsumo!: ArticuloInsumo;
     eliminado!: boolean;
 }
