@@ -11,7 +11,6 @@ import { useSucursal } from "../../context/SucursalContextEmpleado.tsx";
 import { obtenerSucursales } from "../../services/SucursalService.ts";
 import type Sucursal from "../../models/Sucursal.ts";
 import CocinaModal  from "./pedidos/CocinaModal.tsx";
-//TODO: ver detalle
 
 const GrillaCocina: React.FC = () => {
     const { sucursalActual, esModoTodasSucursales, sucursalIdSeleccionada } = useSucursal();
