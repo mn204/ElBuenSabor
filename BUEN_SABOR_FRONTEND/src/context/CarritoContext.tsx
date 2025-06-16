@@ -1,4 +1,4 @@
-import { createContext, useEffect, useState } from "react";
+import { createContext, useCallback, useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import Articulo from "../models/Articulo";
 import Pedido from "../models/Pedido";
@@ -8,18 +8,23 @@ import Estado from "../models/enums/Estado";
 import type Domicilio from "../models/Domicilio";
 import ArticuloInsumo from "../models/ArticuloInsumo";
 import type ArticuloManufacturado from "../models/ArticuloManufacturado";
+import Promocion from "../models/Promocion";
 
 interface CarritoContextProps {
   pedido: Pedido;
   preferenceId: string;
-  agregarAlCarrito: (articulo: Articulo, cantidad: number) => void;
+  agregarAlCarrito: (articulo: Articulo, cantidad: number, promocion?: Promocion) => void;
+  // AGREGAR ESTAS NUEVAS FUNCIONES:
+  agregarPromocionAlCarrito: (promocion: Promocion) => void;
+  restarPromocionDelCarrito: (promocionId: number) => void;
+  quitarPromocionCompleta: (promocionId: number) => void;
   quitarDelCarrito: (idArticulo: number) => void;
   restarDelCarrito: (idArticulo: number) => void;
   limpiarCarrito: () => void;
   enviarPedido: () => Promise<Pedido | null | undefined>;
   AgregarPreferenceId: (id: string) => void;
   guardarPedidoYObtener: () => Promise<Pedido | null>;
-  limpiarPreferenceId: ()=> void;
+  limpiarPreferenceId: () => void;
 }
 
 export const carritoContext = createContext<CarritoContextProps | undefined>(undefined);
@@ -50,20 +55,28 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
   const AgregarPreferenceId = (id: string) => {
     setIdPreference(id);
   }
-  const agregarAlCarrito = (articulo: Articulo, cantidad: number) => {
+  // 2. MODIFICAR LA FUNCIÓN agregarAlCarrito EXISTENTE
+  const agregarAlCarrito = (articulo: Articulo, cantidad: number, promocion?: Promocion) => {
     setPedido((prevPedido) => {
+      // Si viene con promoción, usar la lógica específica para promociones
+      if (promocion) {
+        return agregarItemConPromocion(prevPedido, articulo, cantidad, promocion);
+      }
+
+      // Lógica original para artículos sin promoción
       const detallesExistente = prevPedido.detalles.find(
-        (d) => d.articulo.id === articulo.id,
+        (d) => d.articulo.id === articulo.id && !d.promocion
       );
+
       let nuevosdetalles: PedidoDetalle[];
       if (detallesExistente) {
         nuevosdetalles = prevPedido.detalles.map((d) => {
-          if (d.articulo.id === articulo.id) {
+          if (d.articulo.id === articulo.id && !d.promocion) {
             const nuevaCantidad = d.cantidad + cantidad;
             return {
               ...d,
               cantidad: nuevaCantidad,
-              subTotal: articulo.precioVenta * nuevaCantidad, // <--- aquí
+              subTotal: articulo.precioVenta * nuevaCantidad,
             };
           }
           return d;
@@ -72,13 +85,139 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
         const nuevoDetalles = new PedidoDetalle();
         nuevoDetalles.articulo = articulo;
         nuevoDetalles.cantidad = cantidad;
-        nuevoDetalles.subTotal = articulo.precioVenta * cantidad; // <--- aquí
+        nuevoDetalles.subTotal = articulo.precioVenta * cantidad;
         nuevosdetalles = [...prevPedido.detalles, nuevoDetalles];
       }
 
-      const nuevoTotal = nuevosdetalles.reduce((acc, d) => acc + d.subTotal, 0); // <--- aquí
+      const nuevoTotal = nuevosdetalles.reduce((acc, d) => acc + d.subTotal, 0);
       return { ...prevPedido, detalles: nuevosdetalles, total: nuevoTotal };
     });
+  };
+
+  const agregarPromocionAlCarrito = (promocion: Promocion) => {
+    setPedido((prevPedido) => {
+      let nuevosPedidoDetalles = [...prevPedido.detalles];
+
+      // Por cada artículo en la promoción, agregarlo al carrito
+      promocion.detalles.forEach(detallePromo => {
+        const existingIndex = nuevosPedidoDetalles.findIndex(
+          d => d.articulo.id === detallePromo.articulo.id && d.promocion?.id === promocion.id
+        );
+
+        if (existingIndex >= 0) {
+          // Si ya existe, incrementar la cantidad según la cantidad de la promoción
+          nuevosPedidoDetalles[existingIndex].cantidad += detallePromo.cantidad;
+          console.log(nuevosPedidoDetalles[existingIndex].cantidad)
+        } else {
+          // Si no existe, crear nuevo detalle
+          const nuevoDetalle = new PedidoDetalle();
+          nuevoDetalle.articulo = detallePromo.articulo;
+          nuevoDetalle.cantidad = detallePromo.cantidad;
+          nuevoDetalle.promocion = promocion;
+          nuevosPedidoDetalles.push(nuevoDetalle);
+        }
+      });
+
+      // Recalcular subtotales después de agregar todos los artículos
+      nuevosPedidoDetalles = nuevosPedidoDetalles.map(detalle => {
+        if (detalle.promocion?.id === promocion.id) {
+          const detallePromocion = promocion.detalles.find(dp => dp.articulo.id === detalle.articulo.id);
+          const cantidadEnPromocion = detallePromocion ? detallePromocion.cantidad : 1;
+          const promocionesCompletas = Math.floor(detalle.cantidad / cantidadEnPromocion);
+
+          return {
+            ...detalle,
+            subTotal: (promocion.precioPromocional / promocion.detalles.length) * promocionesCompletas
+          };
+        }
+        return detalle;
+      });
+
+      const nuevoTotal = nuevosPedidoDetalles.reduce((acc, d) => acc + d.subTotal, 0);
+      return { ...prevPedido, detalles: nuevosPedidoDetalles, total: nuevoTotal };
+    });
+  };
+
+  const restarPromocionDelCarrito = useCallback((promocionId: number) => {
+    setPedido((prevPedido) => {
+      const itemsPromocion = prevPedido.detalles.filter(d => d.promocion?.id === promocionId);
+
+      if (itemsPromocion.length === 0) return prevPedido;
+
+      const promocion = itemsPromocion[0].promocion!;
+      let nuevosDetalles = [...prevPedido.detalles];
+
+      promocion.detalles.forEach(detallePromo => {
+        const index = nuevosDetalles.findIndex(
+          d => d.articulo.id === detallePromo.articulo.id && d.promocion?.id === promocionId
+        );
+        if (index >= 0) {
+          const cantidadARestar = detallePromo.cantidad;
+          const nuevaCantidad = nuevosDetalles[index].cantidad - cantidadARestar;
+
+          if (nuevaCantidad <= 0) {
+            nuevosDetalles.splice(index, 1);
+          } else {
+            nuevosDetalles[index].cantidad = nuevaCantidad;
+            const promocionesCompletas = Math.floor(nuevaCantidad / cantidadARestar);
+            nuevosDetalles[index].subTotal = (promocion.precioPromocional / promocion.detalles.length) * promocionesCompletas;
+          }
+        }
+      });
+
+      const nuevoTotal = nuevosDetalles.reduce((acc, d) => acc + d.subTotal, 0);
+      return { ...prevPedido, detalles: nuevosDetalles, total: nuevoTotal };
+    });
+  }, []);
+
+
+  // Función corregida para quitar promoción completa del carrito
+  const quitarPromocionCompleta = (promocionId: number) => {
+    setPedido((prevPedido) => {
+      const nuevosDetalles = prevPedido.detalles.filter(d => d.promocion?.id !== promocionId);
+      const nuevoTotal = nuevosDetalles.reduce((acc, d) => acc + d.subTotal, 0);
+      return { ...prevPedido, detalles: nuevosDetalles, total: nuevoTotal };
+    });
+  };
+
+  // También corrige la función agregarItemConPromocion para manejar correctamente el subtotal
+  const agregarItemConPromocion = (pedido: Pedido, articulo: Articulo, cantidad: number, promocion: Promocion) => {
+    const detallesExistente = pedido.detalles.find(
+      (d) => d.articulo.id === articulo.id && d.promocion?.id === promocion.id
+    );
+
+    let nuevosdetalles: PedidoDetalle[];
+    if (detallesExistente) {
+      nuevosdetalles = pedido.detalles.map((d) => {
+        if (d.articulo.id === articulo.id && d.promocion?.id === promocion.id) {
+          const nuevaCantidad = d.cantidad + cantidad;
+          // Encontrar cuántas veces este artículo aparece en la promoción
+          const detallePromocion = promocion.detalles.find(dp => dp.articulo.id === articulo.id);
+          const cantidadEnPromocion = detallePromocion ? detallePromocion.cantidad : 1;
+          // Calcular promociones completas
+          const promocionesCompletas = Math.floor(nuevaCantidad / cantidadEnPromocion);
+
+          return {
+            ...d,
+            cantidad: nuevaCantidad,
+            subTotal: (promocion.precioPromocional / promocion.detalles.length) * promocionesCompletas,
+            promocion: promocion
+          };
+        }
+        return d;
+      });
+    } else {
+      const nuevoDetalles = new PedidoDetalle();
+      nuevoDetalles.articulo = articulo;
+      nuevoDetalles.cantidad = cantidad;
+      nuevoDetalles.promocion = promocion;
+      // Calcular subtotal como proporción del precio promocional
+      nuevoDetalles.subTotal = promocion.precioPromocional / promocion.detalles.length;
+      nuevosdetalles = [...pedido.detalles, nuevoDetalles];
+    }
+
+    const nuevoTotal = nuevosdetalles.reduce((acc, d) => acc + d.subTotal, 0);
+    return { ...pedido, detalles: nuevosdetalles, total: nuevoTotal };
   };
   const obtenerFechaArgentina = () => {
     const ahora = new Date();
@@ -114,21 +253,21 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
     setPedido((prevPedido) => {
       const nuevosdetalles = prevPedido.detalles
         .map((d) => {
-          if (d.articulo.id === idArticulo) {
+          // Solo afectar artículos SIN promoción
+          if (d.articulo.id === idArticulo && !d.promocion) {
             const nuevaCantidad = d.cantidad - 1;
             if (nuevaCantidad <= 0) return null;
             return {
               ...d,
               cantidad: nuevaCantidad,
-              subTotal: nuevaCantidad * d.articulo.precioVenta, // <--- aquí
+              subTotal: nuevaCantidad * d.articulo.precioVenta,
             };
           }
           return d;
         })
         .filter((d): d is PedidoDetalle => d !== null);
 
-      const nuevoTotal = nuevosdetalles.reduce((acc, d) => acc + d.subTotal, 0); // <--- aquí
-
+      const nuevoTotal = nuevosdetalles.reduce((acc, d) => acc + d.subTotal, 0);
       return { ...prevPedido, detalles: nuevosdetalles, total: nuevoTotal };
     });
   };
@@ -137,8 +276,9 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
   };
   const quitarDelCarrito = (idArticulo: number) => {
     setPedido((prevPedido) => {
+      // Solo quitar artículos SIN promoción
       const nuevosdetalles = prevPedido.detalles.filter(
-        (d) => d.articulo.id !== idArticulo
+        (d) => !(d.articulo.id === idArticulo && !d.promocion)
       );
       const nuevoTotal = nuevosdetalles.reduce((acc, d) => acc + d.subTotal, 0);
       return { ...prevPedido, detalles: nuevosdetalles, total: nuevoTotal };
@@ -246,6 +386,9 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
         preferenceId,
         limpiarPreferenceId,
         agregarAlCarrito,
+        agregarPromocionAlCarrito,        // NUEVO
+        restarPromocionDelCarrito,        // NUEVO
+        quitarPromocionCompleta,          // NUEVO
         restarDelCarrito,
         quitarDelCarrito,
         limpiarCarrito,

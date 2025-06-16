@@ -6,7 +6,7 @@ export default class DetallePedido {
     cantidad: number = 0;
     subTotal: number = 0;
     articulo!: Articulo;
-    promocion!: Promocion
+    promocion?: Promocion
     eliminado!: boolean;
 
 }
