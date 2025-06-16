@@ -2,32 +2,38 @@ import CategoriaCard from '../articulos/CategoriaCard';
 import Ham from '../../assets/images/hamburguesa.png';
 import FlechaDerecha from '../../assets/flecha.svg';
 import FlechaIzquierda from '../../assets/flechaIzquierda.svg';
-import { useState } from 'react';
-const categorias = [
-    { img: Ham, nombre: "Hamburguesa" },
-    { img: Ham, nombre: "Pizza" },
-    { img: Ham, nombre: "Empanada" },
-    { img: Ham, nombre: "Lomito" },
-    { img: Ham, nombre: "Papas" },
-    { img: Ham, nombre: "Bebidas" }
-];
+import { useEffect, useState } from 'react';
+import Categoria from '../../models/Categoria';
+import CategoriaService from '../../services/CategoriaService';
 
 function Slider(){
+    const [ categorias, setCategorias ] = useState<Categoria[]>();
     const [start, setStart] = useState(0);
     const visibleCount = 5;
 
+    useEffect(()=>{
+        CategoriaService.getAll().then((cats)=>setCategorias(cats))
+        console.log(categorias)
+    },[]);
+
     const handleNext = () => {
-        setStart((prev) => (prev + 1) % categorias.length);
+        if(categorias){
+            setStart((prev) => (prev + 1) % categorias.length);
+        }
     };
 
     const handlePrev = () => {
-        setStart((prev) => (prev - 1) % categorias.length);
+        if(categorias){
+            setStart((prev) => (prev - 1) % categorias.length);
+        }
     };
 
     // Para mostrar solo 5 categorías a la vez, con loop circular
     const visibleCategorias = [];
     for (let i = 0; i < visibleCount; i++) {
-        visibleCategorias.push(categorias[(start + i) % categorias.length]);
+        if(categorias){
+            visibleCategorias.push(categorias[(start + i) % categorias.length]);
+        }
     }
     return(
         <>
