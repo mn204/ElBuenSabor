@@ -35,6 +35,7 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
     private final EmpleadoRepository empleadoRepository;
     private final ExcelService excelService;
     private final PdfService pdfService;
+    private final EmailService emailService;
     private final ArticuloInsumoService articuloInsumoService;
     private final SucursalInsumoService sucursalInsumoService;
     private final ArticuloManufacturadoService articuloManufacturadoService;
@@ -42,7 +43,7 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
     @Autowired
     public PedidoServiceImpl(PedidoRepository pedidoRepository, PdfService pdfService, ArticuloInsumoService articuloInsumoService,
                              SucursalInsumoService sucursalInsumoService, ArticuloManufacturadoService articuloManufacturadoService,
-                             EmpleadoRepository empleadoRepository, ExcelService excelService) {
+                             EmpleadoRepository empleadoRepository, ExcelService excelService, EmailService emailService) {
         super(pedidoRepository);
         this.pedidoRepository = pedidoRepository;
         this.articuloInsumoService = articuloInsumoService;
@@ -51,6 +52,7 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
         this.empleadoRepository = empleadoRepository;
         this.pdfService = pdfService;
         this.excelService = excelService;
+        this.emailService = emailService;
     }
 
     @Override
@@ -262,14 +264,23 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
 
         pedido.setEstado(nuevoEstado);
         pedidoRepository.save(pedido);
+
+        // Lógica de envío de email
+        try {
+            if (nuevoEstado == Estado.CANCELADO) {
+                emailService.enviarNotaCredito(pedido);
+            } else if (nuevoEstado == Estado.ENTREGADO) {
+                emailService.enviarFactura(pedido);
+            }
+        } catch (Exception e) {
+            // Registrar el error y continuar
+            System.err.println("Error al enviar el email: " + e.getMessage());
+        }
     }
 
     private boolean puedeCambiarEstado(Rol rol, Estado actual, Estado nuevo) {
-        if (rol == Rol.ADMINISTRADOR || rol == Rol.CAJERO) return true;
-
-        // No se puede retroceder (excepto ADMIN y CAJERO)
-        if (nuevo.ordinal() < actual.ordinal()) return false;
-
+        if (rol == Rol.ADMINISTRADOR) return true;
+        if (rol == Rol.CAJERO) return nuevo.ordinal() > actual.ordinal();
         return switch (rol) {
             case CLIENTE -> actual == Estado.PENDIENTE && nuevo == Estado.CANCELADO;
             case DELIVERY -> actual == Estado.EN_DELIVERY && nuevo == Estado.ENTREGADO;

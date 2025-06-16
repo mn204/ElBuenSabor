@@ -29,6 +29,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'com.mercadopago:sdk-java:2.2.0'
 
+    //EMAIL
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+
     // PDF generation with OpenPDF
     implementation("com.github.librepdf:openpdf:1.3.30")
 
