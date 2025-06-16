@@ -37,11 +37,11 @@ public class PdfServiceImpl implements PdfService {
     }
 
     // Generación de Nota de Crédito (misma lógica que factura, pero con título y leyendas diferentes)
-    public byte[] generarNotaCreditoPedido(Pedido pedido, String motivo) {
-        return generarDocumentoComercial(pedido, motivo, true);
+    public byte[] generarNotaCreditoPedido(Pedido pedido) {
+        return generarDocumentoComercial(pedido, null, true);
     }
 
-    // Método unificado para generar Factura o Nota de Crédito
+    // Métodos unificado para generar Factura o Nota de Crédito
     private byte[] generarDocumentoComercial(Pedido pedido, String motivo, boolean esNotaCredito) {
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             Document document = new Document(PageSize.A4, 40, 40, 40, 40);
@@ -64,20 +64,17 @@ public class PdfServiceImpl implements PdfService {
 
             // Agrega motivo si es nota de crédito
 
-            String motivoFinal = motivo;
-            if (motivoFinal == null || motivoFinal.trim().isEmpty()) {
-                motivoFinal = "Venta no concretada";
-            }
-
             if (esNotaCredito) {
-                Paragraph motivoParrafo = new Paragraph("Motivo: " + motivoFinal, fuentePequena);
+                Paragraph motivoParrafo = new Paragraph();
+                motivoParrafo.add(new Chunk("Tu pedido ha sido cancelado.", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10, COLOR_PRIMARIO)));
+                motivoParrafo.add(new Chunk("\nSi no realizaste esta cancelación, por favor comunicate con nosotros.", fuentePequena));
                 motivoParrafo.setSpacingAfter(10);
                 document.add(motivoParrafo);
             }
 
 
             // Datos del cliente
-            crearSeccionCliente(document, pedido, fuenteNormal, fuenteNegrita, esNotaCredito, motivoFinal);
+            crearSeccionCliente(document, pedido, fuenteNormal, fuenteNegrita, esNotaCredito);
 
             // Detalle de productos
             crearTablaProductos(document, pedido, fuenteNormal);
@@ -280,7 +277,7 @@ public class PdfServiceImpl implements PdfService {
         document.add(lineaHeader);
     }
 
-    private void crearSeccionCliente(Document document, Pedido pedido, Font fuenteNormal, Font fuenteNegrita, boolean esNotaCredito, String motivoFinal) throws DocumentException {
+    private void crearSeccionCliente(Document document, Pedido pedido, Font fuenteNormal, Font fuenteNegrita, boolean esNotaCredito){
         // Tabla de datos del cliente sin títulos
         PdfPTable tablaCliente = new PdfPTable(2);
         tablaCliente.setWidthPercentage(100);
@@ -333,12 +330,6 @@ public class PdfServiceImpl implements PdfService {
         tablaCliente.addCell(celdaEntrega);
 
         document.add(tablaCliente);
-
-        if (esNotaCredito) {
-            datosPersonales.add(new Chunk("Motivo: ", fuenteNegrita));
-            datosPersonales.add(new Chunk(motivoFinal + "\n", fuenteNormal));
-
-        }
 
         // Línea separadora sutil
         PdfPTable lineaSeparadora = new PdfPTable(1);
