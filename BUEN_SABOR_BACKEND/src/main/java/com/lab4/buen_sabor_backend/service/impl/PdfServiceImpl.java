@@ -1,3 +1,4 @@
+// Clase que implementa la generación de Facturas y Notas de Crédito en PDF
 package com.lab4.buen_sabor_backend.service.impl;
 
 import com.lab4.buen_sabor_backend.model.Articulo;
@@ -10,7 +11,6 @@ import com.lowagie.text.pdf.*;
 import org.springframework.stereotype.Service;
 import com.lowagie.text.Rectangle;
 
-
 import java.awt.*;
 import java.io.ByteArrayOutputStream;
 import java.text.NumberFormat;
@@ -21,6 +21,7 @@ import java.util.Locale;
 @Service
 public class PdfServiceImpl implements PdfService {
 
+    // Colores corporativos
     private static final Color COLOR_PRIMARIO = new Color(45, 55, 72);
     private static final Color COLOR_SECUNDARIO = new Color(74, 85, 104);
     private static final Color COLOR_ACENTO = new Color(56, 178, 172);
@@ -29,13 +30,25 @@ public class PdfServiceImpl implements PdfService {
     private static final Color COLOR_BLANCO = Color.WHITE;
     private static final Color COLOR_BORDE = new Color(226, 232, 240);
 
+    // Generación de Factura
     @Override
     public byte[] generarFacturaPedido(Pedido pedido) {
+        return generarDocumentoComercial(pedido, null,  false);
+    }
+
+    // Generación de Nota de Crédito (misma lógica que factura, pero con título y leyendas diferentes)
+    public byte[] generarNotaCreditoPedido(Pedido pedido, String motivo) {
+        return generarDocumentoComercial(pedido, motivo, true);
+    }
+
+    // Método unificado para generar Factura o Nota de Crédito
+    private byte[] generarDocumentoComercial(Pedido pedido, String motivo, boolean esNotaCredito) {
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             Document document = new Document(PageSize.A4, 40, 40, 40, 40);
             PdfWriter writer = PdfWriter.getInstance(document, out);
             document.open();
 
+            // Fuentes reutilizables
             Font fuenteTitulo = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18, COLOR_PRIMARIO);
             Font fuenteSubtitulo = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12, COLOR_SECUNDARIO);
             Font fuenteNormal = FontFactory.getFont(FontFactory.HELVETICA, 10, COLOR_PRIMARIO);
@@ -45,32 +58,149 @@ public class PdfServiceImpl implements PdfService {
             Font fuenteTotal = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 16, COLOR_PRIMARIO);
 
             String cae = "X" + String.format("%012d", pedido.getId());
-            LocalDateTime fechaVtoCae = pedido.getFechaPedido().plusDays(10);
+
+            // Header con título dinámico
+            crearHeader(document, pedido, esNotaCredito);
+
+            // Agrega motivo si es nota de crédito
+
+            String motivoFinal = motivo;
+            if (motivoFinal == null || motivoFinal.trim().isEmpty()) {
+                motivoFinal = "Venta no concretada";
+            }
+
+            if (esNotaCredito) {
+                Paragraph motivoParrafo = new Paragraph("Motivo: " + motivoFinal, fuentePequena);
+                motivoParrafo.setSpacingAfter(10);
+                document.add(motivoParrafo);
+            }
 
 
-            // Header con B centrada y línea
-            crearHeader(document, pedido);
+            // Datos del cliente
+            crearSeccionCliente(document, pedido, fuenteNormal, fuenteNegrita, esNotaCredito, motivoFinal);
 
-            // Datos del cliente sin títulos
-            crearSeccionCliente(document, pedido, fuenteNormal, fuenteNegrita);
-
-            // Tabla de productos sin título
+            // Detalle de productos
             crearTablaProductos(document, pedido, fuenteNormal);
 
             // Totales
             crearSeccionTotales(document, pedido, fuenteTotal, fuenteNormal, fuenteAcento);
 
-            // Footer
-            crearFooter(document, cae, fuentePequena, writer);
+            // Footer con leyenda dinámica
+            crearFooter(document, cae, fuentePequena, writer, esNotaCredito);
 
             document.close();
             return out.toByteArray();
-
         } catch (Exception e) {
-            throw new RuntimeException("Error al generar la factura PDF: " + e.getMessage(), e);
+            throw new RuntimeException("Error al generar el documento PDF: " + e.getMessage(), e);
         }
     }
 
+    // Header adaptado con título dinámico (Factura o Nota de Crédito)
+    private void crearHeader(Document document, Pedido pedido, boolean esNotaCredito) throws DocumentException {
+        PdfPTable tablaHeader = new PdfPTable(3);
+        tablaHeader.setWidthPercentage(100);
+        tablaHeader.setWidths(new float[]{35, 30, 35});
+        tablaHeader.setSpacingAfter(5);
+
+        // Columna izquierda - Empresa
+        PdfPCell celdaEmpresa = new PdfPCell();
+        celdaEmpresa.setBorder(Rectangle.NO_BORDER);
+        celdaEmpresa.setPadding(10);
+
+        Font fuenteEmpresa = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12, COLOR_PRIMARIO);
+        Font fuenteDireccion = FontFactory.getFont(FontFactory.HELVETICA, 9, COLOR_SECUNDARIO);
+
+        Paragraph empresaInfo = new Paragraph();
+        empresaInfo.add(new Chunk("EL BUEN SABOR S.A.\n", fuenteEmpresa));
+        if (pedido.getSucursal() != null && pedido.getSucursal().getDomicilio() != null) {
+            empresaInfo.add(new Chunk(pedido.getSucursal().getDomicilio().getCalle() + " " +
+                    pedido.getSucursal().getDomicilio().getNumero() + ", " +
+                    pedido.getSucursal().getDomicilio().getLocalidad().getNombre() + "\n", fuenteDireccion));
+        }
+        empresaInfo.add(new Chunk("CUIT: 20-30405060-7\n", fuenteDireccion));
+        empresaInfo.add(new Chunk("Responsable Inscripto", fuenteDireccion));
+
+        celdaEmpresa.addElement(empresaInfo);
+        tablaHeader.addCell(celdaEmpresa);
+
+        // Columna central - Letra del comprobante
+        PdfPCell celdaCentral = new PdfPCell(new Phrase("B", new Font(Font.HELVETICA, 36, Font.BOLD, COLOR_ACENTO)));
+        celdaCentral.setBorder(Rectangle.BOX);
+        celdaCentral.setBorderWidth(2);
+        celdaCentral.setBorderColor(COLOR_ACENTO);
+        celdaCentral.setFixedHeight(60);
+        celdaCentral.setHorizontalAlignment(Element.ALIGN_CENTER);
+        celdaCentral.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        celdaCentral.setPadding(0);
+        tablaHeader.addCell(celdaCentral);
+
+        // Columna derecha - Datos fiscales
+        PdfPCell celdaFiscal = new PdfPCell();
+        celdaFiscal.setBorder(Rectangle.NO_BORDER);
+        celdaFiscal.setPadding(10);
+        celdaFiscal.setHorizontalAlignment(Element.ALIGN_RIGHT);
+
+        String codSucursal = String.format("%04d", pedido.getSucursal().getId());
+        String codPedido = String.format("%08d", pedido.getId());
+
+        Font fuenteFiscal = FontFactory.getFont(FontFactory.HELVETICA, 9, COLOR_SECUNDARIO);
+        Font fuenteTituloDoc = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 11, COLOR_PRIMARIO);
+
+        Paragraph datosFiscal = new Paragraph();
+        datosFiscal.setAlignment(Element.ALIGN_RIGHT);
+        datosFiscal.add(new Chunk((esNotaCredito ? "NOTA DE CR\u00c9DITO B" : "FACTURA B") + "\n", fuenteTituloDoc));
+        datosFiscal.add(new Chunk("N\u00b0: " + codSucursal + "-" + codPedido + "\n", fuenteTituloDoc));
+        datosFiscal.add(new Chunk("Fecha: " + formatearFecha(pedido.getFechaPedido()) + "\n", fuenteFiscal));
+
+        datosFiscal.add(new Chunk("CAE: X" + String.format("%012d", pedido.getId()) + "\n", fuenteFiscal));
+        datosFiscal.add(new Chunk("Vto. CAE: " + formatearFecha(pedido.getFechaPedido().plusDays(10)), fuenteFiscal));
+
+        celdaFiscal.addElement(datosFiscal);
+        tablaHeader.addCell(celdaFiscal);
+
+        document.add(tablaHeader);
+
+        // Línea separadora inferior
+        PdfPTable lineaHeader = new PdfPTable(1);
+        lineaHeader.setWidthPercentage(100);
+        lineaHeader.setSpacingAfter(10);
+
+        PdfPCell celdaLinea = new PdfPCell();
+        celdaLinea.setBorder(Rectangle.NO_BORDER);
+        celdaLinea.setBackgroundColor(COLOR_ACENTO);
+        celdaLinea.setFixedHeight(2);
+
+        lineaHeader.addCell(celdaLinea);
+        document.add(lineaHeader);
+    }
+
+    // Footer modificado para mostrar leyenda dependiendo del tipo de documento
+    private void crearFooter(Document document, String cae, Font fuentePequena, PdfWriter writer, boolean esNotaCredito) {
+        PdfContentByte cb = writer.getDirectContent();
+        float y = document.bottom() - 20;
+
+        cb.setColorFill(COLOR_ACENTO);
+        cb.rectangle(document.left(), y + 30, document.right() - document.left(), 2);
+        cb.fill();
+
+        String leyenda = esNotaCredito ? "Documento no valido como factura" : "Documento no válido como factura";
+
+        ColumnText.showTextAligned(cb, Element.ALIGN_CENTER,
+                new Phrase(leyenda, new Font(Font.HELVETICA, 9, Font.BOLD, COLOR_TEXTO_SECUNDARIO)),
+                (document.left() + document.right()) / 2, y + 20, 0);
+
+        ColumnText.showTextAligned(cb, Element.ALIGN_CENTER,
+                new Phrase("Verificación ARCA: www.arca.gob.ar/qr/" + cae, fuentePequena),
+                (document.left() + document.right()) / 2, y + 10, 0);
+
+        ColumnText.showTextAligned(cb, Element.ALIGN_CENTER,
+                new Phrase("Gracias por elegirnos - El Buen Sabor", new Font(Font.HELVETICA, 8, Font.ITALIC, COLOR_ACENTO)),
+                (document.left() + document.right()) / 2, y, 0);
+
+        ColumnText.showTextAligned(cb, Element.ALIGN_RIGHT,
+                new Phrase("Página " + writer.getPageNumber(), new Font(Font.HELVETICA, 8, Font.NORMAL, COLOR_TEXTO_SECUNDARIO)),
+                document.right(), document.bottom() - 30, 0);
+    }
 
     private void crearHeader(Document document, Pedido pedido) throws DocumentException {
         PdfPTable tablaHeader = new PdfPTable(3);
@@ -150,7 +280,7 @@ public class PdfServiceImpl implements PdfService {
         document.add(lineaHeader);
     }
 
-    private void crearSeccionCliente(Document document, Pedido pedido, Font fuenteNormal, Font fuenteNegrita) throws DocumentException {
+    private void crearSeccionCliente(Document document, Pedido pedido, Font fuenteNormal, Font fuenteNegrita, boolean esNotaCredito, String motivoFinal) throws DocumentException {
         // Tabla de datos del cliente sin títulos
         PdfPTable tablaCliente = new PdfPTable(2);
         tablaCliente.setWidthPercentage(100);
@@ -203,6 +333,12 @@ public class PdfServiceImpl implements PdfService {
         tablaCliente.addCell(celdaEntrega);
 
         document.add(tablaCliente);
+
+        if (esNotaCredito) {
+            datosPersonales.add(new Chunk("Motivo: ", fuenteNegrita));
+            datosPersonales.add(new Chunk(motivoFinal + "\n", fuenteNormal));
+
+        }
 
         // Línea separadora sutil
         PdfPTable lineaSeparadora = new PdfPTable(1);
@@ -293,7 +429,7 @@ public class PdfServiceImpl implements PdfService {
         // Celda TOTAL
         PdfPCell celdaTextoTotal = new PdfPCell(new Phrase("TOTAL:", fuenteTotal));
         celdaTextoTotal.setBorder(Rectangle.NO_BORDER);
-        celdaTextoTotal.setBackgroundColor(COLOR_PRIMARIO);
+        celdaTextoTotal.setBackgroundColor(Color.WHITE);
         celdaTextoTotal.setPadding(8);
         celdaTextoTotal.setHorizontalAlignment(Element.ALIGN_CENTER);
 
