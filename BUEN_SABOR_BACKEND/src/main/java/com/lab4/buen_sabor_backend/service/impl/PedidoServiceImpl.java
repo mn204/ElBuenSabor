@@ -113,6 +113,19 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
 
         return pdfService.generarFacturaPedido(pedido);
     }
+    //Genera PDF de Nc
+
+    @Override
+    @Transactional
+    public byte[] generarNotaCreditoPDF(Long pedidoId, String motivo) {
+        Pedido pedido = pedidoRepository.findById(pedidoId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pedido no encontrado"));
+
+        return pdfService.generarNotaCredito(pedido, motivo);
+    }
+
+
+
     @Override
     public boolean verificarYDescontarStockPedido(Pedido pedido) {
         try {

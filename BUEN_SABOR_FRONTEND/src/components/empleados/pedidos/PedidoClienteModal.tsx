@@ -85,20 +85,46 @@ const PedidoClienteModal: React.FC<Props> = ({ show, onHide, cliente }) => {
     };
 
     const columns = [
-        { key: "numero", label: "Número", render: (_: any, row: Pedido) => row.id },
-        { key: "fecha", label: "Fecha", render: (_: any, row: Pedido) => formatFechaConOffset(row.fechaPedido) },
-        { key: "total", label: "Total", render: (_: any, row: Pedido) => `$${row.total.toFixed(2)}` },
-        { key: "estado", label: "Estado", render: (_: any, row: Pedido) => row.estado },
-        {
-            key: "acciones",
-            label: "Acciones",
-            render: (_: any, row: Pedido) => (
-                <div className="d-flex gap-2">
-                    <Button variant="outline-secondary" size="sm" onClick={() => handleDescargarFactura(row.id!)}>Descargar Factura</Button>
-                    <Button variant="primary" size="sm" onClick={() => handleVerDetalle(row.id!)}>Ver detalle</Button>
-                </div>
-            )
-        }
+    { key: "numero", label: "Número", render: (_: any, row: Pedido) => row.id },
+    { key: "fecha", label: "Fecha", render: (_: any, row: Pedido) => formatFechaConOffset(row.fechaPedido) },
+    { key: "total", label: "Total", render: (_: any, row: Pedido) => `$${row.total.toFixed(2)}` },
+    { key: "estado", label: "Estado", render: (_: any, row: Pedido) => row.estado },
+    {
+        key: "acciones",
+        label: "Acciones",
+        render: (_: any, row: Pedido) => (
+        <div className="d-flex gap-2">
+            <Button
+            variant="outline-secondary"
+            size="sm"
+            onClick={() => handleDescargarFactura(row.id!)}
+            >
+            Descargar Factura
+            </Button>
+
+            <Button
+            variant="outline-warning"
+            size="sm"
+            onClick={() =>
+                window.open(
+                `http://localhost:8080/api/pedidos/cliente/${cliente.id}/pedido/${row.id}/nota-credito`,
+                '_blank'
+                )
+            }
+            >
+            Nota de Crédito
+            </Button>
+
+            <Button
+            variant="primary"
+            size="sm"
+            onClick={() => handleVerDetalle(row.id!)}
+            >
+            Ver detalle
+            </Button>
+        </div>
+        )
+    }
     ];
 
     return (

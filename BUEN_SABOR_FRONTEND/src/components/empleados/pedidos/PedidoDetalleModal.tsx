@@ -69,8 +69,35 @@ const PedidoDetalleModal: React.FC<Props> = ({ show, onHide, pedido }) => {
         <p><strong>Total:</strong> ${pedido.total.toFixed(2)}</p>
       </Modal.Body>
       <Modal.Footer>
+
         <Button variant="secondary" onClick={onHide}>Cerrar</Button>
-        <Button variant="primary" onClick={() => window.open(`http://localhost:8080/api/pedidos/cliente/${pedido.cliente.id}/pedido/${pedido.id}/factura`, '_blank')}>Descargar Factura</Button>
+
+  {/* Botón para descargar Nota de Crédito */}
+  <Button
+    variant="warning"
+    onClick={() =>
+      window.open(
+        `http://localhost:8080/api/pedidos/cliente/${pedido.cliente.id}/pedido/${pedido.id}/nota-credito`,
+        '_blank'
+      )
+    }
+  >
+    Descargar Nota de Crédito
+  </Button>
+
+  {/* Botón ya existente para descargar Factura */}
+  <Button
+    variant="primary"
+    onClick={() =>
+      window.open(
+        `http://localhost:8080/api/pedidos/cliente/${pedido.cliente.id}/pedido/${pedido.id}/factura`,
+        '_blank'
+      )
+    }
+  >
+    Descargar Factura
+  </Button>    
+        
       </Modal.Footer>
     </Modal>
   );

@@ -31,5 +31,8 @@ public interface PedidoService extends MasterService<Pedido, Long> {
 
     byte[] generarFacturaPDF(Long pedidoId, Long clienteId);
     //byte[] generarFacturaPDF(Long pedidoId, Long clienteId);
+
+    byte[] generarNotaCreditoPDF(Long pedidoId, String facturaOriginal);
+
     boolean verificarYDescontarStockPedido(Pedido pedido);
 }

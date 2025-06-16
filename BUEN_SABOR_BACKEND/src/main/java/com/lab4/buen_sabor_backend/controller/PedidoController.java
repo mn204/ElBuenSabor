@@ -89,7 +89,10 @@ public class PedidoController extends MasterControllerImpl<Pedido, PedidoDTO, Lo
 
     // GET para obtener el PDF de un pedido del cliente
     @GetMapping("/cliente/{clienteId}/pedido/{id}/factura")
-    public ResponseEntity<byte[]> getFacturaPdf(@PathVariable Long clienteId, @PathVariable Long id) {
+    public ResponseEntity<byte[]> getFacturaPdf(
+            @PathVariable Long clienteId,
+            @PathVariable Long id) {
+
         byte[] pdf = pedidoService.generarFacturaPDF(id, clienteId);
 
         HttpHeaders headers = new HttpHeaders();
@@ -101,6 +104,27 @@ public class PedidoController extends MasterControllerImpl<Pedido, PedidoDTO, Lo
 
         return new ResponseEntity<>(pdf, headers, HttpStatus.OK);
     }
+
+    // GET para obtener la Nota de Crédito de un pedido del cliente
+    @GetMapping("/cliente/{clienteId}/pedido/{id}/nota-credito")
+    public ResponseEntity<byte[]> getNotaCreditoPdf(
+            @PathVariable Long clienteId,
+            @PathVariable Long id,
+            @RequestParam(required = false) String motivo) {
+
+        byte[] pdf = pedidoService.generarNotaCreditoPDF(id, motivo);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDisposition(ContentDisposition
+                .attachment()
+                .filename("nota_credito_pedido_" + id + ".pdf")
+                .build());
+
+        return new ResponseEntity<>(pdf, headers, HttpStatus.OK);
+    }
+
+
 
     @PostMapping("/verificar-y-procesar")
     public ResponseEntity<?> verificarYProcesar(@RequestBody Pedido pedido) {
