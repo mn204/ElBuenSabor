@@ -296,6 +296,41 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
         setPedidosSeleccionados(new Map());
         setModoSeleccion(false);
     };
+    const getEstadosDisponibles = (estadoActual: Estado): Estado[] => {
+        if (usuario?.rol === 'ADMINISTRADOR') {
+            return Object.values(Estado);
+        }
+
+        if (usuario?.rol === 'CAJERO') {
+            switch (estadoActual) {
+                case Estado.PENDIENTE:
+                    return [Estado.PENDIENTE, Estado.CANCELADO, Estado.PREPARACION, Estado.LISTO, Estado.EN_DELIVERY, Estado.ENTREGADO];
+                case Estado.PREPARACION:
+                    return [Estado.PREPARACION, Estado.LISTO];
+                case Estado.LISTO:
+                    return [Estado.LISTO, Estado.EN_DELIVERY, Estado.ENTREGADO];
+                case Estado.EN_DELIVERY:
+                    return [Estado.EN_DELIVERY, Estado.ENTREGADO];
+                case Estado.ENTREGADO:
+                case Estado.CANCELADO:
+                default:
+                    return [estadoActual]; // Solo puede ver el estado actual
+            }
+        }
+
+        return [estadoActual]; // Por defecto, solo el estado actual
+    };
+    const isBotonCambioDeshabilitado = (estadoActual: Estado): boolean => {
+        if (usuario?.rol === 'ADMINISTRADOR') {
+            return false;
+        }
+
+        if (usuario?.rol === 'CAJERO') {
+            return estadoActual === Estado.EN_DELIVERY || estadoActual === Estado.PREPARACION;
+        }
+
+        return true; // Por defecto, deshabilitado para otros roles
+    };
 
     const columns = [
         // Columna de selección solo para admin en modo selección
@@ -321,37 +356,43 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
         {
             key: "acciones",
             label: "Acciones",
-            render: (_: any, row: Pedido) => (
-                <div className="d-flex flex-column gap-1">
-                    <div className="d-flex gap-2 align-items-center">
-                        <Form.Select
-                            size="sm"
-                            className={`border-${getColorEstado(row.estado)}`}
-                            value={estadoSeleccionado[row.id!] || row.estado}
-                            onChange={(e) => setEstadoSeleccionado({ ...estadoSeleccionado, [row.id!]: e.target.value as Estado })}
-                        >
-                            {Object.values(Estado).map((estado) => (
-                                <option key={estado} value={estado}>{estado}</option>
-                            ))}
-                        </Form.Select>
-                        <Button
-                            size="sm"
-                            variant={getColorEstado(estadoSeleccionado[row.id!] || row.estado)}
-                            onClick={() => handleCambiarEstado(row.id!, estadoSeleccionado[row.id!] || row.estado)}
-                            disabled={!estadoSeleccionado[row.id!] || estadoSeleccionado[row.id!] === row.estado}
-                        >
-                            Cambiar
-                        </Button>
+            render: (_: any, row: Pedido) => {
+                const estadosDisponibles = getEstadosDisponibles(row.estado);
+                const botonDeshabilitado = isBotonCambioDeshabilitado(row.estado);
+
+                return (
+                    <div className="d-flex flex-column gap-1">
+                        <div className="d-flex gap-2 align-items-center">
+                            <Form.Select
+                                size="sm"
+                                className={`border-${getColorEstado(row.estado)}`}
+                                value={estadoSeleccionado[row.id!] || row.estado}
+                                onChange={(e) => setEstadoSeleccionado({ ...estadoSeleccionado, [row.id!]: e.target.value as Estado })}
+                                disabled={botonDeshabilitado}
+                            >
+                                {estadosDisponibles.map((estado) => (
+                                    <option key={estado} value={estado}>{estado}</option>
+                                ))}
+                            </Form.Select>
+                            <Button
+                                size="sm"
+                                variant={getColorEstado(estadoSeleccionado[row.id!] || row.estado)}
+                                onClick={() => handleCambiarEstado(row.id!, estadoSeleccionado[row.id!] || row.estado)}
+                                disabled={botonDeshabilitado || !estadoSeleccionado[row.id!] || estadoSeleccionado[row.id!] === row.estado}
+                            >
+                                Cambiar
+                            </Button>
+                        </div>
+                        <div className="d-flex gap-2">
+                            <Button variant="primary" size="sm" onClick={() => handleVerDetalle(row.id!)}>Detalle</Button>
+                            <Button variant="outline-secondary" size="sm" onClick={() => handleDescargarFactura(row.id!)}>Factura</Button>
+                            {!row.pagado && (
+                                <Button variant="success" size="sm" onClick={() => handleMarcarPagado(row.id!)}>Pagado ✓</Button>
+                            )}
+                        </div>
                     </div>
-                    <div className="d-flex gap-2">
-                        <Button variant="primary" size="sm" onClick={() => handleVerDetalle(row.id!)}>Detalle</Button>
-                        <Button variant="outline-secondary" size="sm" onClick={() => handleDescargarFactura(row.id!)}>Factura</Button>
-                        {!row.pagado && (
-                            <Button variant="success" size="sm" onClick={() => handleMarcarPagado(row.id!)}>Pagado ✓</Button>
-                        )}
-                    </div>
-                </div>
-            )
+                );
+            }
         }
     ];
 

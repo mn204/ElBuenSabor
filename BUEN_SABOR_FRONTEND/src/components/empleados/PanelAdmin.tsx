@@ -48,11 +48,12 @@ function PanelAdmin() {
         { nombre: 'Clientes', icono: Usuario, path: 'clientes', rolesPermitidos: ['ADMINISTRADOR'] },
         { nombre: 'Productos', icono: Productos, path: 'productos', rolesPermitidos: ['ADMINISTRADOR'] },
         { nombre: 'Insumos', icono: Insumos, path: 'insumos', rolesPermitidos: ['ADMINISTRADOR'] },
+        { nombre: 'Promociones', icono: Pedidos, path: 'promociones', rolesPermitidos: ['ADMINISTRADOR'] },
         { nombre: 'Stock', icono: Stock, path: 'stock', rolesPermitidos: ['ADMINISTRADOR'] },
         { nombre: 'Categorias', icono: Categorias, path: 'categorias', rolesPermitidos: ['ADMINISTRADOR'] },
         { nombre: 'Empleados', icono: Usuario, path: 'empleados', rolesPermitidos: ['ADMINISTRADOR'] },
         { nombre: 'Estadísticas', icono: Estadisticas, path: 'estadisticas', rolesPermitidos: ['ADMINISTRADOR'] },
-        { nombre: 'Promociones', icono: Pedidos, path: 'promociones', rolesPermitidos: ['ADMINISTRADOR'] },
+        
     ];
 
     const botonesVisibles = botones.filter(btn =>
