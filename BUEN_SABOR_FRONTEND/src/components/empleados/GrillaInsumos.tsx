@@ -134,6 +134,32 @@ function GrillaInsumos() {
   };
 
   const columns = [
+    {
+      key: "imagen",
+      label: "Imagen",
+      render: (_: any, row: Insumo) => {
+        const imagenUrl = row.imagenes?.[0]?.denominacion;
+        return imagenUrl ? (
+            <img
+                src={imagenUrl}
+                alt="Imagen insumo"
+                style={{
+                  width: "50px",
+                  height: "50px",
+                  objectFit: "cover",
+                  borderRadius: "8px"
+                }}
+            />
+        ) : (
+            "Sin imagen"
+        );
+      }
+    },
+    {
+      key: "id",
+      label: "ID",
+      render: (_: any, row: Insumo) => row.id?.toString() || "-",
+    },
     { key: "denominacion", label: "Denominación" },
     {
       key: "categoria",

@@ -60,7 +60,7 @@ INSERT INTO `empresa` (`id`, `eliminado`, `cuil`, `nombre`, `razon_social`) VALU
     (1, b'0', 20304050607, 'El Buen Sabor', 'El Buen Sabor S.A.');
 
 -- Insertar la sucursal para 'El Buen Sabor'
-insert  into `sucursal`(`id`,`eliminado`,`casa_matriz`,`horario_apertura`,`horario_cierre`,`nombre`,`domicilio_id`,`empresa_id`) values (1,'\0','','20:00:00.000000','00:00:00.000000','Casa Central',9,1),(2,'\0','\0','10:00:00.000000','18:00:00.000000','Sucursal Este',11,1);
+insert  into `sucursal`(`id`,`eliminado`,`casa_matriz`,`horario_apertura`,`horario_cierre`,`nombre`,`domicilio_id`,`empresa_id`) values (1,'\0','','00:01:00.000000','00:00:00.000000','Casa Central',9,1),(2,'\0','\0','10:00:00.000000','18:00:00.000000','Sucursal Este',11,1);
 
 -- EMPLEADO
 insert  into `empleado`(`id`,`eliminado`,`apellido`,`fecha_nacimiento`,`nombre`,`telefono`,`domicilio_id`,`sucursal_id`,`usuario_id`) values (1,'\0','Gómez','1990-05-12','Ana','2611111111',1,null,1),(2,'\0','Pérez','1985-03-20','Luis','2612222222',2,1,2),(3,'\0','Rodríguez','1992-08-30','Marta','2613333333',3,1,3),(4,'\0','Fernández','1995-11-11','Carlos','2614444444',4,1,4),(5,'\0','Diaz','2009-02-11','Franco','124115',5,null,6),(6,'\0','Baez','2025-06-01','Carlos','52352352',12,2,9),(7,'\0','Martin','2025-06-03','Lucas','2621633323',13,2,10),(8,'\0','Diaz','2025-06-01','Matias','23523331',14,2,11);

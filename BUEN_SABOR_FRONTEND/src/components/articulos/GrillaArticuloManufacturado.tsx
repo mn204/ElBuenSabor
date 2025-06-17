@@ -115,6 +115,32 @@ function GrillaArticuloManufacturado() {
 
   // Definición de columnas para la tabla reusable
   const columns = [
+    {
+      key: "imagen",
+      label: "Imagen",
+      render: (_: any, row: ArticuloManufacturado) => {
+        const imagenUrl = row.imagenes?.[0]?.denominacion;
+        return imagenUrl ? (
+            <img
+                src={imagenUrl}
+                alt="Imagen"
+                style={{
+                  width: "50px",
+                  height: "50px",
+                  objectFit: "cover",
+                  borderRadius: "8px"
+                }}
+            />
+        ) : (
+            "Sin imagen"
+        );
+      }
+    },
+    {
+    key: "id",
+      label: "ID",
+      render: (_: any, row: ArticuloManufacturado) => row.id?.toString() || "-",
+    },
     { key: "denominacion", label: "Denominación" },
     {
       key: "precioVenta",
@@ -129,9 +155,8 @@ function GrillaArticuloManufacturado() {
     {
       key: "acciones",
       label: "Acciones",
-      className: "acciones-column d-flex justify-content-center gap-1",
       render: (_: any, row: ArticuloManufacturado) => (
-        <div>
+        <div className="d-flex gap-2 justify-content-center">
           <BotonVer
             onClick={() => handleVer(row)}
           />
@@ -152,6 +177,7 @@ function GrillaArticuloManufacturado() {
 
   return (
     <div className="position-relative">
+      <h2>Productos</h2>
       {/* Filtros */}
       <div className="filtrosybtn d-flex justify-content-between align-items-center">
         <div className="m-4 d-flex flex-wrap gap-2 align-items-end">

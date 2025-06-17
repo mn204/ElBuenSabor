@@ -143,7 +143,7 @@ export function GrillaPromocion() {
             {/* Modal detalle */}
             <Modal show={showModal} onHide={handleCloseModal} centered>
                 <Modal.Header closeButton>
-                    <Modal.Title>Detalle del Insumo</Modal.Title>
+                    <Modal.Title>Detalle de Promocion</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     {promocionSeleccionada && (
