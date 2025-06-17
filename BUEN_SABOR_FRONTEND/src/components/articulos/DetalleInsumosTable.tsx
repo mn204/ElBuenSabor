@@ -19,7 +19,7 @@ const DetalleInsumosTable = ({
       <thead>
         <tr>
           <th className="text-center align-middle" style={{ width: "10%" }}>Imagen</th>
-          <th className="text-center align-middle" style={{ width: "32%" }}>Insumo</th>
+          <th className="text-center align-middle" style={{ width: "32%" }}>Articulo</th>
           <th className="text-center align-middle" style={{ width: "23%" }}>Cantidad</th>
           <th className="text-center align-middle" style={{ width: "20%" }}>Precio Venta</th>
           <th className="text-center align-middle" style={{ width: "15%" }}>Acciones</th>

@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import ArticuloManufacturadoService from "../../../services/ArticuloManufacturadoService.ts";
-import DetalleArticulosTable from "../DetalleArticulosTable.tsx";
 import "../../../styles/ArticuloManufacturado.css";
 import Button from "react-bootstrap/Button";
 import ImagenArticulo from "../../../models/ImagenArticulo.ts";
@@ -16,11 +15,15 @@ import ModalAgregarArticulo from "../../articulos/ModalAgregarArticulo.tsx";
 import ArticuloInsumoService from "../../../services/ArticuloInsumoService.ts";
 import { useSucursal } from "../../../context/SucursalContextEmpleado.tsx";
 import type Sucursal from "../../../models/Sucursal.ts";
+import DetalleInsumosTable from "../../articulos/DetalleInsumosTable.tsx";
+import { Link } from "react-router-dom";
+import DetalleArticulosTable from "../DetalleArticulosTable.tsx";
 
 function FormPromocion() {
     const { sucursalActual } = useSucursal();
     const [showModal, setShowModal] = useState(false);
     const [articulos, setArticulos] = useState<Articulo[]>([]);
+    const [porcentajeGanancia, setPorcentajeGanancia] = useState<number>(0)
 
     // Estados principales
     const [articuloSeleccionado, setArticuloSeleccionado] = useState<Articulo | null>(null);
@@ -40,6 +43,7 @@ function FormPromocion() {
     const [imagenesExistentes, setImagenesExistentes] = useState<ImagenPromocion[]>([]);
     const [searchParams] = useSearchParams();
     const idFromUrl = searchParams.get("id");
+
 
     useEffect(() => {
         if (showModal) {
@@ -68,6 +72,9 @@ function FormPromocion() {
         const precio = det.articulo?.precioVenta ?? 0;
         return acc + precio * det.cantidad;
     }, 0);
+
+    const totalConGanancia = totalArticulos + (totalArticulos * (porcentajeGanancia / 100));
+
 
     // Handlers
     const handleImagenesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -115,6 +122,12 @@ function FormPromocion() {
             setShowModal(false);
             setArticuloSeleccionado(null);
             setCantidadInsumo(1);
+            requestAnimationFrame(() => {
+                const detallesSection = document.querySelector('.detalles-insumos-section');
+                if (detallesSection) {
+                    detallesSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            });
         }
     };
     useEffect(() => {
@@ -152,10 +165,10 @@ function FormPromocion() {
         promocion.fechaHasta = fechaHasta;
         promocion.horaDesde = horaDesde;
         promocion.horaHasta = horaHasta;
-        promocion.precioPromocional = precio;
+        promocion.precioPromocional = totalConGanancia;
         promocion.tipoPromocion = tipo;
         promocion.activa = activa;
-        setSucursales([...sucursales!,sucursalActual!])
+        setSucursales([...sucursales!, sucursalActual!])
         promocion.sucursales = [sucursalActual!];
         console.log(sucursalActual)
         promocion.detalles = detalles.map(det => ({
@@ -226,183 +239,302 @@ function FormPromocion() {
     const eliminarImagenNueva = (idx: number) => {
         setImagenes(prev => prev.filter((_, i) => i !== idx));
     };
-    return (
-        <div className="formArticuloManufacturado container text-start d-flex flex-column gap-3 w-100" style={{ maxWidth: 500 }}>
-            <h2>Formulario Promocion</h2>
-            <div className="d-flex flex-column">
-                <label>Denominación:</label>
-                <input
-                    type="text"
-                    onChange={e => setDenominacion(e.target.value)}
-                    className="form-control"
-                    required
-                    value={denominacion}
-                />
-            </div>
-            <div className="d-flex flex-column">
-                <label>Descripción:</label>
-                <textarea
-                    onChange={e => setDescripcion(e.target.value)}
-                    className="form-control"
-                    required
-                    value={descripcion}
-                />
-            </div>
-            <div className="d-flex gap-3">
-                <div className="desde">
-                    <span>Fecha Desde</span>
-                    <input type="date" name="fechaDesde" id="fechaDesde"
-                        value={fechaDesde.toISOString().split("T")[0]} // formato YYYY-MM-DD
-                        onChange={(e) => setFechaDesde(new Date(e.target.value))} />
-                </div>
-                <div className="hasta">
-                    <span>Fecha Hasta</span>
-                    <input type="date" name="fechaHasta" id="fechaHasta"
-                        value={fechaHasta.toISOString().split("T")[0]} // formato YYYY-MM-DD
-                        onChange={(e) => setFechaHasta(new Date(e.target.value))} />
-                </div>
-            </div>
-            <div className="d-flex gap-3">
-                <div className="desde w-100">
-                    <span>Hora Desde</span>
-                    <input type="time" name="horaDesde" id="horaDesde" value={horaDesde} onChange={e => setHoraDesde(e.target.value)} />
-                </div>
-                <div className="hasta w-100">
-                    <span>Hora Hasta</span>
-                    <input type="time" name="horaHasta" id="horaHasta" value={horaHasta} onChange={e => setHoraHasta(e.target.value)} />
-                </div>
-            </div>
-            <div className="d-flex flex-column">
-                <label>Imágenes:</label>
-                {/* Imágenes existentes */}
-                {imagenesExistentes.length > 0 && (
-                    <div className="preview-imagenes mt-2 d-flex gap-2 flex-wrap">
-                        {imagenesExistentes.map((img, idx) =>
-                            !img.eliminado && (
-                                <div key={img.id || idx} style={{ position: "relative", display: "inline-block" }}>
-                                    <img
-                                        src={img.denominacion}
-                                        alt={`img-existente-${idx}`}
-                                        style={{ width: 60, height: 60, objectFit: "cover", borderRadius: 8 }}
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => eliminarImagenExistente(idx)}
-                                        style={{
-                                            position: "absolute",
-                                            top: 0,
-                                            right: 0,
-                                            background: "red",
-                                            color: "white",
-                                            border: "none",
-                                            borderRadius: "50%",
-                                            width: 20,
-                                            height: 20,
-                                            cursor: "pointer",
-                                        }}
-                                    >
-                                        ×
-                                    </button>
-                                </div>
-                            )
-                        )}
-                    </div>
-                )}
-                {/* Imágenes nuevas */}
-                <div className="preview-imagenes mt-2 d-flex gap-2 flex-wrap">
-                    {imagenes.map((img, idx) => (
-                        <div key={idx} style={{ position: "relative", display: "inline-block" }}>
-                            <img
-                                src={URL.createObjectURL(img)}
-                                alt={`preview-${idx}`}
-                                style={{ width: 60, height: 60, objectFit: "cover", borderRadius: 8 }}
-                            />
-                            <button
-                                type="button"
-                                onClick={() => eliminarImagenNueva(idx)}
-                                style={{
-                                    position: "absolute",
-                                    top: 0,
-                                    right: 0,
-                                    background: "red",
-                                    color: "white",
-                                    border: "none",
-                                    borderRadius: "50%",
-                                    width: 20,
-                                    height: 20,
-                                    cursor: "pointer",
-                                }}
-                            >
-                                ×
-                            </button>
-                        </div>
-                    ))}
-                </div>
-                <input
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    onChange={handleImagenesChange}
-                />
-            </div>
-            <div className="tipoPromocion">
-                <span>Tipo de Promocion</span>
-                <select
-                    name="tipo"
-                    value={tipo}
-                    onChange={e => setTipo(e.target.value as TipoPromocion)}
-                >
 
-                    <option value="PROMOCION">PROMOCION</option>
-                    <option value="HAPPYHOUR">HAPPYHOUR</option>
-                </select>
+    const modalProps = {
+        show: showModal,
+        onHide: () => {
+            setShowModal(false);
+            setArticuloSeleccionado(null);
+            setCantidadInsumo(1);
+        },
+        articulos: articulos,
+        articuloSeleccionado: articuloSeleccionado,
+        setArticuloSeleccionado: setArticuloSeleccionado,
+        cantidadInsumo: cantidadInsumo,
+        setCantidadInsumo: setCantidadInsumo,
+        onAgregar: AgregarInsumo
+    };
+
+    const tableProps = {
+        detalles: detalles,
+        onEliminar: EliminarDetalle,
+        onCantidadChange: CambiarCantidadDetalle,
+        totalInsumos: totalArticulos
+    };
+    return (
+        <div className="formArticuloManufacturado">
+            <div className="d-flex align-items-center mb-4 position-relative">
+                <h2
+                    className="mb-0 position-absolute"
+                    style={{ left: '50%', transform: 'translateX(-50%)' }}
+                >
+                    {idFromUrl ? "Editar Promoción" : "Nueva Promoción"}
+                </h2>
+                <Link to="/empleado/promociones" className="btn btn-outline-secondary ms-auto">
+                    Volver a Promociones
+                </Link>
             </div>
-            <Button className="agregarInsumo" variant="primary" onClick={() => setShowModal(true)}>
-                Agregar Articulo
-            </Button>
-            <ModalAgregarArticulo
-                show={showModal}
-                onHide={() => setShowModal(false)}
-                articulos={
-                    articulos.filter(
-                        articulo => !detalles.some(det => det.articulo?.id === articulo.id)
-                    )
-                }
-                articuloSeleccionado={articuloSeleccionado}
-                setArticuloSeleccionado={setArticuloSeleccionado}
-                cantidadInsumo={cantidadInsumo}
-                setCantidadInsumo={setCantidadInsumo}
-                onAgregar={AgregarInsumo}
-            />
-            <DetalleArticulosTable
-                detalles={detalles}
-                onEliminar={EliminarDetalle}
-                onCantidadChange={CambiarCantidadDetalle}
-                totalInsumos={totalArticulos}
-            />
-            <div className="d-flex align-items-center gap-3">
-                <label><b>Precio:</b></label>
-                <input
-                    type="text"
-                    value={precio}
-                    onChange={e => setPrecio(Number(e.target.value))}
-                    style={{ width: 120, fontWeight: "bold" }}
-                />
+
+            <div className="row">
+                <div className="col-12">
+                    <form className="d-flex flex-column gap-3 text-start" onSubmit={e => e.preventDefault()}>
+                        {/* Denominación */}
+                        <div className="d-flex flex-column">
+                            <label>Denominación:</label>
+                            <input
+                                type="text"
+                                onChange={e => setDenominacion(e.target.value)}
+                                className="form-control"
+                                required
+                                value={denominacion}
+                            />
+                        </div>
+
+                        {/* Descripción */}
+                        <div className="d-flex flex-column">
+                            <label>Descripción:</label>
+                            <textarea
+                                onChange={e => setDescripcion(e.target.value)}
+                                className="form-control"
+                                rows="3"
+                                required
+                                value={descripcion}
+                            />
+                        </div>
+
+                        {/* Fechas */}
+                        <div className="d-flex flex-column">
+                            <label>Período de Vigencia:</label>
+                            <div className="row">
+                                <div className="col-md-6">
+                                    <label className="form-label small">Fecha Desde:</label>
+                                    <input
+                                        type="date"
+                                        name="fechaDesde"
+                                        id="fechaDesde"
+                                        className="form-control"
+                                        value={fechaDesde.toISOString().split("T")[0]}
+                                        onChange={(e) => setFechaDesde(new Date(e.target.value))}
+                                    />
+                                </div>
+                                <div className="col-md-6">
+                                    <label className="form-label small">Fecha Hasta:</label>
+                                    <input
+                                        type="date"
+                                        name="fechaHasta"
+                                        id="fechaHasta"
+                                        className="form-control"
+                                        value={fechaHasta.toISOString().split("T")[0]}
+                                        onChange={(e) => setFechaHasta(new Date(e.target.value))}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Horarios */}
+                        <div className="d-flex flex-column">
+                            <label>Horario de Aplicación:</label>
+                            <div className="row">
+                                <div className="col-md-6">
+                                    <label className="form-label small">Hora Desde:</label>
+                                    <input
+                                        type="time"
+                                        name="horaDesde"
+                                        id="horaDesde"
+                                        className="form-control"
+                                        value={horaDesde}
+                                        onChange={e => setHoraDesde(e.target.value)}
+                                    />
+                                </div>
+                                <div className="col-md-6">
+                                    <label className="form-label small">Hora Hasta:</label>
+                                    <input
+                                        type="time"
+                                        name="horaHasta"
+                                        id="horaHasta"
+                                        className="form-control"
+                                        value={horaHasta}
+                                        onChange={e => setHoraHasta(e.target.value)}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Tipo de Promoción */}
+                        <div className="d-flex flex-column">
+                            <label>Tipo de Promoción:</label>
+                            <select
+                                name="tipo"
+                                className="form-select"
+                                value={tipo}
+                                onChange={e => setTipo(e.target.value as TipoPromocion)}
+                            >
+                                <option value="PROMOCION">PROMOCIÓN</option>
+                                <option value="HAPPYHOUR">HAPPY HOUR</option>
+                            </select>
+                        </div>
+
+                        {/* Imágenes */}
+                        <div className="d-flex flex-column">
+                            <label>Imágenes:</label>
+
+                            {/* Imágenes existentes */}
+                            {imagenesExistentes.length > 0 && (
+                                <div className="preview-imagenes mt-2 d-flex gap-2 flex-wrap">
+                                    {imagenesExistentes.map((img, idx) =>
+                                        !img.eliminado && (
+                                            <div key={img.id || idx} style={{ position: "relative", display: "inline-block" }}>
+                                                <img
+                                                    src={img.denominacion}
+                                                    alt={`img-existente-${idx}`}
+                                                    style={{ width: 60, height: 60, objectFit: "cover", borderRadius: 8 }}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => eliminarImagenExistente(idx)}
+                                                    style={{
+                                                        position: "absolute",
+                                                        top: -5,
+                                                        right: -5,
+                                                        background: "red",
+                                                        color: "white",
+                                                        border: "none",
+                                                        borderRadius: "50%",
+                                                        width: 20,
+                                                        height: 20,
+                                                        cursor: "pointer",
+                                                        fontSize: "12px",
+                                                        display: "flex",
+                                                        alignItems: "center",
+                                                        justifyContent: "center"
+                                                    }}
+                                                >
+                                                    ×
+                                                </button>
+                                            </div>
+                                        )
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Imágenes nuevas */}
+                            <div className="preview-imagenes mt-2 d-flex gap-2 flex-wrap">
+                                {imagenes.map((img, idx) => (
+                                    <div key={idx} style={{ position: "relative", display: "inline-block" }}>
+                                        <img
+                                            src={URL.createObjectURL(img)}
+                                            alt={`preview-${idx}`}
+                                            style={{ width: 60, height: 60, objectFit: "cover", borderRadius: 8 }}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => eliminarImagenNueva(idx)}
+                                            style={{
+                                                position: "absolute",
+                                                top: -5,
+                                                right: -5,
+                                                background: "red",
+                                                color: "white",
+                                                border: "none",
+                                                borderRadius: "50%",
+                                                width: 20,
+                                                height: 20,
+                                                cursor: "pointer",
+                                                fontSize: "12px",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "center"
+                                            }}
+                                        >
+                                            ×
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <input
+                                type="file"
+                                multiple
+                                accept="image/*"
+                                onChange={handleImagenesChange}
+                                className="form-control mt-2"
+                            />
+                        </div>
+                    </form>
+                </div>
             </div>
-            <Button
-                variant={idFromUrl ? "warning" : "success"}
-                className="mt-3"
-                onClick={guardarOModificar}
-                disabled={
-                    !denominacion ||
-                    !descripcion ||
-                    detalles.length === 0
-                }
-            >
-                {idFromUrl ? "Actualizar Promocion" : "Guardar Promocion"}
-            </Button>
-        </div>
+
+            {/* Artículos de la promoción */}
+            <div className="d-flex justify-content-center my-4">
+                <Button
+                    variant="primary"
+                    onClick={() => setShowModal(true)}
+                    size="lg"
+                >
+                    Agregar Articulo
+                </Button>
+            </div>
+            <div className="detalles-insumos-section mt-4">
+                <DetalleArticulosTable {...tableProps} />
+            </div>
+
+            {/* Resumen y botón guardar */}
+            < div className="row justify-content-center mt-4" >
+                <div className="col-md-6">
+                    <div className="card p-4">
+                        <h5 className="text-center mb-3">Resumen de Promoción</h5>
+                        <div className="d-flex justify-content-between mb-3">
+                            <span className="fs-6">Tipo:</span>
+                            <strong className="fs-6">{tipo === 'PROMOCION' ? 'Promoción' : 'Happy Hour'}</strong>
+                        </div>
+                        <div className="d-flex justify-content-between mb-3">
+                            <span className="fs-6">Artículos incluidos:</span>
+                            <strong className="fs-6">{detalles.length}</strong>
+                        </div>
+                        <div className="d-flex justify-content-between mb-3">
+                            <span className="fs-6">Vigencia:</span>
+                            <strong className="fs-6">
+                                {fechaDesde.toLocaleDateString()} - {fechaHasta.toLocaleDateString()}
+                            </strong>
+                        </div>
+                        <hr />
+                        <div className="d-flex justify-content-between align-items-center mb-3">
+                            <span className="fs-5 fw-bold">Precio:</span>
+                            <div className="d-flex align-items-center justify-content-between gap-3 mb-3">
+                                <span className="fs-6">% Ganancia:</span>
+                                <input
+                                    type="number"
+                                    min={0}
+                                    value={porcentajeGanancia}
+                                    onChange={e => setPorcentajeGanancia(Number(e.target.value))}
+                                    className="form-control form-control-sm"
+                                    style={{ maxWidth: '100px' }}
+                                />
+                            </div>
+                        </div>
+
+                        <Button
+                            variant={idFromUrl ? "warning" : "success"}
+                            className="w-100"
+                            size="lg"
+                            onClick={guardarOModificar}
+                            disabled={
+                                !denominacion ||
+                                !descripcion ||
+                                detalles.length === 0 ||
+                                !precio
+                            }
+                        >
+                            {idFromUrl ? "Actualizar Promoción" : "Guardar Promoción"}
+                        </Button>
+                    </div>
+                </div>
+            </div >
+            <ModalAgregarArticulo {...modalProps} />
+        </div >
+    
     );
+    
 }
 
 export default FormPromocion;
