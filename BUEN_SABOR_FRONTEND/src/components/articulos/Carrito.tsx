@@ -12,7 +12,6 @@ import PedidoService from "../../services/PedidoService";
 import { Button } from "react-bootstrap";
 import { FaPlus } from "react-icons/fa6";
 import ModalDomicilio from "../clientes/ModalDomicilio";
-import type Promocion from "../../models/Promocion";
 
 export function Carrito() {
   const { cliente, setCliente } = useAuth();
@@ -175,6 +174,11 @@ export function Carrito() {
           <div style={{ minHeight: "60vh" }} className="d-flex align-items-center justify-content-center">No hay artículos en el carrito</div>
         ) : (
           <>
+          {stockError && (
+            <div className="alert alert-danger m-5" role="alert">
+              {stockError}
+            </div>
+          )}
             <div style={{margin: "20px 250px"}}>
               {carrito.map((item) =>
                 item.promocion ? (
@@ -301,7 +305,6 @@ export function Carrito() {
         </button>
         <h4>Datos de Entrega y Pago</h4>
       </div>
-
       {stockError && (
         <div className="alert alert-danger" role="alert">
           {stockError}

@@ -59,6 +59,7 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
     setPedido((prevPedido) => {
       let detallesExistente;
       if(articulo.id){
+        console.log(articulo)
         detallesExistente = prevPedido.detalles.find(
           (d) => d.articulo.id === articulo.id
         );
