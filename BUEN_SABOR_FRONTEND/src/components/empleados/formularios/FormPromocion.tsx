@@ -15,6 +15,7 @@ import PromocionService from "../../../services/PromocionService.ts";
 import ModalAgregarArticulo from "../../articulos/ModalAgregarArticulo.tsx";
 import ArticuloInsumoService from "../../../services/ArticuloInsumoService.ts";
 import { useSucursal } from "../../../context/SucursalContextEmpleado.tsx";
+import type Sucursal from "../../../models/Sucursal.ts";
 
 function FormPromocion() {
     const { sucursalActual } = useSucursal();
@@ -35,6 +36,7 @@ function FormPromocion() {
     const [tipo, setTipo] = useState<TipoPromocion>(TipoPromocion.PROMOCION);
     const [detalles, setDetalles] = useState<DetallePromocion[]>([]);
     const [imagenes, setImagenes] = useState<File[]>([]);
+    const [sucursales, setSucursales] = useState<Sucursal[]>([]);
     const [imagenesExistentes, setImagenesExistentes] = useState<ImagenPromocion[]>([]);
     const [searchParams] = useSearchParams();
     const idFromUrl = searchParams.get("id");
@@ -153,7 +155,9 @@ function FormPromocion() {
         promocion.precioPromocional = precio;
         promocion.tipoPromocion = tipo;
         promocion.activa = activa;
-        promocion.sucursal = sucursalActual!;
+        setSucursales([...sucursales!,sucursalActual!])
+        promocion.sucursales = [sucursalActual!];
+        console.log(sucursalActual)
         promocion.detalles = detalles.map(det => ({
             id: det.id ?? undefined,
             cantidad: det.cantidad,

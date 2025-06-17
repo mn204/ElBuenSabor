@@ -26,6 +26,7 @@ import { SucursalProviderUsuario } from './context/SucursalContext.tsx';
 import FormCategoria from './components/empleados/formularios/FormCategoria.tsx';
 import FormStock from './components/empleados/formularios/FormStock.tsx';
 import FormPromocion from './components/empleados/formularios/FormPromocion.tsx';
+import PedidoConfirmado from './components/articulos/PedidoConfirmado.tsx';
 
 
 function AppContent() {
@@ -56,6 +57,15 @@ function AppContent() {
         <Route path="/domicilios" element={
           <ProtectedRoute requiredRoles={[Rol.CLIENTE]}>
             <DomiciliosCliente />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/pedidoConfirmado/:id" element={
+          <ProtectedRoute requiredRoles={[Rol.CLIENTE]}>
+            <PedidoConfirmado
+              onContinuarComprando={()=>window.location.href='/'}
+              onVerPedidos={()=>window.location.href='/pedidos'}
+            />
           </ProtectedRoute>
         } />
 
@@ -146,9 +156,9 @@ function App() {
   return (
     <AuthProvider>
       <SucursalProvider>
-      <SucursalProviderUsuario>
-        <AppContent />
-      </SucursalProviderUsuario>
+        <SucursalProviderUsuario>
+          <AppContent />
+        </SucursalProviderUsuario>
       </SucursalProvider>
     </AuthProvider>
   );

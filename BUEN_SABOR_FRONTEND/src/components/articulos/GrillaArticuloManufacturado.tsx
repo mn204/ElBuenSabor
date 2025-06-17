@@ -80,7 +80,7 @@ function GrillaArticuloManufacturado() {
   };
 
   const handleActualizar = (row: ArticuloManufacturado) => {
-    window.location.href = `/manufacturado?id=${row.id}`;
+    window.location.href = `/FormaularioManufacturado?id=${row.id}`;
   };
 
   const eliminarArticulo = async (id: number) => {

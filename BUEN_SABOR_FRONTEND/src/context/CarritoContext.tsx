@@ -249,17 +249,6 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
       const calcularTiempoPreparacion = (pedido: Pedido): number => {
         let tiempoTotalMinutos = 0;
 
-        for (const detalle of pedido.detalles) {
-          const articulo = detalle.articulo;
-
-          // Verificar si es un ArticuloManufacturado
-          if ('tiempoEstimadoMinutos' in articulo) {
-            const articuloManufacturado = articulo as ArticuloManufacturado || ArticuloInsumo;
-            // Multiplicar el tiempo por la cantidad de ese artículo
-            tiempoTotalMinutos += articuloManufacturado.tiempoEstimadoMinutos * detalle.cantidad;
-          }
-        }
-
         return tiempoTotalMinutos;
       };
 

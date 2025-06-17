@@ -84,25 +84,23 @@ function Navbar() {
                             <span>EL BUEN SABOR</span>
                         </Link>
                     </div>
-                    {usuario?.rol === "CLIENTE" &&
-                        <div className="sucursal text-white d-flex align-items-center">
-                            <label htmlFor="selectSucursalUsuario" className="me-2">Sucursal:</label>
-                            <Form.Select
-                                id="selectSucursalUsuario"
-                                value={sucursalActualUsuario?.id || ""}
-                                onChange={(e) => {
-                                    const id = parseInt(e.target.value);
-                                    const sucursal = sucursalesUsuario.find(s => s.id === id);
-                                    if (sucursal) cambiarSucursalUsuario(sucursal);
-                                }}
-                                style={{ width: 'auto', minWidth: '200px' }}
-                            >
-                                {sucursalesUsuario.map(s => (
-                                    <option key={s.id} value={s.id}>{s.nombre}</option>
-                                ))}
-                            </Form.Select>
-                        </div>
-                    }
+                    <div className="sucursal text-white d-flex align-items-center">
+                        <label htmlFor="selectSucursalUsuario" className="me-2">Sucursal:</label>
+                        <Form.Select
+                            id="selectSucursalUsuario"
+                            value={sucursalActualUsuario?.id || ""}
+                            onChange={(e) => {
+                                const id = parseInt(e.target.value);
+                                const sucursal = sucursalesUsuario.find(s => s.id === id);
+                                if (sucursal) cambiarSucursalUsuario(sucursal);
+                            }}
+                            style={{ width: 'auto', minWidth: '200px' }}
+                        >
+                            {sucursalesUsuario.map(s => (
+                                <option key={s.id} value={s.id}>{s.nombre}</option>
+                            ))}
+                        </Form.Select>
+                    </div>
                     <div className="navCenter">
                         {(!isAuthenticated || usuario?.rol === "CLIENTE") ? (
                             <Buscador
