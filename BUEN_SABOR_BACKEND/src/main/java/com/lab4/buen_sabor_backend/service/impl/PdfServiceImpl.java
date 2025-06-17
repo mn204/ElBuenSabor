@@ -1,9 +1,7 @@
 // Clase que implementa la generación de Facturas y Notas de Crédito en PDF
 package com.lab4.buen_sabor_backend.service.impl;
 
-import com.lab4.buen_sabor_backend.model.Articulo;
-import com.lab4.buen_sabor_backend.model.DetallePedido;
-import com.lab4.buen_sabor_backend.model.Pedido;
+import com.lab4.buen_sabor_backend.model.*;
 import com.lab4.buen_sabor_backend.service.PdfService;
 import com.lowagie.text.*;
 import com.lowagie.text.Font;
@@ -29,6 +27,7 @@ public class PdfServiceImpl implements PdfService {
     private static final Color COLOR_TEXTO_SECUNDARIO = new Color(113, 128, 150);
     private static final Color COLOR_BLANCO = Color.WHITE;
     private static final Color COLOR_BORDE = new Color(226, 232, 240);
+    private static final Color COLOR_PROMOCION = new Color(255, 243, 205); // Color suave para promociones
 
     // Generación de Factura
     @Override
@@ -63,7 +62,6 @@ public class PdfServiceImpl implements PdfService {
             crearHeader(document, pedido, esNotaCredito);
 
             // Agrega motivo si es nota de crédito
-
             if (esNotaCredito) {
                 Paragraph motivoParrafo = new Paragraph();
                 motivoParrafo.add(new Chunk("Tu pedido ha sido cancelado.", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10, COLOR_PRIMARIO)));
@@ -71,7 +69,6 @@ public class PdfServiceImpl implements PdfService {
                 motivoParrafo.setSpacingAfter(10);
                 document.add(motivoParrafo);
             }
-
 
             // Datos del cliente
             crearSeccionCliente(document, pedido, fuenteNormal, fuenteNegrita, esNotaCredito);
@@ -199,85 +196,7 @@ public class PdfServiceImpl implements PdfService {
                 document.right(), document.bottom() - 30, 0);
     }
 
-    private void crearHeader(Document document, Pedido pedido) throws DocumentException {
-        PdfPTable tablaHeader = new PdfPTable(3);
-        tablaHeader.setWidthPercentage(100);
-        tablaHeader.setWidths(new float[]{35, 30, 35});
-        tablaHeader.setSpacingAfter(5);
-
-        // Columna izquierda - Empresa
-        PdfPCell celdaEmpresa = new PdfPCell();
-        celdaEmpresa.setBorder(Rectangle.NO_BORDER);
-        celdaEmpresa.setPadding(10);
-
-        Font fuenteEmpresa = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12, COLOR_PRIMARIO);
-        Font fuenteDireccion = FontFactory.getFont(FontFactory.HELVETICA, 9, COLOR_SECUNDARIO);
-
-        Paragraph empresaInfo = new Paragraph();
-        empresaInfo.add(new Chunk("EL BUEN SABOR S.A.\n", fuenteEmpresa));
-        if (pedido.getSucursal() != null && pedido.getSucursal().getDomicilio() != null) {
-            empresaInfo.add(new Chunk(pedido.getSucursal().getDomicilio().getCalle() + " " +
-                    pedido.getSucursal().getDomicilio().getNumero() + ", " +
-                    pedido.getSucursal().getDomicilio().getLocalidad().getNombre() + "\n", fuenteDireccion));
-        }
-        empresaInfo.add(new Chunk("CUIT: 20-30405060-7\n", fuenteDireccion));
-        empresaInfo.add(new Chunk("Responsable Inscripto", fuenteDireccion));
-
-        celdaEmpresa.addElement(empresaInfo);
-        tablaHeader.addCell(celdaEmpresa);
-
-        // Columna central - B centrada con rectángulo hasta la mitad
-        PdfPCell celdaCentral = new PdfPCell(new Phrase("B", new Font(Font.HELVETICA, 36, Font.BOLD, COLOR_ACENTO)));
-        celdaCentral.setBorder(Rectangle.BOX);
-        celdaCentral.setBorderWidth(2);
-        celdaCentral.setBorderColor(COLOR_ACENTO);
-        celdaCentral.setFixedHeight(60);
-        celdaCentral.setHorizontalAlignment(Element.ALIGN_CENTER);
-        celdaCentral.setVerticalAlignment(Element.ALIGN_MIDDLE);
-        celdaCentral.setPadding(0);
-
-        tablaHeader.addCell(celdaCentral);
-
-        // Columna derecha - Datos fiscales
-        PdfPCell celdaFiscal = new PdfPCell();
-        celdaFiscal.setBorder(Rectangle.NO_BORDER);
-        celdaFiscal.setPadding(10);
-        celdaFiscal.setHorizontalAlignment(Element.ALIGN_RIGHT);
-
-        String codSucursal = String.format("%04d", pedido.getSucursal().getId());
-        String codPedido = String.format("%08d", pedido.getId());
-
-        Font fuenteFiscal = FontFactory.getFont(FontFactory.HELVETICA, 9, COLOR_SECUNDARIO);
-        Font fuenteFactura = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 11, COLOR_PRIMARIO);
-
-        Paragraph datosFiscal = new Paragraph();
-        datosFiscal.setAlignment(Element.ALIGN_RIGHT);
-        datosFiscal.add(new Chunk("FACTURA B\n", fuenteFactura));
-        datosFiscal.add(new Chunk("N°: " + codSucursal + "-" + codPedido + "\n", fuenteFactura));
-        datosFiscal.add(new Chunk("Fecha: " + formatearFecha(pedido.getFechaPedido()) + "\n", fuenteFiscal));
-        datosFiscal.add(new Chunk("CAE: X" + String.format("%012d", pedido.getId()) + "\n", fuenteFiscal));
-        datosFiscal.add(new Chunk("Vto. CAE: " + formatearFecha(pedido.getFechaPedido().plusDays(10)), fuenteFiscal));
-
-        celdaFiscal.addElement(datosFiscal);
-        tablaHeader.addCell(celdaFiscal);
-
-        document.add(tablaHeader);
-
-        // Línea horizontal debajo del header
-        PdfPTable lineaHeader = new PdfPTable(1);
-        lineaHeader.setWidthPercentage(100);
-        lineaHeader.setSpacingAfter(10);
-
-        PdfPCell celdaLinea = new PdfPCell();
-        celdaLinea.setBorder(Rectangle.NO_BORDER);
-        celdaLinea.setBackgroundColor(COLOR_ACENTO);
-        celdaLinea.setFixedHeight(2);
-
-        lineaHeader.addCell(celdaLinea);
-        document.add(lineaHeader);
-    }
-
-    private void crearSeccionCliente(Document document, Pedido pedido, Font fuenteNormal, Font fuenteNegrita, boolean esNotaCredito){
+    private void crearSeccionCliente(Document document, Pedido pedido, Font fuenteNormal, Font fuenteNegrita, boolean esNotaCredito) throws DocumentException {
         // Tabla de datos del cliente sin títulos
         PdfPTable tablaCliente = new PdfPTable(2);
         tablaCliente.setWidthPercentage(100);
@@ -369,33 +288,91 @@ public class PdfServiceImpl implements PdfService {
 
         if (pedido.getDetalles() != null) {
             for (DetallePedido detalle : pedido.getDetalles()) {
-                Color colorFondo = filaAlterna ? COLOR_FONDO_SUAVE : COLOR_BLANCO;
+                // Determinar si es promoción o artículo individual
+                boolean esPromocion = detalle.getPromocion() != null;
+                Color colorFondo = esPromocion ? COLOR_PROMOCION : (filaAlterna ? COLOR_FONDO_SUAVE : COLOR_BLANCO);
 
-                // Número
-                PdfPCell celdaNum = crearCeldaProducto(String.valueOf(contador++), fuenteNormal, colorFondo, Element.ALIGN_CENTER);
-                tablaProductos.addCell(celdaNum);
-
-                // Descripción
-                PdfPCell celdaDesc = crearCeldaProducto(detalle.getArticulo().getDenominacion(), fuenteNormal, colorFondo, Element.ALIGN_LEFT);
-                tablaProductos.addCell(celdaDesc);
-
-                // Cantidad
-                PdfPCell celdaCant = crearCeldaProducto(detalle.getCantidad().toString(), fuenteNormal, colorFondo, Element.ALIGN_CENTER);
-                tablaProductos.addCell(celdaCant);
-
-                // Precio
-                PdfPCell celdaPrecio = crearCeldaProducto(formatCurrency(detalle.getArticulo().getPrecioVenta()), fuenteNormal, colorFondo, Element.ALIGN_RIGHT);
-                tablaProductos.addCell(celdaPrecio);
-
-                // Subtotal
-                PdfPCell celdaSubtotal = crearCeldaProducto(formatCurrency(detalle.getSubTotal()), fuenteNormal, colorFondo, Element.ALIGN_RIGHT);
-                tablaProductos.addCell(celdaSubtotal);
+                if (esPromocion) {
+                    // Agregar información de la promoción
+                    agregarFilaPromocion(tablaProductos, detalle, contador++, colorFondo, fuenteNormal);
+                } else {
+                    // Agregar información del artículo individual
+                    agregarFilaArticulo(tablaProductos, detalle, contador++, colorFondo, fuenteNormal);
+                }
 
                 filaAlterna = !filaAlterna;
             }
         }
 
         document.add(tablaProductos);
+    }
+
+    private void agregarFilaArticulo(PdfPTable tabla, DetallePedido detalle, int contador, Color colorFondo, Font fuenteNormal) {
+        // Número
+        PdfPCell celdaNum = crearCeldaProducto(String.valueOf(contador), fuenteNormal, colorFondo, Element.ALIGN_CENTER);
+        tabla.addCell(celdaNum);
+
+        // Descripción
+        PdfPCell celdaDesc = crearCeldaProducto(detalle.getArticulo().getDenominacion(), fuenteNormal, colorFondo, Element.ALIGN_LEFT);
+        tabla.addCell(celdaDesc);
+
+        // Cantidad
+        PdfPCell celdaCant = crearCeldaProducto(detalle.getCantidad().toString(), fuenteNormal, colorFondo, Element.ALIGN_CENTER);
+        tabla.addCell(celdaCant);
+
+        // Precio
+        PdfPCell celdaPrecio = crearCeldaProducto(formatCurrency(detalle.getArticulo().getPrecioVenta()), fuenteNormal, colorFondo, Element.ALIGN_RIGHT);
+        tabla.addCell(celdaPrecio);
+
+        // Subtotal
+        PdfPCell celdaSubtotal = crearCeldaProducto(formatCurrency(detalle.getSubTotal()), fuenteNormal, colorFondo, Element.ALIGN_RIGHT);
+        tabla.addCell(celdaSubtotal);
+    }
+
+    private void agregarFilaPromocion(PdfPTable tabla, DetallePedido detalle, int contador, Color colorFondo, Font fuenteNormal) {
+        Promocion promocion = detalle.getPromocion();
+
+        // Número
+        PdfPCell celdaNum = crearCeldaProducto(String.valueOf(contador), fuenteNormal, colorFondo, Element.ALIGN_CENTER);
+        tabla.addCell(celdaNum);
+
+        // Descripción de la promoción con detalles
+        StringBuilder descripcionPromocion = new StringBuilder();
+        descripcionPromocion.append("🎉 PROMOCIÓN: ").append(promocion.getDenominacion());
+
+        if (promocion.getDescripcionDescuento() != null && !promocion.getDescripcionDescuento().isEmpty()) {
+            descripcionPromocion.append("\n   ").append(promocion.getDescripcionDescuento());
+        }
+
+        // Agregar detalles de los artículos incluidos en la promoción
+        if (promocion.getDetalles() != null && !promocion.getDetalles().isEmpty()) {
+            descripcionPromocion.append("\n   Incluye:");
+            for (DetallePromocion detallePromo : promocion.getDetalles()) {
+                if (detallePromo.getArticulo() != null) {
+                    descripcionPromocion.append("\n   • ")
+                            .append(detallePromo.getCantidad())
+                            .append("x ")
+                            .append(detallePromo.getArticulo().getDenominacion());
+                }
+            }
+        }
+
+        Font fuentePromocion = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 9, COLOR_PRIMARIO);
+        PdfPCell celdaDesc = crearCeldaProducto(descripcionPromocion.toString(), fuentePromocion, colorFondo, Element.ALIGN_LEFT);
+        tabla.addCell(celdaDesc);
+
+        // Cantidad de promociones
+        PdfPCell celdaCant = crearCeldaProducto(detalle.getCantidad().toString(), fuenteNormal, colorFondo, Element.ALIGN_CENTER);
+        tabla.addCell(celdaCant);
+
+        // Precio promocional
+        Double precioUnitario = promocion.getPrecioPromocional() != null ? promocion.getPrecioPromocional() : 0.0;
+        PdfPCell celdaPrecio = crearCeldaProducto(formatCurrency(precioUnitario), fuenteNormal, colorFondo, Element.ALIGN_RIGHT);
+        tabla.addCell(celdaPrecio);
+
+        // Subtotal
+        PdfPCell celdaSubtotal = crearCeldaProducto(formatCurrency(detalle.getSubTotal()), fuenteNormal, colorFondo, Element.ALIGN_RIGHT);
+        tabla.addCell(celdaSubtotal);
     }
 
     private PdfPCell crearCeldaProducto(String contenido, Font fuente, Color colorFondo, int alineacion) {
@@ -444,31 +421,6 @@ public class PdfServiceImpl implements PdfService {
         document.add(totalLetras);
     }
 
-    private void crearFooter(Document document, String cae, Font fuentePequena, PdfWriter writer) {
-        PdfContentByte cb = writer.getDirectContent();
-        float y = document.bottom() - 20;
-
-        // Línea decorativa
-        cb.setColorFill(COLOR_ACENTO);
-        cb.rectangle(document.left(), y + 30, document.right() - document.left(), 2);
-        cb.fill();
-
-        ColumnText.showTextAligned(cb, Element.ALIGN_CENTER,
-                new Phrase("Documento no válido como factura", new Font(Font.HELVETICA, 9, Font.BOLD, COLOR_TEXTO_SECUNDARIO)),
-                (document.left() + document.right()) / 2, y + 20, 0);
-
-        ColumnText.showTextAligned(cb, Element.ALIGN_CENTER,
-                new Phrase("Verificación AFIP: www.afip.gob.ar/qr/" + cae, fuentePequena),
-                (document.left() + document.right()) / 2, y + 10, 0);
-
-        ColumnText.showTextAligned(cb, Element.ALIGN_CENTER,
-                new Phrase("Gracias por elegir El Buen Sabor", new Font(Font.HELVETICA, 8, Font.ITALIC, COLOR_ACENTO)),
-                (document.left() + document.right()) / 2, y, 0);
-
-        ColumnText.showTextAligned(cb, Element.ALIGN_RIGHT,
-                new Phrase("Página " + writer.getPageNumber(), new Font(Font.HELVETICA, 8, Font.NORMAL, COLOR_TEXTO_SECUNDARIO)),
-                document.right(), document.bottom() - 30, 0);
-    }
     // Métodos auxiliares
     private String formatearFecha(LocalDateTime fecha) {
         if (fecha == null) return "Fecha no disponible";
