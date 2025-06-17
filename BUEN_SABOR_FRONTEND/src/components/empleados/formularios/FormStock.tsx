@@ -5,8 +5,10 @@ import ArticuloInsumo from "../../../models/ArticuloInsumo";
 import SucursalInsumo from "../../../models/SucursalInsumo";
 import ArticuloInsumoService from "../../../services/ArticuloInsumoService";
 import SucursalInsumoService from "../../../services/SucursalInsumoService";
+import { useSucursal } from "../../../context/SucursalContextEmpleado";
 
 function FormStock() {
+  const {sucursalActual}=useSucursal();
   const [insumos, setInsumos] = useState<ArticuloInsumo[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
 
@@ -37,18 +39,12 @@ function FormStock() {
       stockMaximo,
       stockActual,
       eliminado: false,
-      sucursal: insumoSeleccionado.sucursalInsumo?.sucursal!,
-      insumoSeleccionado
+      articuloInsumo: insumoSeleccionado,
+      sucursal: sucursalActual!
     };
 
     
     const res = SucursalInsumoService.create(sucursalInsumo);
-    console.log(res)
-    const actualizado: ArticuloInsumo = {
-      ...insumoSeleccionado,
-      sucursalInsumo
-    };
-    ArticuloInsumoService.update(actualizado.id!,actualizado)
   };
 
   return (
