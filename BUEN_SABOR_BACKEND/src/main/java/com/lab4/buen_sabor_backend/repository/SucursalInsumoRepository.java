@@ -19,4 +19,9 @@ public interface SucursalInsumoRepository extends MasterRepository<SucursalInsum
     // Stock bajo de UNA sucursal específica, con insumo cargado
     @Query("SELECT si FROM SucursalInsumo si JOIN FETCH si.articuloInsumo WHERE si.sucursal.id = :idSucursal AND si.stockActual < si.stockMinimo")
     List<SucursalInsumo> findAllWithLowStockBySucursal(@Param("idSucursal") Long idSucursal);
+
+    List<SucursalInsumo> findByArticuloInsumoIdAndEliminadoFalse(Long articuloInsumoId);
+
+    List<SucursalInsumo> findByArticuloInsumoIdAndEliminadoTrue(Long articuloInsumoId);
+
 }

@@ -4,13 +4,18 @@ import com.lab4.buen_sabor_backend.exceptions.EntityNotFoundException;
 import com.lab4.buen_sabor_backend.model.ArticuloInsumo;
 import com.lab4.buen_sabor_backend.model.Categoria;
 import com.lab4.buen_sabor_backend.model.ImagenArticulo;
+import com.lab4.buen_sabor_backend.model.SucursalInsumo;
 import com.lab4.buen_sabor_backend.repository.ArticuloInsumoRepository;
+import com.lab4.buen_sabor_backend.repository.DetalleArticuloManufacturadoRepository;
+import com.lab4.buen_sabor_backend.repository.SucursalInsumoRepository;
 import com.lab4.buen_sabor_backend.service.ArticuloInsumoService;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
 
@@ -20,11 +25,61 @@ public class ArticuloInsumoServiceImpl extends MasterServiceImpl<ArticuloInsumo,
     private static final Logger logger = LoggerFactory.getLogger(ArticuloInsumoServiceImpl.class);
 
     private final ArticuloInsumoRepository articuloInsumoRepository;
+    private final DetalleArticuloManufacturadoRepository detalleArticuloManufacturadoRepository;
+    private final SucursalInsumoRepository sucursalInsumoRepository;
 
     @Autowired
-    public ArticuloInsumoServiceImpl(ArticuloInsumoRepository articuloInsumoRepository) {
+    public ArticuloInsumoServiceImpl(ArticuloInsumoRepository articuloInsumoRepository, DetalleArticuloManufacturadoRepository detalleArticuloManufacturadoRepository, SucursalInsumoRepository sucursalInsumoRepository) {
         super(articuloInsumoRepository);
         this.articuloInsumoRepository = articuloInsumoRepository;
+        this.detalleArticuloManufacturadoRepository = detalleArticuloManufacturadoRepository;
+        this.sucursalInsumoRepository = sucursalInsumoRepository;
+    }
+
+    @Override
+    @Transactional
+    public void bajaLogica(Long id) {
+        ArticuloInsumo insumo = articuloInsumoRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Insumo no encontrado"));
+
+        // Validar si está en uso en algún manufacturado
+        boolean enUso = detalleArticuloManufacturadoRepository.existsByArticuloInsumoIdAndEliminadoFalse(id);
+        if (enUso) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No se puede eliminar el insumo porque está en uso en un artículo manufacturado.");
+        }
+
+        // Dar de baja lógica al insumo
+        insumo.setEliminado(true);
+        articuloInsumoRepository.save(insumo);
+
+        // Dar de baja lógica a los SucursalInsumo asociados
+        List<SucursalInsumo> sucursales = sucursalInsumoRepository.findByArticuloInsumoIdAndEliminadoFalse(id);
+        sucursales.forEach(sucursalInsumo -> {
+            sucursalInsumo.setEliminado(true);
+            sucursalInsumoRepository.save(sucursalInsumo);
+        });
+    }
+
+    @Override
+    @Transactional
+    public void altaLogica(Long id) {
+        ArticuloInsumo insumo = articuloInsumoRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Insumo no encontrado"));
+
+        if (!insumo.isEliminado()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El insumo ya está activo.");
+        }
+
+        // Activar insumo
+        insumo.setEliminado(false);
+        articuloInsumoRepository.save(insumo);
+
+        // Activar stock asociado
+        List<SucursalInsumo> sucursales = sucursalInsumoRepository.findByArticuloInsumoIdAndEliminadoTrue(id);
+        sucursales.forEach(sucursal -> {
+            sucursal.setEliminado(false);
+            sucursalInsumoRepository.save(sucursal);
+        });
     }
 /*
     @Override

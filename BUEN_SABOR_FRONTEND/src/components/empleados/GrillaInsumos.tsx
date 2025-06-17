@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import InsumoService from "../../services/ArticuloInsumoService";
 import CategoriaService from "../../services/CategoriaService";
 import Insumo from "../../models/ArticuloInsumo";
@@ -36,14 +36,20 @@ function GrillaInsumos() {
   const [page, setPage] = useState(0);
   const [size] = useState(10);
 
+
+
   // Modal Ver
   const [showModal, setShowModal] = useState(false);
   const [insumoSeleccionado, setInsumoSeleccionado] = useState<Insumo | null>(null);
+  const [mostrarModalConfirmacion, setMostrarModalConfirmacion] = useState(false);
+  const [modalTitulo, setModalTitulo] = useState("");
+  const [modalMensaje, setModalMensaje] = useState("");
+  const [accionConfirmada, setAccionConfirmada] = useState<(() => void) | null>(null);
 
   // Filtros
   const [filtroDenominacion, setFiltroDenominacion] = useState("");
   const [filtroCategoria, setFiltroCategoria] = useState("");
-  const [filtroEstado, setFiltroEstado] = useState(""); // "", "activo", "eliminado"
+  const [filtroEstado, setFiltroEstado] = useState("");
   const [filtroPrecioMin, setFiltroPrecioMin] = useState("");
   const [filtroPrecioMax, setFiltroPrecioMax] = useState("");
   const [categorias, setCategorias] = useState<Categoria[]>([]);
@@ -65,7 +71,7 @@ function GrillaInsumos() {
       const data = await ArticuloInsumoService.getAll();
       setInsumos(data);
     } catch (err) {
-      setError("Error al cargar los artículos manufacturados");
+      setError("Error al cargar los artículos insumos.");
     } finally {
       setLoading(false);
     }
@@ -85,18 +91,49 @@ function GrillaInsumos() {
 
   // Calcular páginas totales basado en los elementos filtrados
   const totalPages = Math.ceil(insumosFiltrados.length / size);
-  
+
   // Aplicar paginación a los elementos filtrados
   const insumosPaginados = insumosFiltrados.slice(page * size, (page + 1) * size);
 
+  const pedirConfirmacionEliminacion = (id: number) => {
+    setModalTitulo("Confirmar eliminación de insumo");
+    setModalMensaje("¿Seguro que desea eliminar este insumo?");
+    setAccionConfirmada(() => () => eliminarInsumo(id)); // se guarda la acción que debe ejecutarse si el usuario confirma
+    setMostrarModalConfirmacion(true);
+  };
+
+
+  const pedirConfirmacionAlta = (id: number) => {
+    setModalTitulo("Confirmar Alta de Insumo");
+    setModalMensaje("¿Seguro que desea dar de Alta este insumo?");
+    setAccionConfirmada(() => () => activarInsumo(id)); // se guarda la acción que debe ejecutarse si el usuario confirma
+    setMostrarModalConfirmacion(true);
+  };
+
   const eliminarInsumo = async (id: number) => {
-    if (!window.confirm("¿Seguro que desea eliminar este insumo?")) return;
     try {
-      await InsumoService.delete(id);
-      cargarInsumos();
-      alert("Insumo eliminado correctamente");
+      const response = await InsumoService.delete(id);
+
+      if (response.ok) {
+        setModalTitulo("Insumo eliminado");
+        setModalMensaje("El insumo fue eliminado correctamente. También se dio de baja lógica a todo su stock en sucursales.");
+        await cargarInsumos();
+      } else {
+        const error = await response.text(); // o json si devolvés JSON
+        setModalTitulo("No se puede eliminar el insumo");
+        if (error.includes("está en uso")) {
+          setModalMensaje("Este insumo no se puede eliminar porque está siendo utilizado por un artículo manufacturado.");
+        } else {
+          setModalMensaje("Ocurrió un error al intentar eliminar el insumo.");
+        }
+      }
     } catch (err) {
-      alert("Error al eliminar el insumo");
+      setModalTitulo("Error de red");
+      setModalMensaje("Ocurrió un error inesperado al intentar eliminar el insumo.");
+    } finally {
+      setShowModal(true);
+      // actualizar la grilla si fue eliminado:
+      await cargarInsumos();
     }
   };
 
@@ -114,23 +151,24 @@ function GrillaInsumos() {
     setInsumoSeleccionado(null);
   };
 
-  const darDeAlta = async (id: number) => {
-    if (!window.confirm("¿Seguro que desea dar de alta este insumo?")) return;
+  const activarInsumo = async (id: number) => {
     try {
-      await InsumoService.changeEliminado(id);
-      cargarInsumos();
-      alert("Insumo dado de alta correctamente");
-    } catch (err) {
-      alert("Error al dar de alta el Insumo");
-    }
-  };
+      const response = await InsumoService.alta(id);
 
-  const limpiarFiltros = () => {
-    setFiltroDenominacion("");
-    setFiltroCategoria("");
-    setFiltroEstado("");
-    setFiltroPrecioMax("");
-    setFiltroPrecioMin("");
+      if (response.ok) {
+        setModalTitulo("Insumo reactivado");
+        setModalMensaje("El insumo fue activado correctamente. También se reactivó su stock asociado en las sucursales.");
+        await cargarInsumos();
+      } else {
+        setModalTitulo("Error al reactivar");
+        setModalMensaje("Ocurrió un error al intentar reactivar el insumo.");
+      }
+    } catch (err) {
+      setModalTitulo("Error de red");
+      setModalMensaje("Ocurrió un error inesperado al intentar reactivar el insumo.");
+    } finally {
+      setShowModal(true);
+    }
   };
 
   const columns = [
@@ -140,18 +178,18 @@ function GrillaInsumos() {
       render: (_: any, row: Insumo) => {
         const imagenUrl = row.imagenes?.[0]?.denominacion;
         return imagenUrl ? (
-            <img
-                src={imagenUrl}
-                alt="Imagen insumo"
-                style={{
-                  width: "50px",
-                  height: "50px",
-                  objectFit: "cover",
-                  borderRadius: "8px"
-                }}
-            />
+          <img
+            src={imagenUrl}
+            alt="Imagen insumo"
+            style={{
+              width: "50px",
+              height: "50px",
+              objectFit: "cover",
+              borderRadius: "8px"
+            }}
+          />
         ) : (
-            "Sin imagen"
+          "Sin imagen"
         );
       }
     },
@@ -172,6 +210,11 @@ function GrillaInsumos() {
       render: (_: any, row: Insumo) => row.unidadMedida?.denominacion || "-",
     },
     {
+      key: "precioCompra",
+      label: "Precio Compra",
+      render: (value: number) => `$${value}`,
+    },
+    {
       key: "precioVenta",
       label: "Precio Venta",
       render: (value: number) => `$${value}`,
@@ -189,9 +232,9 @@ function GrillaInsumos() {
           <BotonVer onClick={() => handleVer(row)} />
           <BotonModificar onClick={() => handleActualizar(row)} />
           {!row.eliminado ? (
-            <BotonEliminar onClick={() => eliminarInsumo(row.id!)} />
+            <BotonEliminar onClick={() => pedirConfirmacionEliminacion(row.id)} />
           ) : (
-            <BotonAlta onClick={() => darDeAlta(row.id!)} />
+            <BotonAlta onClick={() => pedirConfirmacionAlta(row.id!)} />
           )}
         </div>
       ),
@@ -204,64 +247,84 @@ function GrillaInsumos() {
   return (
     <div className="position-relative">
       <h2>Insumos</h2>
-      <div className="filtrosybtn d-flex justify-content-between align-items-center">
-        <div className="m-4 d-flex flex-wrap gap-2 align-items-end">
-          <input
-            type="text"
-            className="form-control"
-            placeholder="Buscar por denominación"
-            value={filtroDenominacion}
-            onChange={e => setFiltroDenominacion(e.target.value)}
-            style={{ maxWidth: 180 }}
-          />
-          <select
-            className="form-select"
-            value={filtroCategoria}
-            onChange={e => setFiltroCategoria(e.target.value)}
-            style={{ maxWidth: 180 }}
-          >
-            <option value="">Todas las categorías</option>
-            {categorias.map(cat => (
-              <option key={cat.id} value={cat.id?.toString()}>
-                {cat.denominacion}
-              </option>
-            ))}
-          </select>
-          <select
-            className="form-select"
-            value={filtroEstado}
-            onChange={e => setFiltroEstado(e.target.value)}
-            style={{ maxWidth: 140 }}
-          >
-            <option value="">Todos los estados</option>
-            <option value="activo">Activo</option>
-            <option value="eliminado">Eliminado</option>
-          </select>
-          <input
-            type="number"
-            className="form-control"
-            placeholder="Precio mín."
-            value={filtroPrecioMin}
-            onChange={e => setFiltroPrecioMin(e.target.value)}
-            style={{ maxWidth: 120 }}
-          />
-          <input
-            type="number"
-            className="form-control"
-            placeholder="Precio máx."
-            value={filtroPrecioMax}
-            onChange={e => setFiltroPrecioMax(e.target.value)}
-            style={{ maxWidth: 120 }}
-          />
-          <Button variant="secondary" onClick={limpiarFiltros}>
-            Limpiar filtros
-          </Button>
+      <div className="filtros-container bg-light p-4 rounded mb-4 shadow-sm">
+        <div className="row g-3 align-items-center">
+          <div className="col-md-3">
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Buscar por denominación"
+              value={filtroDenominacion}
+              onChange={e => setFiltroDenominacion(e.target.value)}
+            />
+          </div>
+          <div className="col-md-2">
+            <select
+              className="form-select"
+              value={filtroCategoria}
+              onChange={e => setFiltroCategoria(e.target.value)}
+            >
+              <option value="">Todas las categorías</option>
+              {categorias.map(cat => (
+                <option key={cat.id} value={cat.id}>{cat.denominacion}</option>
+              ))}
+            </select>
+          </div>
+          <div className="col-md-2">
+            <select
+              className="form-select"
+              value={filtroEstado}
+              onChange={e => setFiltroEstado(e.target.value)}
+            >
+              <option value="">Todos los estados</option>
+              <option value="activo">Activo</option>
+              <option value="eliminado">Eliminado</option>
+            </select>
+          </div>
+          <div className="col-md-2">
+            <input
+              type="number"
+              min="0"
+              className="form-control"
+              placeholder="Precio mín."
+              value={filtroPrecioMin}
+              onChange={e => setFiltroPrecioMin(e.target.value)}
+            />
+          </div>
+          <div className="col-md-2">
+            <input
+              type="number"
+              min="0"
+              className="form-control"
+              placeholder="Precio máx."
+              value={filtroPrecioMax}
+              onChange={e => setFiltroPrecioMax(e.target.value)}
+            />
+          </div>
+          <div className="col-md-1 d-flex justify-content-center">
+            <button
+              type="button"
+              className="btn btn-outline-primary btn-sm w-100"
+              style={{ minHeight: '38px' }}
+              onClick={() => {
+                setFiltroDenominacion("");
+                setFiltroCategoria("");
+                setFiltroEstado("");
+                setFiltroPrecioMin("");
+                setFiltroPrecioMax("");
+                setPage(0);
+              }}
+            >
+              Ver Todos
+            </button>
+          </div>
         </div>
-        <Link to='/FormularioInsumo' className="btn border-success" style={{ right: 10, top: 10 }}>
-          Crear Insumo
-        </Link>
+        <div className="text-center mt-4">
+          <Link to="/FormularioInsumo" className="btn btn-success">
+            Crear Insumo
+          </Link>
+        </div>
       </div>
-
       {/* Tabla */}
       <div className="p-3 border rounded bg-white shadow-sm">
         {insumosFiltrados.length === 0 ? (
@@ -309,22 +372,77 @@ function GrillaInsumos() {
       </div>
 
       {/* Modal detalle */}
-      <Modal show={showModal} onHide={handleCloseModal} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>Detalle del Insumo</Modal.Title>
+      <Modal show={showModal} onHide={handleCloseModal} centered size="md">
+        <Modal.Header closeButton className="bg-primary text-white">
+          <Modal.Title>🧾 Detalle del Insumo</Modal.Title>
         </Modal.Header>
+
         <Modal.Body>
           {insumoSeleccionado && (
-            <div>
-              <p><b>Denominación:</b> {insumoSeleccionado.denominacion}</p>
-              <p><b>Categoría:</b> {insumoSeleccionado.categoria?.denominacion}</p>
-              <p><b>Unidad de Medida:</b> {insumoSeleccionado.unidadMedida?.denominacion || "-"}</p>
-              <p><b>Precio Venta:</b> ${insumoSeleccionado.precioVenta}</p>
+            <div className="text-center">
+              <img
+                src={insumoSeleccionado.imagenes?.[0]?.denominacion || ""}
+                alt="Imagen del insumo"
+                className="img-thumbnail rounded mb-3 shadow-sm"
+                style={{ maxHeight: "150px", objectFit: "cover" }}
+              />
+
+              <div className="text-start px-2">
+                <p className="mb-2">
+                  <strong>🧪 Denominación:</strong> {insumoSeleccionado.denominacion}
+                </p>
+                <p className="mb-2">
+                  <strong>📂 Categoría:</strong> {insumoSeleccionado.categoria?.denominacion || "-"}
+                </p>
+                <p className="mb-2">
+                  <strong>⚖️ Unidad de Medida:</strong> {insumoSeleccionado.unidadMedida?.denominacion || "-"}
+                </p>
+                <p className="mb-2">
+                  <strong>💰 Precio Compra:</strong> ${insumoSeleccionado.precioCompra.toFixed(2)}
+                </p>
+                <p className="mb-2">
+                  <strong>🛒 Precio Venta:</strong> ${insumoSeleccionado.precioVenta.toFixed(2)}
+                </p>
+              </div>
             </div>
           )}
         </Modal.Body>
+
         <Modal.Footer>
-          <Button variant="secondary" onClick={handleCloseModal}>Cerrar</Button>
+          <Button variant="outline-secondary" onClick={handleCloseModal}>
+            Cerrar
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      <Modal show={showModal} onHide={() => setShowModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>{modalTitulo}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>{modalMensaje}</p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="primary" onClick={() => setShowModal(false)}>
+            Aceptar
+          </Button>
+        </Modal.Footer>
+      </Modal>
+      <Modal show={mostrarModalConfirmacion} onHide={() => setMostrarModalConfirmacion(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>{modalTitulo}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>{modalMensaje}</Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setMostrarModalConfirmacion(false)}>
+            Cancelar
+          </Button>
+          <Button variant="danger" onClick={() => {
+            if (accionConfirmada) accionConfirmada();
+            setMostrarModalConfirmacion(false);
+          }}>
+            Confirmar
+          </Button>
         </Modal.Footer>
       </Modal>
     </div>

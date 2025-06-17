@@ -5,4 +5,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface DetalleArticuloManufacturadoRepository extends MasterRepository<DetalleArticuloManufacturado, Long> {
+
+    boolean existsByArticuloInsumoIdAndEliminadoFalse(Long articuloInsumoId);
 }

@@ -56,16 +56,10 @@ class ArticuloInsumoService {
         return response.json();
     }
 
-    async delete(id: number): Promise<void> {
-        try {
-            const res = await fetch(`${API_URL}/${id}`, {
-                method: "DELETE"
-            });
-            if (!res.ok) throw new Error("Error al eliminar artículo insumo");
-        } catch (error) {
-            console.error(error);
-            throw error;
-        }
+    async delete(id: number): Promise<Response> {
+        return await fetch(`${API_URL}/baja-logica/${id}`, {
+            method: "DELETE",
+        });
     }
 
     async getById(id: number): Promise<ArticuloInsumo> {
@@ -118,17 +112,12 @@ class ArticuloInsumoService {
         }
     }
 
-    async changeEliminado(id: number): Promise<void> {
-        try {
-            const res = await fetch(`${API_URL}/darAlta/${id}`, {
-                method: "PUT"
-            });
-            if (!res.ok) throw new Error("Error al dar de alta insumo");
-        } catch (error) {
-            console.error(error);
-            throw error;
-        }
+    async alta(id: number): Promise<Response> {
+        return await fetch(`${API_URL}/alta-logica/${id}`, {
+            method: "PUT",
+        });
     }
+
     async create(articulo: any): Promise<any> {
         try {
             const res = await fetch(`${API_URL}`, {
@@ -137,7 +126,7 @@ class ArticuloInsumoService {
                 body: JSON.stringify(articulo)
             });
             console.log(JSON.stringify(articulo));
-            if (!res.ok) throw new Error("Error al crear artículo manufacturado");
+            if (!res.ok) throw new Error("Error al crear artículo insumo");
             return await res.json();
         } catch (error) {
             console.error(error);
@@ -152,7 +141,7 @@ class ArticuloInsumoService {
                 body: JSON.stringify(articulo)
             });
             console.log(JSON.stringify(articulo))
-            if (!res.ok) throw new Error("Error al actualizar artículo manufacturado");
+            if (!res.ok) throw new Error("Error al actualizar artículo Insumo");
             return await res.json();
         } catch (error) {
             console.error(error);

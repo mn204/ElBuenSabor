@@ -22,6 +22,7 @@ function GrillaArticuloManufacturado() {
   const [page, setPage] = useState(0);
   const [size] = useState(10);
 
+
   // Filtros
   const [filtroDenominacion, setFiltroDenominacion] = useState("");
   const [filtroCategoria, setFiltroCategoria] = useState("");
@@ -33,6 +34,12 @@ function GrillaArticuloManufacturado() {
   // Modal
   const [showModal, setShowModal] = useState(false);
   const [articuloSeleccionado, setArticuloSeleccionado] = useState<ArticuloManufacturado | null>(null);
+  const [mostrarModalConfirmacion, setMostrarModalConfirmacion] = useState(false);
+  const [modalTitulo, setModalTitulo] = useState("");
+  const [modalMensaje, setModalMensaje] = useState("");
+  const [accionConfirmada, setAccionConfirmada] = useState<(() => void) | null>(null);
+
+  const [mostrarModalInfo, setMostrarModalInfo] = useState(false);
 
   useEffect(() => {
     cargarArticulos();
@@ -83,8 +90,14 @@ function GrillaArticuloManufacturado() {
     window.location.href = `/FormaularioManufacturado?id=${row.id}`;
   };
 
+  const confirmarAccion = (titulo: string, mensaje: string, accion: () => void) => {
+    setModalTitulo(titulo);
+    setModalMensaje(mensaje);
+    setAccionConfirmada(() => accion);
+    setMostrarModalConfirmacion(true);
+  };
+
   const eliminarArticulo = async (id: number) => {
-    if (!window.confirm("¿Seguro que desea eliminar este artículo manufacturado?")) return;
     try {
       await ArticuloManufacturadoService.delete(id);
       setArticulos(prev =>
@@ -92,14 +105,17 @@ function GrillaArticuloManufacturado() {
           a.id === id ? { ...a, eliminado: true } : a
         )
       );
-      alert("Artículo manufacturado eliminado correctamente");
+      setModalTitulo("Éxito");
+      setModalMensaje("Artículo manufacturado eliminado correctamente");
+      setMostrarModalInfo(true);
     } catch (err) {
-      alert("Error al eliminar el artículo manufacturado");
+      setModalTitulo("Error");
+      setModalMensaje("Error al eliminar el artículo manufacturado");
+      setMostrarModalInfo(true);
     }
   };
 
   const darDeAlta = async (id: number) => {
-    if (!window.confirm("¿Seguro que desea dar de alta este artículo manufacturado?")) return;
     try {
       await ArticuloManufacturadoService.changeEliminado(id);
       setArticulos(prev =>
@@ -107,9 +123,13 @@ function GrillaArticuloManufacturado() {
           a.id === id ? { ...a, eliminado: false } : a
         )
       );
-      alert("Artículo manufacturado dado de alta correctamente");
+      setModalTitulo("Éxito");
+      setModalMensaje("Artículo manufacturado dado de alta correctamente");
+      setMostrarModalInfo(true);
     } catch (err) {
-      alert("Error al dar de alta el artículo manufacturado");
+      setModalTitulo("Error");
+      setModalMensaje("Error al dar de alta el artículo manufacturado");
+      setMostrarModalInfo(true);
     }
   };
 
@@ -165,10 +185,16 @@ function GrillaArticuloManufacturado() {
           />
           {!row.eliminado ? (
             <BotonEliminar
-              onClick={() => eliminarArticulo(row.id!)}
+              onClick={() => confirmarAccion(
+                "Confirmar eliminación",
+                "¿Seguro que desea eliminar este artículo manufacturado?",
+                () => eliminarArticulo(row.id!))}
             />
           ) : (
-            <BotonAlta onClick={() => darDeAlta(row.id!)} />
+            <BotonAlta onClick={() => confirmarAccion(
+              "Confirmar alta",
+              "¿Seguro que desea dar de alta este artículo manufacturado?",
+              () => darDeAlta(row.id!))}/> 
           )}
         </div>
       ),
@@ -251,14 +277,11 @@ function GrillaArticuloManufacturado() {
             </button>
           </div>
         </div>
-
-        <Link
-          to="/FormularioManufacturado"
-          className="btn btn-success position-absolute"
-          style={{ right: 10, top: 10 }}
-        >
-          Crear Artículo Manufacturado
-        </Link>
+        <div className="text-center mt-4">
+          <Link to="/FormularioManufacturado" className="btn btn-success">
+            Crear Articulo Manufacturado
+          </Link>
+        </div>
       </div>
 
       {/* Tabla con paginación */}
@@ -341,6 +364,37 @@ function GrillaArticuloManufacturado() {
         <Modal.Footer>
           <Button variant="secondary" onClick={handleCloseModal}>
             Cerrar
+          </Button>
+        </Modal.Footer>
+      </Modal>
+      {/* Modal de confirmación */}
+      <Modal show={mostrarModalConfirmacion} onHide={() => setMostrarModalConfirmacion(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>{modalTitulo}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>{modalMensaje}</Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setMostrarModalConfirmacion(false)}>
+            Cancelar
+          </Button>
+          <Button variant="danger" onClick={() => {
+            if (accionConfirmada) accionConfirmada();
+            setMostrarModalConfirmacion(false);
+          }}>
+            Confirmar
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Modal de información */}
+      <Modal show={mostrarModalInfo} onHide={() => setMostrarModalInfo(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>{modalTitulo}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>{modalMensaje}</Modal.Body>
+        <Modal.Footer>
+          <Button variant="primary" onClick={() => setMostrarModalInfo(false)}>
+            OK
           </Button>
         </Modal.Footer>
       </Modal>
