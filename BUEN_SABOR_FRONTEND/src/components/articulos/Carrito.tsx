@@ -63,26 +63,18 @@ export function Carrito() {
     preferenceId,
     restarDelCarrito,
     agregarAlCarrito,
+    quitarPromocionCompleta,
     quitarDelCarrito,
     limpiarCarrito,
     guardarPedidoYObtener,
     agregarPromocionAlCarrito,
-    quitarPromocionCompleta,
-    restarPromocionDelCarrito,
   } = carritoCtx;
   const handleAgregar = () => {
     setDomicilioSeleccionado(null);
     setModalVisible(true);
   };
   const carrito = pedido.detalles;
-const handleAgregarAlCarrito = (promocion: Promocion) => {
-        if (carritoCtx && promocion) {
-            promocion.detalles.forEach((detalle) => {
-                console.log(promocion)
-                carritoCtx.agregarAlCarrito(detalle.articulo, detalle.cantidad, promocion);
-            });
-        }
-    };
+
   const verificarStock = async () => {
     setVerificandoStock(true);
     setStockError(null);
@@ -177,183 +169,107 @@ const handleAgregarAlCarrito = (promocion: Promocion) => {
     };
   }, [preferenceId, carrito.length]);
   const renderStep1 = () => {
-    // Agrupar items por promoción
-    const itemsConPromocion = carrito.filter(item => item.promocion);
-    const itemsSinPromocion = carrito.filter(item => !item.promocion);
-
-    // Agrupar promociones por ID y calcular cantidad de promociones completas
-    const promocionesAgrupadas = itemsConPromocion.reduce((acc, item) => {
-      const promocionId = item.promocion!.id!;
-      if (!acc[promocionId]) {
-        acc[promocionId] = {
-          promocion: item.promocion!,
-          cantidadPromociones: 0,
-          items: []
-        };
-      }
-      acc[promocionId].items.push(item);
-      return acc;
-    }, {} as Record<number, { promocion: any, cantidadPromociones: number, items: any[] }>);
-
-    // Calcular la cantidad real de promociones completas para cada grupo
-    Object.keys(promocionesAgrupadas).forEach(promocionId => {
-      const grupo = promocionesAgrupadas[Number(promocionId)];
-      const promocion = grupo.promocion;
-
-      // Verificar que todos los artículos de la promoción estén en el carrito
-      const todosLosArticulosPresentes = promocion.detalles.every(detallePromo =>
-        grupo.items.some(item => item.articulo.id === detallePromo.articulo.id)
-      );
-
-      if (!todosLosArticulosPresentes) {
-        grupo.cantidadPromociones = 0;
-        return;
-      }
-
-      // Encontrar el artículo con menor cantidad relativa para determinar cuántas promociones completas hay
-      let cantidadMinimaPromociones = Infinity;
-
-      promocion.detalles.forEach(detallePromo => {
-        const itemEnCarrito = grupo.items.find(item => item.articulo.id === detallePromo.articulo.id);
-        if (itemEnCarrito && detallePromo.cantidad > 0) {
-          const promocionesDeEsteArticulo = Math.floor(itemEnCarrito.cantidad / detallePromo.cantidad);
-          cantidadMinimaPromociones = Math.min(cantidadMinimaPromociones, promocionesDeEsteArticulo);
-        }
-      });
-
-      // Si hay algún artículo con cantidad 0 en la promoción, no puede haber promociones completas
-      const hayArticuloSinCantidad = promocion.detalles.some(detallePromo => detallePromo.cantidad === 0);
-
-      grupo.cantidadPromociones = (cantidadMinimaPromociones === Infinity || hayArticuloSinCantidad) ? 0 : cantidadMinimaPromociones;
-    });
-
     return (
-      <div className="p-4" style={{ minHeight: "60vh" }}>
-        <h4 className="mb-4">Carrito de Compras</h4>
+      <>
         {carrito.length === 0 ? (
-          <p className="text-muted">El carrito está vacío.</p>
+          <div style={{minHeight: "60vh"}} className="d-flex align-items-center justify-content-center">No hay artículos en el carrito</div>
         ) : (
           <>
-            {stockError && (
-              <div className="alert alert-danger" role="alert">
-                {stockError}
-              </div>
-            )}
-
-            {/* Renderizar promociones agrupadas */}
-            {Object.values(promocionesAgrupadas).map((grupo) => (
-              <div key={grupo.promocion.id} className="d-flex align-items-center mb-3 border-bottom pb-2">
-                <img
-                  src={grupo.promocion.imagenes[0]?.denominacion || '/placeholder-promo.jpg'}
-                  alt="Imagen de la promoción"
-                  className="rounded"
-                  style={{ width: "200px", height: "200px", objectFit: "cover", marginRight: "10px" }}
-                />
-                <div className="flex-grow-1">
-                  <div className="d-flex justify-content-between mb-2 pb-2">
-                    <div>
-                      <strong>{grupo.promocion.denominacion}</strong>
-                      <div className="badge bg-success ms-2">PROMOCIÓN</div>
+            {carrito.map((item) =>
+              item.promocion ? (
+                <div key={`promo-${item.promocion.id}`} className="d-flex align-items-center mb-3 border-bottom pb-2">
+                  <img
+                    src={item.promocion.imagenes[0]?.denominacion}
+                    alt="Imagen del artículo"
+                    className="rounded"
+                    style={{ width: "200px", height: "200px", objectFit: "cover", marginRight: "10px" }}
+                  />
+                  <div className="flex-grow-1">
+                    <div className="d-flex justify-content-between mb-2 pb-2">
+                      <strong>{item.promocion.denominacion}</strong>
+                      <button
+                        className="btn btn-outline-danger btn-sm"
+                        style={{ width: "30px", height: "30px" }}
+                        onClick={() => quitarPromocionCompleta(item.promocion.id)}
+                      >
+                        X
+                      </button>
                     </div>
-                    <button
-                      className="btn btn-outline-danger btn-sm"
-                      style={{ width: "30px", height: "30px" }}
-                      onClick={() => quitarPromocionCompleta(grupo.promocion.id)}
-                    >
-                      X
-                    </button>
-                  </div>
-
-                  {/* Mostrar detalles de la promoción */}
-                  <div className="mb-2">
-                    <small className="text-muted">{grupo.promocion.descripcionDescuento}</small>
-                    {grupo.promocion.detalles.map((detalle, index) => (
-                      <div key={index} className="small text-muted">
-                        • {detalle.cantidad}x {detalle.articulo.denominacion}
+                    <div className="d-flex align-items-center justify-content-between">
+                      <small>Precio: ${item.promocion.precioPromocional.toFixed(2)}</small>
+                      <div className="d-flex align-items-center mx-2">
+                        <button
+                          className="btn btn-outline-secondary btn-sm"
+                          style={{ background: "white", color: "black" }}
+                          onClick={() => restarDelCarrito(item.promocion.id)}
+                        >
+                          <strong>-</strong>
+                        </button>
+                        <span className="mx-2">{item.cantidad}</span>
+                        <button
+                          className="btn btn-outline-secondary btn-sm"
+                          style={{ background: "white", color: "black" }}
+                          onClick={() => agregarPromocionAlCarrito(item.promocion!)}
+                        >
+                          <strong>+</strong>
+                        </button>
                       </div>
-                    ))}
-                  </div>
-
-                  <div className="d-flex align-items-center justify-content-between">
-                    <small>Precio: ${grupo.promocion.precioPromocional.toFixed(2)}</small>
-                    <div className="d-flex align-items-center mx-2">
-                      <button
-                        className="btn btn-outline-secondary btn-sm"
-                        style={{ background: "white", color: "black" }}
-                        onClick={() => restarPromocionDelCarrito(grupo.promocion.id)}
-                      >
-                        <strong>-</strong>
-                      </button>
-                      <span className="mx-2">{grupo.cantidadPromociones}</span>
-                      <button
-                        className="btn btn-outline-secondary btn-sm"
-                        style={{ background: "white", color: "black" }}
-                        onClick={() => handleAgregarAlCarrito(grupo.promocion)}
-                      >
-                        <strong>+</strong>
-                      </button>
                     </div>
-                  </div>
-                  <div className="text-end mt-4">
-                    Subtotal: ${(grupo.promocion.precioPromocional * grupo.cantidadPromociones).toFixed(2)}
+                    <div className="text-end mt-4">Subtotal: ${item.subTotal.toFixed(2)}</div>
                   </div>
                 </div>
-              </div>
-            ))}
-
-            {/* Renderizar artículos individuales (sin promoción) */}
-            {itemsSinPromocion.map((item) => (
-              <div key={item.articulo.id} className="d-flex align-items-center mb-3 border-bottom pb-2">
-                <img
-                  src={item.articulo.imagenes[0]?.denominacion}
-                  alt="Imagen del artículo"
-                  className="rounded"
-                  style={{ width: "200px", height: "200px", objectFit: "cover", marginRight: "10px" }}
-                />
-                <div className="flex-grow-1">
-                  <div className="d-flex justify-content-between mb-2 pb-2">
-                    <strong>{item.articulo.denominacion}</strong>
-                    <button
-                      className="btn btn-outline-danger btn-sm"
-                      style={{ width: "30px", height: "30px" }}
-                      onClick={() => quitarDelCarrito(item.articulo.id)}
-                    >
-                      X
-                    </button>
-                  </div>
-                  <div className="d-flex align-items-center justify-content-between">
-                    <small>Precio: ${item.articulo.precioVenta.toFixed(2)}</small>
-                    <div className="d-flex align-items-center mx-2">
+              ) : (
+                <div key={`articulo-${item.articulo.id}`} className="d-flex align-items-center mb-3 border-bottom pb-2">
+                  <img
+                    src={item.articulo.imagenes[0]?.denominacion}
+                    alt="Imagen del artículo"
+                    className="rounded"
+                    style={{ width: "200px", height: "200px", objectFit: "cover", marginRight: "10px" }}
+                  />
+                  <div className="flex-grow-1">
+                    <div className="d-flex justify-content-between mb-2 pb-2">
+                      <strong>{item.articulo.denominacion}</strong>
                       <button
-                        className="btn btn-outline-secondary btn-sm"
-                        style={{ background: "white", color: "black" }}
-                        onClick={() => restarDelCarrito(item.articulo.id ? item.articulo.id : 0)}
+                        className="btn btn-outline-danger btn-sm"
+                        style={{ width: "30px", height: "30px" }}
+                        onClick={() => quitarDelCarrito(item.articulo.id)}
                       >
-                        <strong>-</strong>
-                      </button>
-                      <span className="mx-2">{item.cantidad}</span>
-                      <button
-                        className="btn btn-outline-secondary btn-sm"
-                        style={{ background: "white", color: "black" }}
-                        onClick={() => agregarAlCarrito(item.articulo, 1)}
-                      >
-                        <strong>+</strong>
+                        X
                       </button>
                     </div>
+                    <div className="d-flex align-items-center justify-content-between">
+                      <small>Precio: ${item.articulo.precioVenta.toFixed(2)}</small>
+                      <div className="d-flex align-items-center mx-2">
+                        <button
+                          className="btn btn-outline-secondary btn-sm"
+                          style={{ background: "white", color: "black" }}
+                          onClick={() => restarDelCarrito(item.articulo.id)}
+                        >
+                          <strong>-</strong>
+                        </button>
+                        <span className="mx-2">{item.cantidad}</span>
+                        <button
+                          className="btn btn-outline-secondary btn-sm"
+                          style={{ background: "white", color: "black" }}
+                          onClick={() => agregarAlCarrito(item.articulo, 1)}
+                        >
+                          <strong>+</strong>
+                        </button>
+                      </div>
+                    </div>
+                    <div className="text-end mt-4">Subtotal: ${item.subTotal.toFixed(2)}</div>
                   </div>
-                  <div className="text-end mt-4">Subtotal: ${item.subTotal.toFixed(2)}</div>
                 </div>
-              </div>
-            ))}
+              )
+            )}
 
             <div className="mt-3 text-end">
               <strong>
                 Total: $
-                {carrito
-                  .reduce((acc, item) => acc + item.subTotal, 0)
-                  .toFixed(2)}
+                {carrito.reduce((acc, item) => acc + item.subTotal, 0).toFixed(2)}
               </strong>
             </div>
+
             <div className="d-flex justify-content-between mt-3">
               <button className="btn btn-warning" onClick={limpiarCarrito}>Limpiar carrito</button>
               <button
@@ -366,7 +282,8 @@ const handleAgregarAlCarrito = (promocion: Promocion) => {
             </div>
           </>
         )}
-      </div>
+      </>
+
     );
   };
 

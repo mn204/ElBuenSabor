@@ -11,10 +11,7 @@ const CardPromocion: React.FC<Props> = ({ promocion }) => {
     const carritoCtx = useCarrito();
     const handleAgregarAlCarrito = () => {
         if (carritoCtx && promocion) {
-            promocion.detalles.forEach((detalle) => {
-                console.log(promocion)
-                carritoCtx.agregarAlCarrito(detalle.articulo, detalle.cantidad, promocion);
-            });
+            carritoCtx.agregarPromocionAlCarrito(promocion);
         }
     };
     const navigate = useNavigate();
