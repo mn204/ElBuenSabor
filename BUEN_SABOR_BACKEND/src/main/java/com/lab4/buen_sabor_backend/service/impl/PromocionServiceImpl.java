@@ -119,4 +119,8 @@ public class PromocionServiceImpl extends MasterServiceImpl<Promocion, Long> imp
         }
     }
 
+    @Override
+    public boolean existsById(Long id) {
+        return promocionRepository.existsById(id);
+    }
 }
