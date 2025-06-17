@@ -9,4 +9,5 @@ public interface SucursalInsumoService extends MasterService<SucursalInsumo, Lon
 
     List<SucursalInsumo> obtenerConStockBajo(Long idSucursal);
 
+    SucursalInsumo agregarStock(SucursalInsumo sucursalInsumo);
 }
