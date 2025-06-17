@@ -24,10 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implements PedidoService {
@@ -39,14 +36,17 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
     private final ExcelService excelService;
     private final PdfService pdfService;
     private final EmailService emailService;
+    private final PromocionService promocionService;
+    private final DetallePedidoService detallePedidoService;
     private final ArticuloInsumoService articuloInsumoService;
+    private final ArticuloService articuloService;
     private final SucursalInsumoService sucursalInsumoService;
     private final ArticuloManufacturadoService articuloManufacturadoService;
 
     @Autowired
     public PedidoServiceImpl(PedidoRepository pedidoRepository, PdfService pdfService, ArticuloInsumoService articuloInsumoService,
                              SucursalInsumoService sucursalInsumoService, ArticuloManufacturadoService articuloManufacturadoService,
-                             EmpleadoRepository empleadoRepository, ExcelService excelService, EmailService emailService) {
+                             EmpleadoRepository empleadoRepository, ExcelService excelService, EmailService emailService, PromocionService promocionService, DetallePedidoService detallePedidoService, ArticuloService articuloService) {
         super(pedidoRepository);
         this.pedidoRepository = pedidoRepository;
         this.articuloInsumoService = articuloInsumoService;
@@ -56,6 +56,9 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
         this.pdfService = pdfService;
         this.excelService = excelService;
         this.emailService = emailService;
+        this.promocionService = promocionService;
+        this.detallePedidoService = detallePedidoService;
+        this.articuloService = articuloService;
     }
 
     @Override
@@ -512,36 +515,58 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
         }
     }
 
+
     @Transactional
     protected boolean guardarPedidoConTransaccion(Pedido pedido, Map<Long, RequerimientoInfo> requerimientos) {
         try {
             // Descontar stock
             for (RequerimientoInfo req : requerimientos.values()) {
                 SucursalInsumo si = req.getSucursalInsumo();
-                // Refrescar la entidad para asegurar que tenemos la versión más actual
                 si = sucursalInsumoService.getById(si.getId());
-
                 double nuevoStock = si.getStockActual() - req.getCantidadRequerida();
                 si.setStockActual(nuevoStock);
-
-                // Guardar explícitamente si es necesario
                 sucursalInsumoService.save(si);
-
-                logger.info("Stock actualizado para insumo ID: " + si.getId() +
-                        ". Cantidad descontada: " + req.getCantidadRequerida() +
-                        ". Stock restante: " + nuevoStock);
             }
 
-            // Guardar pedido
-            for (DetallePedido detalle : pedido.getDetalles()) {
-                detalle.setPedido(pedido);
+            // 1. Primero guardar el pedido sin detalles
+            List<DetallePedido> detallesOriginales = new ArrayList<>(pedido.getDetalles());
+            pedido.getDetalles().clear();
+
+            Pedido pedidoGuardado = save(pedido);
+
+            // 2. Luego guardar los detalles uno por uno
+            for (DetallePedido detalle : detallesOriginales) {
+                detalle.setPedido(pedidoGuardado);
+                detalle.setId(null); // Asegurar que es una nueva entidad
+
+                // Solo establecer la referencia por ID, no la entidad completa
+                if (detalle.getArticulo() != null && detalle.getArticulo().getId() != null) {
+                    // Validar que el artículo existe
+                    if (!articuloService.existsById(detalle.getArticulo().getId())) {
+                        throw new RuntimeException("Artículo no encontrado: " + detalle.getArticulo().getId());
+                    }
+                }else{
+                    detalle.setArticulo(null);
+                }
+
+                if (detalle.getPromocion() != null && detalle.getPromocion().getId() != null) {
+                    // Validar que la promoción existe
+                    if (!promocionService.existsById(detalle.getPromocion().getId())) {
+                        throw new RuntimeException("Promoción no encontrada: " + detalle.getPromocion().getId());
+                    }
+                }else{
+                    detalle.setPromocion(null);
+                }
+                System.out.println(detalle.getArticulo());
+                System.out.println(detalle.getPromocion());
+                detallePedidoService.save(detalle);
             }
-            pedidoRepository.save(pedido);
+
             return true;
 
         } catch (Exception e) {
             logger.error("Error al guardar pedido con transacción: ", e);
-            throw e; // Re-lanzar para que haga rollback
+            throw e;
         }
     }
 

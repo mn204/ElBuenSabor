@@ -46,6 +46,18 @@ function Buscador({ onBuscar, valorInicial = "", setValor }: BuscadorProps) {
         } catch (error) {
           console.error('Error al buscar productos:', error);
         }
+        try {
+          const productosResponse = await fetch(
+            `http://localhost:8080/api/articulo/no-para-elaborar/denominacion?denominacion=${encodeURIComponent(query)}`
+          );
+          if (productosResponse.ok) {
+            const productosData = await productosResponse.json();
+            console.log(allResults)
+            allResults = [...allResults, ...productosData];
+          }
+        } catch (error) {
+          console.error('Error al buscar productos:', error);
+        }
 
         // 2. Obtener todos los artículos con stock > 0
         try {

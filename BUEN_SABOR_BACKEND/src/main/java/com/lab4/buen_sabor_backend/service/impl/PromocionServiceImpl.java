@@ -3,12 +3,15 @@ package com.lab4.buen_sabor_backend.service.impl;
 import com.lab4.buen_sabor_backend.model.DetallePromocion;
 import com.lab4.buen_sabor_backend.model.ImagenPromocion;
 import com.lab4.buen_sabor_backend.model.Promocion;
+import com.lab4.buen_sabor_backend.model.Sucursal;
 import com.lab4.buen_sabor_backend.repository.PromocionRepository;
 
 import com.lab4.buen_sabor_backend.service.PromocionService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class PromocionServiceImpl extends MasterServiceImpl<Promocion, Long> implements PromocionService {
@@ -23,6 +26,10 @@ public class PromocionServiceImpl extends MasterServiceImpl<Promocion, Long> imp
         this.promocionRepository = promocionRepository;
     }
 
+    @Override
+    public List<Promocion> findPromocionsBySucursal(Sucursal sucursal) {
+        return promocionRepository.findBySucursales(sucursal);
+    }
     @Override
     @Transactional
     public Promocion save(Promocion entity) {
@@ -117,6 +124,11 @@ public class PromocionServiceImpl extends MasterServiceImpl<Promocion, Long> imp
                 throw new IllegalArgumentException("La cantidad de un detalle debe ser mayor a 0");
             }
         }
+    }
+
+    @Override
+    public boolean existsById(Long id) {
+        return promocionRepository.existsById(id);
     }
 
 }

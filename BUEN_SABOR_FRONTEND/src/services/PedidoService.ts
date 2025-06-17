@@ -35,8 +35,6 @@ class PedidoService {
 
     async create(pedido: Pedido): Promise<Pedido | null> {
         try {
-            console.log('Enviando pedido:', JSON.stringify(pedido));
-
             const res = await fetch(`${API_URL}/verificar-y-procesar`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -108,7 +106,7 @@ class PedidoService {
                     }
 
                     const ultimoPedido: Pedido = await ultimoPedidoRes.json();
-
+                    console.log(ultimoPedido)
                     if (ultimoPedido && ultimoPedido.id) {
                         alert(`Pedido guardado exitosamente con ID: ${ultimoPedido.id}`);
                         return ultimoPedido;

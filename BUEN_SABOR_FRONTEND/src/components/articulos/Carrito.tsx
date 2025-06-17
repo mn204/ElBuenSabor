@@ -28,9 +28,11 @@ export function Carrito() {
   const [modalVisible, setModalVisible] = useState(false);
 
   if (!carritoCtx) return null;
+  
   const handleModalSubmit = (clienteActualizado: any) => {
     setCliente(clienteActualizado);
   };
+
   useEffect(() => {
     if (formaPago == 'EFECTIVO') {
       pedido.formaPago = FormaPago.EFECTIVO
@@ -68,10 +70,12 @@ export function Carrito() {
     guardarPedidoYObtener,
     agregarPromocionAlCarrito,
   } = carritoCtx;
+
   const handleAgregar = () => {
     setDomicilioSeleccionado(null);
     setModalVisible(true);
   };
+
   const carrito = pedido.detalles;
 
   const verificarStock = async () => {
@@ -121,11 +125,13 @@ export function Carrito() {
 
   const handleDomicilioSelect = (domicilio: Domicilio) => {
     setDomicilioSeleccionado(domicilio);
+    setFormaPago('MERCADOPAGO')
     setShowDomicilioModal(false);
   };
 
-  const guardarPedidoTakeAway = async () => {
+  const guardarPedidoTakeAwayEfectivo = async () => {
     // Verificar stock nuevamente antes de confirmar
+    console.log("efectivo")
     const stockOk = await verificarStock();
     if (!stockOk) {
       return;
@@ -139,16 +145,19 @@ export function Carrito() {
 
   const handlePagarConMP = async () => {
     // Verificar stock nuevamente antes de confirmar
+    console.log("mp")
     const stockOk = await verificarStock();
     if (!stockOk) {
       return;
     }
     const pedidoFinal = await guardarPedidoYObtener();
     if (pedidoFinal) {
-      limpiarCarrito()
       setPedidoGuardado(pedidoFinal);
+      console.log(pedidoFinal)
+      limpiarCarrito()
     }
   };
+
   // Opción 2: Limpiar preferenceId al agregar productos al carrito
   useEffect(() => {
     if (carrito.length > 0 && preferenceId) {
@@ -166,6 +175,7 @@ export function Carrito() {
       setPedidoGuardado(null);
     }
   }, [currentStep]);
+
   // Opción 4: Detectar cuando el usuario regresa de MercadoPago
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -184,6 +194,7 @@ export function Carrito() {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [preferenceId, carrito.length]);
+
   const renderStep1 = () => {
     return (
       <>
@@ -306,10 +317,8 @@ export function Carrito() {
           </>
         )}
       </>
-
     );
   };
-
 
   const renderStep2 = () => (
     <div className="p-4">
@@ -484,30 +493,59 @@ export function Carrito() {
                 </div>
               </div>
             </div>
+            
+            {/* SECCIÓN CORREGIDA - Botones de pago */}
             <div className="d-grid gap-2">
-              {pedidoGuardado && (preferenceId != undefined) &&
-                <CheckoutMP pedido={pedidoGuardado} />
-              }
-              {preferenceId != undefined ? (
-                <div>
-                  <Wallet
-                    initialization={{ preferenceId: preferenceId, redirectMode: "blank" }}
-                  />
+              {/* Solo mostrar botones si se ha seleccionado una forma de pago */}
+              {formaPago && (
+                <>
+                  {/* Para pago con Mercado Pago */}
+                  {formaPago === 'MERCADOPAGO' && (
+                    <>
+                      {/* Si ya existe un pedido guardado y un preferenceId, mostrar el widget de MP */}
+                      {pedidoGuardado && 
+                        <CheckoutMP pedido={pedidoGuardado}/>
+                      }
+                      {pedidoGuardado && preferenceId ? (
+                        <div>
+                          <Wallet
+                            initialization={{ preferenceId: preferenceId, redirectMode: "blank" }}
+                          />
+                        </div>
+                      ) : (
+                        /* Si no hay preferenceId, mostrar botón para generar el pago */
+                        <button
+                          className={`btn btn-lg ${!stockError ? 'btn-success' : 'btn-secondary'}`}
+                          onClick={handlePagarConMP}
+                          disabled={stockError !== null || verificandoStock}
+                        >
+                          {verificandoStock ? 'Verificando...' : 'Pagar con Mercado Pago'}
+                        </button>
+                      )}
+                    </>
+                  )}
+
+                  {/* Para pago en efectivo (solo TAKEAWAY) */}
+                  {formaPago === 'EFECTIVO' && tipoEnvio === 'TAKEAWAY' && (
+                    <button
+                      className={`btn btn-lg ${!stockError ? 'btn-success' : 'btn-secondary'}`}
+                      onClick={guardarPedidoTakeAwayEfectivo}
+                      disabled={stockError !== null || verificandoStock}
+                    >
+                      {verificandoStock ? 'Verificando...' : 'Confirmar Pedido'}
+                    </button>
+                  )}
+                </>
+              )}
+
+              {/* Mensaje si no se ha seleccionado forma de pago */}
+              {!formaPago && (
+                <div className="alert alert-info">
+                  <small>Selecciona una forma de pago para continuar</small>
                 </div>
-              ) : (
-                <button
-                  className={`btn btn-lg ${!stockError
-                    ? 'btn-success'
-                    : 'btn-secondary'
-                    }`}
-                  onClick={tipoEnvio == 'DELIVERY' ? handlePagarConMP : guardarPedidoTakeAway}
-                  disabled={stockError !== null || verificandoStock}
-                >
-                  {verificandoStock ? 'Verificando...' : 'Confirmar Pedido'}
-                </button>
-              )
-              }
+              )}
             </div>
+
             {/* Información de Sucursal */}
             <div className="card mb-4 mt-2">
               <div className="card-header">
@@ -525,7 +563,6 @@ export function Carrito() {
               </div>
             </div>
           </div>
-
         </div>
       </div>
     </div>

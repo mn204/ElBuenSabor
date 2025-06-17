@@ -1,15 +1,20 @@
 package com.lab4.buen_sabor_backend.controller;
 
+import com.lab4.buen_sabor_backend.dto.PromocionDTO;
 import com.lab4.buen_sabor_backend.dto.SucursalDTO;
+import com.lab4.buen_sabor_backend.mapper.PromocionMapper;
 import com.lab4.buen_sabor_backend.mapper.SucursalMapper;
+import com.lab4.buen_sabor_backend.model.Promocion;
 import com.lab4.buen_sabor_backend.model.Sucursal;
+import com.lab4.buen_sabor_backend.service.PromocionService;
 import com.lab4.buen_sabor_backend.service.SucursalService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/sucursal")
@@ -20,12 +25,25 @@ public class SucursalController extends MasterControllerImpl<Sucursal, SucursalD
 
     private final SucursalService sucursalService;
     private final SucursalMapper sucursalMapper;
+    private final PromocionMapper promocionMapper;
+    private final PromocionService promocionService;
 
     @Autowired
-    public SucursalController(SucursalService sucursalService, SucursalMapper sucursalMapper) {
+    public SucursalController(SucursalService sucursalService, SucursalMapper sucursalMapper, PromocionService promocionService, PromocionMapper promocionMapper, PromocionService promocionService1) {
         super(sucursalService);
         this.sucursalService = sucursalService;
         this.sucursalMapper = sucursalMapper;
+        this.promocionMapper = promocionMapper;
+        this.promocionService = promocionService1;
+    }
+
+    @GetMapping("/promociones/{sucursalId}")
+    public ResponseEntity<List<PromocionDTO>> findPromocionsBySucursal(@PathVariable Long sucursalId) {
+        logger.info("Obteniendo promociones de la sucursal id: {}", sucursalId);
+        Sucursal sucursal = sucursalService.getById(sucursalId);
+        List<Promocion> promociones = promocionService.findPromocionsBySucursal(sucursal);
+        List<PromocionDTO> promocionesDTO = promocionMapper.toDTOsList(promociones);
+        return ResponseEntity.ok(promocionesDTO);
     }
 
     @Override

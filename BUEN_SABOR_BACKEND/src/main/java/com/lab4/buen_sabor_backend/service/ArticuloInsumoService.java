@@ -38,6 +38,7 @@ public interface ArticuloInsumoService extends MasterService<ArticuloInsumo, Lon
      */
     List<ArticuloInsumo> findAllEsParaElaborar();
     List<ArticuloInsumo> findAllNoEsParaElaborar();
+    List<ArticuloInsumo> findAllNoEsParaElaborarByDenominacion(String denominacion);
 
     /**
      * Verifica si un ingrediente existe por denominación (para evitar duplicados)

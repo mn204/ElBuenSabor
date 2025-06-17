@@ -1,5 +1,5 @@
 import "../../styles/perfil.css";
-import IconoEmpresa from '../../assets/IconoEmpresa.jpg';
+import LogoEmpresa from '../../assets/LogoEmpresa.png';
 import { useAuth } from "../../context/AuthContext";
 import { sendPasswordResetEmail, EmailAuthProvider, reauthenticateWithCredential  } from 'firebase/auth';
 import {auth} from "./firebase.ts";
@@ -226,7 +226,7 @@ function Perfil() {
                     <Col xs={12} md="auto" className="text-center mt-4 mt-md-0">
                         <div className="perfilImagenContainer position-relative mx-auto">
                             <img
-                                src={user?.photoURL || usuario?.photoUrl || IconoEmpresa}
+                                src={user?.photoURL || usuario?.photoUrl || LogoEmpresa}
                                 alt="Imagen de perfil"
                                 className="perfilImagen rounded-circle"
                             />

@@ -1,5 +1,5 @@
 import './App.css'
-import IconoEmpresa from './assets/IconoEmpresa.jpg';
+import LogoEmpresa from './assets/LogoEmpresa.png';
 import Navbar from './components/layout/Navbar'
 import Footer from './components/layout/Footer'
 import { Route, Routes } from 'react-router-dom'
@@ -27,6 +27,7 @@ import FormCategoria from './components/empleados/formularios/FormCategoria.tsx'
 import FormStock from './components/empleados/formularios/FormStock.tsx';
 import FormPromocion from './components/empleados/formularios/FormPromocion.tsx';
 import PedidoConfirmado from './components/articulos/PedidoConfirmado.tsx';
+import PromocionDetalle from './components/articulos/PromocionDetalle.tsx';
 
 
 function AppContent() {
@@ -46,6 +47,7 @@ function AppContent() {
         <Route path="/home" element={<Home />} />
         <Route path="/busqueda" element={<Busqueda />} />
         <Route path="/articulo/:id" element={<VistaArticulo />} />
+        <Route path="/promocion/:id" element={<PromocionDetalle />} />
 
         {/* Rutas para clientes autenticados */}
         <Route path="/perfil" element={
@@ -141,7 +143,7 @@ function AppContent() {
         centered
       >
         <Modal.Header className="modal-header-custom">
-          <img className='logoEmpresa' src={IconoEmpresa} alt="Icono Empresa" style={{ width: '40px', height: '40px' }} />
+          <img className='logoEmpresa' src={LogoEmpresa} alt="Icono Empresa" style={{ width: '40px', height: '40px' }} />
           <Modal.Title className="modal-title-custom">EL BUEN SABOR</Modal.Title>
         </Modal.Header>
         <Modal.Body>
