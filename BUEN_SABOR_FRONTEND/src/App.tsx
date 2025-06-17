@@ -28,6 +28,7 @@ import FormStock from './components/empleados/formularios/FormStock.tsx';
 import FormPromocion from './components/empleados/formularios/FormPromocion.tsx';
 import PedidoConfirmado from './components/articulos/PedidoConfirmado.tsx';
 import PromocionDetalle from './components/articulos/PromocionDetalle.tsx';
+import BusquedaCategoria from './components/articulos/BusquedaCategoria.tsx';
 
 
 function AppContent() {
@@ -48,6 +49,7 @@ function AppContent() {
         <Route path="/busqueda" element={<Busqueda />} />
         <Route path="/articulo/:id" element={<VistaArticulo />} />
         <Route path="/promocion/:id" element={<PromocionDetalle />} />
+        <Route path="/categoria/:id" element={<BusquedaCategoria />} />
 
         {/* Rutas para clientes autenticados */}
         <Route path="/perfil" element={

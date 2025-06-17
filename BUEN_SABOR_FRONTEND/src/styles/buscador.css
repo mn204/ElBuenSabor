@@ -52,9 +52,6 @@
 }
 
 @media screen and (max-width: 768px) {
-    body{
-        overflow: hidden;
-    }
     .search-bar {
         width: 70%;
         padding: 10px;

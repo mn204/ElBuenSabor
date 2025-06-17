@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface CategoriaService extends MasterService<Categoria, Long> {
     List<Categoria> findAllByCategoriaPadreNotNull();
+    List<Categoria> findByDenominacionAndEliminadoFalse(String denominacion);
 }

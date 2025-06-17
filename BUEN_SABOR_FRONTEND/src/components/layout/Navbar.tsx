@@ -84,9 +84,10 @@ function Navbar() {
                             <span>EL BUEN SABOR</span>
                         </Link>
                     </div>
+                    <div className="navCenter">
                     {!empleado && 
                     <div className="sucursal text-white d-flex align-items-center">
-                        <label htmlFor="selectSucursalUsuario" className="me-2">Sucursal:</label>
+                        <label htmlFor="selectSucursalUsuario" className="me-2 spanSucursalUsuario">Sucursal:</label>
                         <Form.Select
                             id="selectSucursalUsuario"
                             value={sucursalActualUsuario?.id || ""}
@@ -103,7 +104,6 @@ function Navbar() {
                         </Form.Select>
                     </div>
                     }
-                    <div className="navCenter">
                         {(!isAuthenticated || usuario?.rol === "CLIENTE") ? (
                             <Buscador
                                 onBuscar={handleBuscar}

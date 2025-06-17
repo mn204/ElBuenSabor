@@ -9,20 +9,21 @@ import { useEffect, useState } from 'react';
 import type Promocion from '../../models/Promocion';
 import SucursalService from '../../services/SucursalService';
 import { useSucursalUsuario } from '../../context/SucursalContext';
+import { Form } from 'react-bootstrap';
 
 function Home() {
-    const {sucursalActualUsuario} = useSucursalUsuario();
     const [promocion, setPromocion] = useState<Promocion[]>([]);
+    const { sucursalActualUsuario, sucursalesUsuario, cambiarSucursalUsuario } = useSucursalUsuario();
 
     useEffect(() => {
         const fetchPromocion = async () => {
-            console.log("sucursal: ",sucursalActualUsuario)
-                try {
-                    const response = await SucursalService.getAllBySucursalId(sucursalActualUsuario.id)
-                    .then((promos)=>setPromocion(promos));
-                } catch (error) {
-                    console.error("Error al buscar promoción:", error);
-                }
+            console.log("sucursal: ", sucursalActualUsuario)
+            try {
+                const response = await SucursalService.getAllBySucursalId(sucursalActualUsuario.id)
+                    .then((promos) => setPromocion(promos));
+            } catch (error) {
+                console.error("Error al buscar promoción:", error);
+            }
         };
 
         fetchPromocion();
@@ -30,6 +31,22 @@ function Home() {
 
     return (
         <div className="home">
+            <div className="SelectSucursalHome sucursal text-white align-items-center justift-content-center" style={{ width: '100%'}}>
+                <Form.Select
+                    id="selectSucursalUsuario2"
+                    value={sucursalActualUsuario?.id || ""}
+                    onChange={(e) => {
+                        const id = parseInt(e.target.value);
+                        const sucursal = sucursalesUsuario.find(s => s.id === id);
+                        if (sucursal) cambiarSucursalUsuario(sucursal);
+                    }}
+                    style={{ width: '100%', minWidth: '200px', margin: "1px 10px 10px 10px"}}
+                >
+                    {sucursalesUsuario.map(s => (
+                        <option key={s.id} value={s.id}>{s.nombre}</option>
+                    ))}
+                </Form.Select>
+            </div>
             <img className='imagenHome' src={Imagen1} alt="" />
             <img className='imagenHomeResponsive' src={Imagen1Responsive} alt="" />
 

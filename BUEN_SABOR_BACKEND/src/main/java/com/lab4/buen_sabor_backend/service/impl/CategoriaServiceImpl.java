@@ -28,4 +28,10 @@ public class CategoriaServiceImpl extends MasterServiceImpl<Categoria, Long> imp
         logger.info("Buscando productos");
         return categoriaRepository.findAllByCategoriaPadreNotNull();
     }
+
+    @Override
+    public List<Categoria> findByDenominacionAndEliminadoFalse(String denominacion){
+        logger.info("Buscando productos");
+        return categoriaRepository.findByDenominacionAndEliminadoFalse(denominacion);
+    }
 }

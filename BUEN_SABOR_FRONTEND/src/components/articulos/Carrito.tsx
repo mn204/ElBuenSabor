@@ -12,6 +12,7 @@ import PedidoService from "../../services/PedidoService";
 import { Button } from "react-bootstrap";
 import { FaPlus } from "react-icons/fa6";
 import ModalDomicilio from "../clientes/ModalDomicilio";
+import SucursalService from "../../services/SucursalService";
 
 export function Carrito() {
   const { cliente, setCliente } = useAuth();
@@ -28,7 +29,7 @@ export function Carrito() {
   const [modalVisible, setModalVisible] = useState(false);
 
   if (!carritoCtx) return null;
-  
+
   const handleModalSubmit = (clienteActualizado: any) => {
     setCliente(clienteActualizado);
   };
@@ -42,8 +43,28 @@ export function Carrito() {
   }, [formaPago]);
 
   useEffect(() => {
-    pedido.sucursal = sucursalActualUsuario!;
+    if (!sucursalActualUsuario) return;
+
+    pedido.sucursal = sucursalActualUsuario;
+
+    const detallesConPromos = pedido.detalles.filter((det) => det.promocion);
+
+    if (detallesConPromos.length === 0) return;
+
+    SucursalService.getAllBySucursalId(sucursalActualUsuario.id!)
+      .then((promosSucursal) => {
+        detallesConPromos.forEach((det) => {
+          const promoEnSucursal = promosSucursal.find(
+            (promo) => promo.id === det.promocion?.id
+          );
+
+          if (!promoEnSucursal) {
+            quitarPromocionCompleta(det.promocion!.id!);
+          }
+        });
+      });
   }, [sucursalActualUsuario]);
+
 
   useEffect(() => {
     pedido.cliente = cliente!;
@@ -137,7 +158,7 @@ export function Carrito() {
       return;
     }
     const pedidoFinal = await guardarPedidoYObtener();
-    if(pedidoFinal){
+    if (pedidoFinal) {
       limpiarCarrito()
     }
     window.location.href = `/pedidoConfirmado/${pedidoFinal!.id}`;
@@ -493,7 +514,7 @@ export function Carrito() {
                 </div>
               </div>
             </div>
-            
+
             {/* SECCIÓN CORREGIDA - Botones de pago */}
             <div className="d-grid gap-2">
               {/* Solo mostrar botones si se ha seleccionado una forma de pago */}
@@ -503,8 +524,8 @@ export function Carrito() {
                   {formaPago === 'MERCADOPAGO' && (
                     <>
                       {/* Si ya existe un pedido guardado y un preferenceId, mostrar el widget de MP */}
-                      {pedidoGuardado && 
-                        <CheckoutMP pedido={pedidoGuardado}/>
+                      {pedidoGuardado &&
+                        <CheckoutMP pedido={pedidoGuardado} />
                       }
                       {pedidoGuardado && preferenceId ? (
                         <div>
