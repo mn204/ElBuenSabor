@@ -2,19 +2,16 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import SucursalInsumo from '../../models/SucursalInsumo';
 import SucursalInsumoService from '../../services/SucursalInsumoService';
-import { useSucursalUsuario } from '../../context/SucursalContext';
+import { useSucursal } from '../../context/SucursalContextEmpleado';
 
-interface DashboardSectionProps {
-    esModoTodasSucursales?: boolean;
-    sucursalIdSeleccionada: number | null;
-}
-
-const DashboardSection: React.FC<DashboardSectionProps> = ({
-    esModoTodasSucursales = false,
-    sucursalIdSeleccionada
-}) => {
+const DashboardSection: React.FC = () => {
     const navigate = useNavigate();
-    const { sucursalActualUsuario } = useSucursalUsuario();
+    const {
+        sucursalActual,
+        esModoTodasSucursales,
+        sucursalIdSeleccionada,
+    } = useSucursal();
+
     const [stockBajo, setStockBajo] = useState<SucursalInsumo[]>([]);
     const [loading, setLoading] = useState(false);
 
@@ -44,6 +41,7 @@ const DashboardSection: React.FC<DashboardSectionProps> = ({
             const interval = setInterval(fetchStockBajo, 60000);
             return () => clearInterval(interval);
         } else {
+            setStockBajo([]);
             setLoading(false);
         }
     }, [esModoTodasSucursales, sucursalIdSeleccionada]);
@@ -51,8 +49,8 @@ const DashboardSection: React.FC<DashboardSectionProps> = ({
     const getTitleText = () => {
         if (esModoTodasSucursales) {
             return "Dashboard - Todas las Sucursales";
-        } else if (sucursalActualUsuario) {
-            return `Dashboard - ${sucursalActualUsuario.nombre}`;
+        } else if (sucursalActual) {
+            return `Dashboard - ${sucursalActual.nombre}`;
         } else {
             return "Dashboard";
         }
@@ -66,12 +64,12 @@ const DashboardSection: React.FC<DashboardSectionProps> = ({
                     <strong>Datos:</strong> Información consolidada de todas las ubicaciones
                 </div>
             );
-        } else if (sucursalActualUsuario) {
+        } else if (sucursalActual) {
             return (
                 <div className="mt-3 mb-4">
-                    <strong>Sucursal Actual:</strong> {sucursalActualUsuario.nombre}<br />
-                    <strong>Horario:</strong> {sucursalActualUsuario.horarioApertura} - {sucursalActualUsuario.horarioCierre}<br />
-                    <strong>Dirección:</strong> {sucursalActualUsuario.domicilio?.calle} {sucursalActualUsuario.domicilio?.numero}
+                    <strong>Sucursal Actual:</strong> {sucursalActual.nombre}<br />
+                    <strong>Horario:</strong> {sucursalActual.horarioApertura} - {sucursalActual.horarioCierre}<br />
+                    <strong>Dirección:</strong> {sucursalActual.domicilio?.calle} {sucursalActual.domicilio?.numero}
                 </div>
             );
         }

@@ -121,23 +121,23 @@ function GrillaArticuloManufacturado() {
       render: (_: any, row: ArticuloManufacturado) => {
         const imagenUrl = row.imagenes?.[0]?.denominacion;
         return imagenUrl ? (
-            <img
-                src={imagenUrl}
-                alt="Imagen"
-                style={{
-                  width: "50px",
-                  height: "50px",
-                  objectFit: "cover",
-                  borderRadius: "8px"
-                }}
-            />
+          <img
+            src={imagenUrl}
+            alt="Imagen"
+            style={{
+              width: "50px",
+              height: "50px",
+              objectFit: "cover",
+              borderRadius: "8px"
+            }}
+          />
         ) : (
-            "Sin imagen"
+          "Sin imagen"
         );
       }
     },
     {
-    key: "id",
+      key: "id",
       label: "ID",
       render: (_: any, row: ArticuloManufacturado) => row.id?.toString() || "-",
     },
@@ -179,65 +179,76 @@ function GrillaArticuloManufacturado() {
     <div className="position-relative">
       <h2>Productos</h2>
       {/* Filtros */}
-      <div className="filtrosybtn d-flex justify-content-between align-items-center">
-        <div className="m-4 d-flex flex-wrap gap-2 align-items-end">
-          <input
-            type="text"
-            className="form-control"
-            placeholder="Buscar por denominación"
-            value={filtroDenominacion}
-            onChange={e => setFiltroDenominacion(e.target.value)}
-            style={{ maxWidth: 180 }}
-          />
-          <select
-            className="form-select"
-            value={filtroCategoria}
-            onChange={e => setFiltroCategoria(e.target.value)}
-            style={{ maxWidth: 180 }}
-          >
-            <option value="">Todas las categorías</option>
-            {categorias.map(cat => (
-              <option key={cat.id} value={cat.id}>{cat.denominacion}</option>
-            ))}
-          </select>
-          <select
-            className="form-select"
-            value={filtroEstado}
-            onChange={e => setFiltroEstado(e.target.value)}
-            style={{ maxWidth: 140 }}
-          >
-            <option value="">Todos los estados</option>
-            <option value="activo">Activo</option>
-            <option value="eliminado">Eliminado</option>
-          </select>
-          <input
-            type="number"
-            className="form-control"
-            placeholder="Precio mín."
-            value={filtroPrecioMin}
-            onChange={e => setFiltroPrecioMin(e.target.value)}
-            style={{ maxWidth: 120 }}
-          />
-          <input
-            type="number"
-            className="form-control"
-            placeholder="Precio máx."
-            value={filtroPrecioMax}
-            onChange={e => setFiltroPrecioMax(e.target.value)}
-            style={{ maxWidth: 120 }}
-          />
-          <Button variant="secondary" onClick={() => {
-            setFiltroDenominacion("");
-            setFiltroCategoria("");
-            setFiltroEstado("");
-            setFiltroPrecioMin("");
-            setFiltroPrecioMax("");
-            setPage(0);
-          }}>
-            Limpiar filtros
-          </Button>
+      <div className="filtros-container bg-light p-4 rounded mb-4">
+        <div className="row g-3">
+          <div className="col-md-3">
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Buscar por denominación"
+              value={filtroDenominacion}
+              onChange={e => setFiltroDenominacion(e.target.value)}
+            />
+          </div>
+          <div className="col-md-2">
+            <select
+              className="form-select"
+              value={filtroCategoria}
+              onChange={e => setFiltroCategoria(e.target.value)}
+            >
+              <option value="">Todas las categorías</option>
+              {categorias.map(cat => (
+                <option key={cat.id} value={cat.id}>{cat.denominacion}</option>
+              ))}
+            </select>
+          </div>
+          <div className="col-md-2">
+            <select
+              className="form-select"
+              value={filtroEstado}
+              onChange={e => setFiltroEstado(e.target.value)}
+            >
+              <option value="">Todos los estados</option>
+              <option value="activo">Activo</option>
+              <option value="eliminado">Eliminado</option>
+            </select>
+          </div>
+          <div className="col-md-2">
+            <input
+              type="number"
+              className="form-control"
+              placeholder="Precio mín."
+              value={filtroPrecioMin}
+              onChange={e => setFiltroPrecioMin(e.target.value)}
+            />
+          </div>
+          <div className="col-md-2">
+            <input
+              type="number"
+              className="form-control"
+              placeholder="Precio máx."
+              value={filtroPrecioMax}
+              onChange={e => setFiltroPrecioMax(e.target.value)}
+            />
+          </div>
+          <div className="col-md-1">
+            <Button
+              variant="outline-primary"
+              className="w-100"
+              onClick={() => {
+                setFiltroDenominacion("");
+                setFiltroCategoria("");
+                setFiltroEstado("");
+                setFiltroPrecioMin("");
+                setFiltroPrecioMax("");
+                setPage(0);
+              }}
+            >
+              Ver Todos
+            </Button>
+          </div>
         </div>
-        <Link className="btn border-success" style={{ right: 10, top: 10 }} to = "/FormularioManufacturado">
+        <Link className="btn border-success" style={{ right: 10, top: 10 }} to="/FormularioManufacturado">
           Crear Artículo Manufacturado
         </Link>
       </div>

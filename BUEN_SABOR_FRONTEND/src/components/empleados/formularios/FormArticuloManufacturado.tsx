@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ArticuloManufacturadoService from "../../../services/ArticuloManufacturadoService.ts";
 import ArticuloInsumo from "../../../models/ArticuloInsumo.ts";
 import Categoria from "../../../models/Categoria.ts";
@@ -16,6 +16,7 @@ import { useModal } from "../../../hooks/useModal.ts";
 import ImagenArticulo from "../../../models/ImagenArticulo.ts";
 import TipoArticulo from "../../../models/enums/TipoArticulo.ts";
 import { subirACloudinary } from "../../../funciones/funciones.tsx";
+import { Link } from "react-router-dom";
 
 function FormArticuloManufacturado() {
   const {
@@ -36,14 +37,20 @@ function FormArticuloManufacturado() {
     eliminarImagenNueva, CambiarCantidadDetalle
   } = useManufacturado();
   const { unidadesMedida, categorias } = useCargaDatosIniciales();
+
+  // Setear automáticamente la unidad "Unidad" y no permitir cambiarla
+  useEffect(() => {
+    const unidadDefault = unidadesMedida.find(u => u.denominacion === "Unidad");
+    if (unidadDefault) {
+      setUnidad(String(unidadDefault.id));
+    }
+  }, [unidadesMedida, setUnidad]);
+
   const { showModal, setShowModal, articulosInsumo } = useModal();
   // Estados principales
   const [insumoSeleccionado, setInsumoSeleccionado] = useState<ArticuloInsumo | null>(null);
   const [cantidadInsumo, setCantidadInsumo] = useState<number>(1);
   const [showModalCategoria, setShowModalCategoria] = useState(false);
-
-  
-
 
   // Utilidades
   const totalInsumos = detalles.reduce((acc, det) => {
@@ -69,7 +76,7 @@ function FormArticuloManufacturado() {
       setImagenes(prev => [...prev, ...archivosFiltrados]);
     }
   };
-  
+
   const AgregarInsumo = () => {
     if (insumoSeleccionado) {
       setDetalles(prev => {
@@ -99,6 +106,13 @@ function FormArticuloManufacturado() {
       setShowModal(false);
       setInsumoSeleccionado(null);
       setCantidadInsumo(1);
+      // Scroll mejorado para evitar error visual
+      requestAnimationFrame(() => {
+        const detallesSection = document.querySelector('.detalles-insumos-section');
+        if (detallesSection) {
+          detallesSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      });
     }
   };
 
@@ -156,112 +170,150 @@ function FormArticuloManufacturado() {
     return manufacturado;
   };
 
-
-const guardarOModificar = async () => {
-  try {
-    const manufacturado = await buildManufacturado();
-    if (!manufacturado) return;
-    console.log(manufacturado.detalles)
-    manufacturado.precioVenta = totalConGanancia;
-    manufacturado.eliminado = eliminado;
-    manufacturado.tipoArticulo = TipoArticulo.ArticuloManufacturado;
-    if (idFromUrl) {
-      await ArticuloManufacturadoService.update(Number(idFromUrl), manufacturado);
-      alert("Artículo manufacturado actualizado correctamente");
-    } else {
-      await ArticuloManufacturadoService.create(manufacturado);
-      alert("Artículo manufacturado guardado correctamente");
+  const guardarOModificar = async () => {
+    try {
+      const manufacturado = await buildManufacturado();
+      if (!manufacturado) return;
+      console.log(manufacturado.detalles)
+      manufacturado.precioVenta = totalConGanancia;
+      manufacturado.eliminado = eliminado;
+      manufacturado.tipoArticulo = TipoArticulo.ArticuloManufacturado;
+      if (idFromUrl) {
+        await ArticuloManufacturadoService.update(Number(idFromUrl), manufacturado);
+        alert("Artículo manufacturado actualizado correctamente");
+      } else {
+        await ArticuloManufacturadoService.create(manufacturado);
+        alert("Artículo manufacturado guardado correctamente");
+      }
+      limpiarFormulario();
+      window.location.href = "/empleado/productos";
+    } catch (error) {
+      console.error(error);
+      alert("Error al guardar o actualizar el artículo manufacturado");
     }
-    limpiarFormulario();
-    window.location.href = "/empleado/productos";
-  } catch (error) {
-    console.error(error);
-    alert("Error al guardar o actualizar el artículo manufacturado");
-  }
-};
+  };
+
+  const modalProps = {
+    show: showModal,
+    onHide: () => {
+      setShowModal(false);
+      setInsumoSeleccionado(null);
+      setCantidadInsumo(1);
+    },
+    articulosInsumo: articulosInsumo,
+    insumoSeleccionado: insumoSeleccionado,
+    setInsumoSeleccionado: setInsumoSeleccionado,
+    cantidadInsumo: cantidadInsumo,
+    setCantidadInsumo: setCantidadInsumo,
+    onAgregar: AgregarInsumo
+  };
+
+  const tableProps = {
+    detalles: detalles,
+    onEliminar: EliminarDetalle,
+    onCantidadChange: CambiarCantidadDetalle,
+    totalInsumos: totalInsumos
+  };
 
   return (
-    <div className="formArticuloManufacturado d-flex flex-column gap-3 align-items-center">
-      <h2>Formulario de Artículo Manufacturado</h2>
-      <FormArticuloFields
-        denominacion={denominacion}
-        setDenominacion={setDenominacion}
-        descripcion={descripcion}
-        setDescripcion={setDescripcion}
-        tiempoEstimadoMinutos={tiempoEstimadoMinutos}
-        setTiempoEstimadoMinutos={setTiempoEstimadoMinutos}
-        preparacion={preparacion}
-        setPreparacion={setPreparacion}
-        categoria={categoria}
-        setCategoria={setCategoria}
-        categorias={categorias}
-        unidad={unidad}
-        setUnidad={setUnidad}
-        unidadesMedida={unidadesMedida}
-        // Props de imágenes:
-        imagenes={imagenes}
-        imagenesExistentes={imagenesExistentes}
-        handleImagenesChange={handleImagenesChange}
-        eliminarImagenNueva={eliminarImagenNueva}
-        eliminarImagenExistente={eliminarImagenExistente}
-        showModalCategoria={showModalCategoria}
-        setShowModalCategoria={setShowModalCategoria}
-      />
-      <Button className="agregarInsumo" variant="primary" onClick={() => setShowModal(true)}>
-        Agregar Insumo
-      </Button>
-      <ModalAgregarInsumo
-        show={showModal}
-        onHide={() => setShowModal(false)}
-        articulosInsumo={
-          articulosInsumo.filter(
-            insumo => !detalles.some(det => det.articuloInsumo?.id === insumo.id)
-          )
-        }
-        insumoSeleccionado={insumoSeleccionado}
-        setInsumoSeleccionado={setInsumoSeleccionado}
-        cantidadInsumo={cantidadInsumo}
-        setCantidadInsumo={setCantidadInsumo}
-        onAgregar={AgregarInsumo}
-      />
-      <DetalleInsumosTable
-        detalles={detalles}
-        onEliminar={EliminarDetalle}
-        onCantidadChange={CambiarCantidadDetalle}
-        totalInsumos={totalInsumos}
-      />
-      <div className="d-flex align-items-center gap-3">
-        <label>% Ganancia:</label>
-        <input
-          type="number"
-          min={0}
-          value={porcentajeGanancia}
-          onChange={e => setPorcentajeGanancia(Number(e.target.value))}
-          style={{ width: 80 }}
-        />
-        <label><b>Total con ganancia:</b></label>
-        <input
-          type="text"
-          value={`$${totalConGanancia.toFixed(2)}`}
-          readOnly
-          style={{ width: 120, fontWeight: "bold" }}
-        />
+    <div className="formArticuloManufacturado">
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h2 className="mb-0">
+          {idFromUrl ? "Editar Producto" : "Nuevo Producto"}
+        </h2>
+        <Link to="/empleado/productos" className="btn btn-outline-secondary">
+          Volver a Productos
+        </Link>
       </div>
-      <Button
-        variant={idFromUrl ? "warning" : "success"}
-        className="mt-3"
-        onClick={guardarOModificar}
-        disabled={
-          !denominacion ||
-          !descripcion ||
-          !preparacion ||
-          !categoria ||
-          !unidad ||
-          detalles.length === 0
-        }
-      >
-        {idFromUrl ? "Actualizar Artículo Manufacturado" : "Guardar Artículo Manufacturado"}
-      </Button>
+
+      <div className="row">
+        <div className="col-12">
+          <FormArticuloFields
+            denominacion={denominacion}
+            setDenominacion={setDenominacion}
+            descripcion={descripcion}
+            setDescripcion={setDescripcion}
+            tiempoEstimadoMinutos={tiempoEstimadoMinutos}
+            setTiempoEstimadoMinutos={setTiempoEstimadoMinutos}
+            preparacion={preparacion}
+            setPreparacion={setPreparacion}
+            categoria={categoria}
+            setCategoria={setCategoria}
+            categorias={categorias}
+            unidad={unidad}
+            setUnidad={setUnidad}
+            unidadesMedida={unidadesMedida}
+            // Props de imágenes:
+            imagenes={imagenes}
+            imagenesExistentes={imagenesExistentes}
+            handleImagenesChange={handleImagenesChange}
+            eliminarImagenNueva={eliminarImagenNueva}
+            eliminarImagenExistente={eliminarImagenExistente}
+            showModalCategoria={showModalCategoria}
+            setShowModalCategoria={setShowModalCategoria}
+          />
+        </div>
+      </div>
+      
+      {/* Botón Agregar Insumo */}
+      <div className="d-flex justify-content-center my-4">
+        <Button
+          variant="primary"
+          onClick={() => setShowModal(true)}
+          size="lg"
+        >
+          Agregar Insumo
+        </Button>
+      </div>
+      
+      <div className="detalles-insumos-section mt-4">
+        <DetalleInsumosTable {...tableProps} />
+      </div>
+      
+      {/* Resumen movido abajo */}
+      {detalles.length > 0 && (
+        <div className="row justify-content-center mt-4">
+          <div className="col-md-6">
+            <div className="card p-4">
+              <h5 className="text-center mb-3">Resumen</h5>
+              <div className="d-flex justify-content-between mb-3">
+                <span className="fs-6">Total Precio Venta Insumos:</span>
+                <strong className="fs-6">${totalInsumos.toFixed(2)}</strong>
+              </div>
+              <div className="d-flex align-items-center justify-content-between gap-3 mb-3">
+                <span className="fs-6">% Ganancia:</span>
+                <input
+                  type="number"
+                  min={0}
+                  value={porcentajeGanancia}
+                  onChange={e => setPorcentajeGanancia(Number(e.target.value))}
+                  className="form-control form-control-sm"
+                  style={{ maxWidth: '100px' }}
+                />
+              </div>
+              <hr />
+              <div className="d-flex justify-content-between mb-3">
+                <span className="fs-5 fw-bold">Precio Final:</span>
+                <strong className="text-primary fs-5">
+                  ${totalConGanancia.toFixed(2)}
+                </strong>
+              </div>
+              
+              <Button
+                variant={idFromUrl ? "warning" : "success"}
+                className="w-100"
+                size="lg"
+                onClick={guardarOModificar}
+                disabled={!denominacion || !descripcion || !preparacion || !categoria || !unidad || detalles.length === 0}
+              >
+                {idFromUrl ? "Actualizar Producto" : "Guardar Producto"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      <ModalAgregarInsumo {...modalProps} />
     </div>
   );
 }
