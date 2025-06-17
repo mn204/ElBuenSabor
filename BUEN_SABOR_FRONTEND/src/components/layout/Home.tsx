@@ -14,7 +14,7 @@ function Home() {
     useEffect(() => {
         const fetchPromocion = async () => {
             try {
-                const response = await fetch("http://localhost:8080/api/promocion/3");
+                const response = await fetch("http://localhost:8080/api/promocion/ ");
                 const promo = await response.json();
                 if(promo == undefined){
                     console.log("no")
