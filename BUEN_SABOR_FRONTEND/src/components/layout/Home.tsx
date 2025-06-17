@@ -2,29 +2,31 @@ import Imagen1 from '../../assets/images/Imagen1Home.png';
 import Imagen1Responsive from '../../assets/images/Image1Responsive.png';
 import Imagen2Responsive from '../../assets/images/Image2Responsive.png';
 import Imagen2 from '../../assets/images/Imagen2Home.png';
-
 import '../../styles/Home.css';
 import Slider from './SliderCategorias';
 import CardPromocion from '../articulos/CardPromocion';
 import { useEffect, useState } from 'react';
 import type Promocion from '../../models/Promocion';
-import PromocionService from '../../services/PromocionService';
+import SucursalService from '../../services/SucursalService';
+import { useSucursalUsuario } from '../../context/SucursalContext';
 
 function Home() {
+    const {sucursalActualUsuario} = useSucursalUsuario();
     const [promocion, setPromocion] = useState<Promocion[]>([]);
 
     useEffect(() => {
         const fetchPromocion = async () => {
-            try {
-                const response = await PromocionService.getAll()
-                .then((promos)=>setPromocion(promos));
-            } catch (error) {
-                console.error("Error al buscar promoción:", error);
-            }
+            console.log("sucursal: ",sucursalActualUsuario)
+                try {
+                    const response = await SucursalService.getAllBySucursalId(sucursalActualUsuario.id)
+                    .then((promos)=>setPromocion(promos));
+                } catch (error) {
+                    console.error("Error al buscar promoción:", error);
+                }
         };
 
         fetchPromocion();
-    }, []);
+    }, [sucursalActualUsuario]);
 
     return (
         <div className="home">

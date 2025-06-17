@@ -6,6 +6,8 @@ import com.lab4.buen_sabor_backend.service.ArticuloService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 
 public class ArticuloServiceImpl extends MasterServiceImpl<Articulo, Long>
@@ -21,5 +23,10 @@ public class ArticuloServiceImpl extends MasterServiceImpl<Articulo, Long>
     @Override
     public boolean existsById(Long id) {
         return articuloRepository.existsById(id);
+    }
+
+    @Override
+    public List<Articulo> findByDenominacionAndEliminadoFalse(String denominacion) {
+        return articuloRepository.findByDenominacionContainingIgnoreCaseAndEliminadoFalse(denominacion);
     }
 }

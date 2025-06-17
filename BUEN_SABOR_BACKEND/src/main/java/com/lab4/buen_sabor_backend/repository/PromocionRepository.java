@@ -2,12 +2,14 @@ package com.lab4.buen_sabor_backend.repository;
 
 import com.lab4.buen_sabor_backend.dto.PromocionDTO;
 import com.lab4.buen_sabor_backend.model.Promocion;
+import com.lab4.buen_sabor_backend.model.Sucursal;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 @Repository
 public interface PromocionRepository extends MasterRepository<Promocion, Long> {
@@ -16,6 +18,8 @@ public interface PromocionRepository extends MasterRepository<Promocion, Long> {
     List<Promocion> findPromocionesActivas(@Param("fechaActual") LocalDate fechaActual);
     */
     boolean existsById(Long id);
+
+    List<Promocion> findBySucursales(Sucursal sucursal);
 
     boolean existsByDenominacion(String denominacion);
     boolean existsByDenominacionAndIdNot(String denominacion, Long id);

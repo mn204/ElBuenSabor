@@ -1,5 +1,5 @@
 import '../../styles/navbar.css'
-import IconoEmpresa from '../../assets/IconoEmpresa.jpg';
+import LogoEmpresa from '../../assets/LogoEmpresa.png';
 import Vector from '../../assets/Carrito.svg';
 import Buscador from './Buscador';
 import { useEffect, useMemo, useState } from 'react';
@@ -80,10 +80,11 @@ function Navbar() {
                 <div className="navContainer">
                     <div className="navLeft">
                         <Link className="homeNav" to="/">
-                            <img className="logoEmpresa" src={IconoEmpresa} alt="Icono Empresa" />
+                            <img className="logoEmpresa" src={LogoEmpresa} alt="Icono Empresa" style={{borderRadius: 100}}/>
                             <span>EL BUEN SABOR</span>
                         </Link>
                     </div>
+                    {!empleado && 
                     <div className="sucursal text-white d-flex align-items-center">
                         <label htmlFor="selectSucursalUsuario" className="me-2">Sucursal:</label>
                         <Form.Select
@@ -101,6 +102,7 @@ function Navbar() {
                             ))}
                         </Form.Select>
                     </div>
+                    }
                     <div className="navCenter">
                         {(!isAuthenticated || usuario?.rol === "CLIENTE") ? (
                             <Buscador
@@ -149,7 +151,7 @@ function Navbar() {
                                 <Dropdown.Toggle variant="light" id="dropdown-user" className="userDropdown">
                                     {usuario?.providerId === "google.com" ? (
                                         <img
-                                            src={user?.photoURL || IconoEmpresa}
+                                            src={user?.photoURL || LogoEmpresa}
                                             width="30"
                                             height="30"
                                             className="rounded-circle"
@@ -218,7 +220,7 @@ function Navbar() {
 
             <Modal show={showModal} onHide={handleClose} centered>
                 <Modal.Header closeButton className="modal-header-custom">
-                    <img className='logoEmpresa' src={IconoEmpresa} alt="Icono Empresa" />
+                    <img className='logoEmpresa' src={LogoEmpresa} alt="Icono Empresa" />
                     <Modal.Title className="modal-title-custom">{isLoginView ? 'EL BUEN SABOR' : 'EL BUEN SABOR'}</Modal.Title>
                 </Modal.Header>
 
