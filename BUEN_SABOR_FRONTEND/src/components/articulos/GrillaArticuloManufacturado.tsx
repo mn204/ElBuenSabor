@@ -32,14 +32,14 @@ function GrillaArticuloManufacturado() {
   const [categorias, setCategorias] = useState<Categoria[]>([]);
 
   // Modal
-  const [showModal, setShowModal] = useState(false);
-  const [articuloSeleccionado, setArticuloSeleccionado] = useState<ArticuloManufacturado | null>(null);
+  const [showModalDetalle, setShowModalDetalle] = useState(false);
   const [mostrarModalConfirmacion, setMostrarModalConfirmacion] = useState(false);
+  const [mostrarModalInfo, setMostrarModalInfo] = useState(false);
   const [modalTitulo, setModalTitulo] = useState("");
   const [modalMensaje, setModalMensaje] = useState("");
+  const [articuloSeleccionado, setArticuloSeleccionado] = useState<ArticuloManufacturado | null>(null);
   const [accionConfirmada, setAccionConfirmada] = useState<(() => void) | null>(null);
 
-  const [mostrarModalInfo, setMostrarModalInfo] = useState(false);
 
   useEffect(() => {
     cargarArticulos();
@@ -78,12 +78,7 @@ function GrillaArticuloManufacturado() {
 
   const handleVer = (row: ArticuloManufacturado) => {
     setArticuloSeleccionado(row);
-    setShowModal(true);
-  };
-
-  const handleCloseModal = () => {
-    setShowModal(false);
-    setArticuloSeleccionado(null);
+    setShowModalDetalle(true);
   };
 
   const handleActualizar = (row: ArticuloManufacturado) => {
@@ -194,7 +189,7 @@ function GrillaArticuloManufacturado() {
             <BotonAlta onClick={() => confirmarAccion(
               "Confirmar alta",
               "¿Seguro que desea dar de alta este artículo manufacturado?",
-              () => darDeAlta(row.id!))}/> 
+              () => darDeAlta(row.id!))} />
           )}
         </div>
       ),
@@ -330,45 +325,62 @@ function GrillaArticuloManufacturado() {
         )}
       </div>
 
-      <Modal show={showModal} onHide={handleCloseModal} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>Detalle del Artículo Manufacturado</Modal.Title>
-        </Modal.Header>
+      <Modal show={showModalDetalle} onHide={() => { setShowModalDetalle(false); setArticuloSeleccionado(null); }} centered size="md">        <Modal.Header closeButton className="bg-primary text-white">
+        <Modal.Title>🧾 Detalle del Artículo Manufacturado</Modal.Title>
+      </Modal.Header>
+
         <Modal.Body>
           {articuloSeleccionado && (
-            <div>
-              {articuloSeleccionado.imagenes[0] ? (
-                <img src={articuloSeleccionado.imagenes[0].denominacion} className="imgModalArtManu" alt="" />
+            <div className="text-center">
+              {articuloSeleccionado.imagenes?.[0]?.denominacion ? (
+                <img
+                  src={articuloSeleccionado.imagenes[0].denominacion}
+                  alt="Imagen del artículo"
+                  className="img-thumbnail rounded mb-3 shadow-sm"
+                  style={{ maxHeight: "150px", objectFit: "cover" }}
+                />
               ) : (
-                <div></div>
+                <div className="mb-3">Sin imagen disponible</div>
               )}
-              <p><b>Denominación:</b> {articuloSeleccionado.denominacion}</p>
-              <p><b>Descripción:</b> {articuloSeleccionado.descripcion}</p>
-              <p><b>Precio Venta:</b> ${articuloSeleccionado.precioVenta}</p>
-              <p><b>Categoría:</b> {articuloSeleccionado.categoria?.denominacion}</p>
-              <p><b>Unidad de Medida:</b> {articuloSeleccionado.unidadMedida?.denominacion}</p>
-              <p><b>Tiempo Estimado:</b> {articuloSeleccionado.tiempoEstimadoMinutos} min</p>
-              <p><b>Preparación:</b> {articuloSeleccionado.preparacion}</p>
-              <p><b>Estado:</b> {articuloSeleccionado.eliminado ? "Eliminado" : "Activo"}</p>
-              <b>Detalles:</b>
-              <ul>
-                {articuloSeleccionado.detalles?.map((det, idx) => (
-                  <li key={idx}>
-                    {det.articuloInsumo?.denominacion} - {det.cantidad} {det.articuloInsumo?.unidadMedida?.denominacion}
-                  </li>
-                ))}
-              </ul>
+
+              <div className="text-start px-2">
+                <p className="mb-2"><strong>🧪 Denominación:</strong> {articuloSeleccionado.denominacion}</p>
+                <p className="mb-2"><strong>📝 Descripción:</strong> {articuloSeleccionado.descripcion}</p>
+                <p className="mb-2"><strong>💰 Precio Venta:</strong> ${articuloSeleccionado.precioVenta.toFixed(2)}</p>
+                <p className="mb-2"><strong>📂 Categoría:</strong> {articuloSeleccionado.categoria?.denominacion || "-"}</p>
+                <p className="mb-2"><strong>⚖️ Unidad de Medida:</strong> {articuloSeleccionado.unidadMedida?.denominacion || "-"}</p>
+                <p className="mb-2"><strong>⏱️ Tiempo Estimado:</strong> {articuloSeleccionado.tiempoEstimadoMinutos} min</p>
+                <p className="mb-2"><strong>🍳 Preparación:</strong> {articuloSeleccionado.preparacion}</p>
+                <p className="mb-2"><strong>📌 Estado:</strong> {articuloSeleccionado.eliminado ? "Eliminado" : "Activo"}</p>
+
+                <div className="mt-3">
+                  <strong>📦 Detalles:</strong>
+                  {articuloSeleccionado.detalles?.length > 0 ? (
+                    <ul className="mt-2">
+                      {articuloSeleccionado.detalles.map((det, idx) => (
+                        <li key={idx}>
+                          {det.articuloInsumo?.denominacion} - {det.cantidad}{" "}
+                          {det.articuloInsumo?.unidadMedida?.denominacion}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="mt-2">Sin detalles disponibles</p>
+                  )}
+                </div>
+              </div>
             </div>
           )}
         </Modal.Body>
+
         <Modal.Footer>
-          <Button variant="secondary" onClick={handleCloseModal}>
+          <Button variant="outline-secondary" onClick={() => setShowModalDetalle(false)}>
             Cerrar
           </Button>
         </Modal.Footer>
       </Modal>
       {/* Modal de confirmación */}
-      <Modal show={mostrarModalConfirmacion} onHide={() => setMostrarModalConfirmacion(false)}>
+      <Modal show={mostrarModalConfirmacion} onHide={() => {setMostrarModalConfirmacion(false); setAccionConfirmada(null)}}>
         <Modal.Header closeButton>
           <Modal.Title>{modalTitulo}</Modal.Title>
         </Modal.Header>

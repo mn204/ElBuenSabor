@@ -39,9 +39,10 @@ function GrillaInsumos() {
 
 
   // Modal Ver
-  const [showModal, setShowModal] = useState(false);
+  const [showModalDetalle, setShowModalDetalle] = useState(false);
+  const [showModalInfo, setShowModalInfo] = useState(false);
+  const [showModalConfirmacion, setShowModalConfirmacion] = useState(false);
   const [insumoSeleccionado, setInsumoSeleccionado] = useState<Insumo | null>(null);
-  const [mostrarModalConfirmacion, setMostrarModalConfirmacion] = useState(false);
   const [modalTitulo, setModalTitulo] = useState("");
   const [modalMensaje, setModalMensaje] = useState("");
   const [accionConfirmada, setAccionConfirmada] = useState<(() => void) | null>(null);
@@ -63,6 +64,17 @@ function GrillaInsumos() {
   useEffect(() => {
     setPage(0);
   }, [filtroDenominacion, filtroCategoria, filtroEstado, filtroPrecioMin, filtroPrecioMax]);
+
+  const handleVer = (ins: Insumo) => {
+    setInsumoSeleccionado(ins);
+    setShowModalDetalle(true);
+  };
+
+  const mostrarInfo = (titulo: string, mensaje: string) => {
+    setModalTitulo(titulo);
+    setModalMensaje(mensaje);
+    setShowModalInfo(true);
+  };
 
   const cargarInsumos = async () => {
     setLoading(true);
@@ -98,16 +110,15 @@ function GrillaInsumos() {
   const pedirConfirmacionEliminacion = (id: number) => {
     setModalTitulo("Confirmar eliminación de insumo");
     setModalMensaje("¿Seguro que desea eliminar este insumo?");
-    setAccionConfirmada(() => () => eliminarInsumo(id)); // se guarda la acción que debe ejecutarse si el usuario confirma
-    setMostrarModalConfirmacion(true);
+    setAccionConfirmada(() => () => eliminarInsumo(id));
+    setShowModalConfirmacion(true);
   };
-
 
   const pedirConfirmacionAlta = (id: number) => {
     setModalTitulo("Confirmar Alta de Insumo");
     setModalMensaje("¿Seguro que desea dar de Alta este insumo?");
-    setAccionConfirmada(() => () => activarInsumo(id)); // se guarda la acción que debe ejecutarse si el usuario confirma
-    setMostrarModalConfirmacion(true);
+    setAccionConfirmada(() => () => activarInsumo(id));
+    setShowModalConfirmacion(true);
   };
 
   const eliminarInsumo = async (id: number) => {
@@ -115,40 +126,31 @@ function GrillaInsumos() {
       const response = await InsumoService.delete(id);
 
       if (response.ok) {
-        setModalTitulo("Insumo eliminado");
-        setModalMensaje("El insumo fue eliminado correctamente. También se dio de baja lógica a todo su stock en sucursales.");
+        mostrarInfo(
+          "Insumo eliminado",
+          "El insumo fue eliminado correctamente. También se dio de baja lógica a todo su stock en sucursales."
+        );
         await cargarInsumos();
       } else {
-        const error = await response.text(); // o json si devolvés JSON
-        setModalTitulo("No se puede eliminar el insumo");
+        const error = await response.text();
         if (error.includes("está en uso")) {
-          setModalMensaje("Este insumo no se puede eliminar porque está siendo utilizado por un artículo manufacturado.");
+          mostrarInfo(
+            "No se puede eliminar el insumo",
+            "Este insumo no se puede eliminar porque está siendo utilizado por un artículo manufacturado."
+          );
         } else {
-          setModalMensaje("Ocurrió un error al intentar eliminar el insumo.");
+          mostrarInfo(
+            "Error",
+            "Ocurrió un error al intentar eliminar el insumo."
+          );
         }
       }
     } catch (err) {
-      setModalTitulo("Error de red");
-      setModalMensaje("Ocurrió un error inesperado al intentar eliminar el insumo.");
-    } finally {
-      setShowModal(true);
-      // actualizar la grilla si fue eliminado:
-      await cargarInsumos();
+      mostrarInfo(
+        "Error de red",
+        "Ocurrió un error inesperado al intentar eliminar el insumo."
+      );
     }
-  };
-
-  const handleActualizar = (ins: Insumo) => {
-    window.location.href = `/FormularioInsumo?id=${ins.id}`;
-  };
-
-  const handleVer = (ins: Insumo) => {
-    setInsumoSeleccionado(ins);
-    setShowModal(true);
-  };
-
-  const handleCloseModal = () => {
-    setShowModal(false);
-    setInsumoSeleccionado(null);
   };
 
   const activarInsumo = async (id: number) => {
@@ -156,19 +158,28 @@ function GrillaInsumos() {
       const response = await InsumoService.alta(id);
 
       if (response.ok) {
-        setModalTitulo("Insumo reactivado");
-        setModalMensaje("El insumo fue activado correctamente. También se reactivó su stock asociado en las sucursales.");
+        mostrarInfo(
+          "Insumo reactivado",
+          "El insumo fue activado correctamente. También se reactivó su stock asociado en las sucursales."
+        );
         await cargarInsumos();
       } else {
-        setModalTitulo("Error al reactivar");
-        setModalMensaje("Ocurrió un error al intentar reactivar el insumo.");
+        mostrarInfo(
+          "Error al reactivar",
+          "Ocurrió un error al intentar reactivar el insumo."
+        );
       }
     } catch (err) {
-      setModalTitulo("Error de red");
-      setModalMensaje("Ocurrió un error inesperado al intentar reactivar el insumo.");
-    } finally {
-      setShowModal(true);
+      mostrarInfo(
+        "Error de red",
+        "Ocurrió un error inesperado al intentar reactivar el insumo."
+      );
     }
+  };
+
+
+  const handleActualizar = (ins: Insumo) => {
+    window.location.href = `/FormularioInsumo?id=${ins.id}`;
   };
 
   const columns = [
@@ -372,11 +383,10 @@ function GrillaInsumos() {
       </div>
 
       {/* Modal detalle */}
-      <Modal show={showModal} onHide={handleCloseModal} centered size="md">
+      <Modal show={showModalDetalle} onHide={() => setShowModalDetalle(false)} centered size="md">
         <Modal.Header closeButton className="bg-primary text-white">
           <Modal.Title>🧾 Detalle del Insumo</Modal.Title>
         </Modal.Header>
-
         <Modal.Body>
           {insumoSeleccionado && (
             <div className="text-center">
@@ -386,36 +396,25 @@ function GrillaInsumos() {
                 className="img-thumbnail rounded mb-3 shadow-sm"
                 style={{ maxHeight: "150px", objectFit: "cover" }}
               />
-
               <div className="text-start px-2">
-                <p className="mb-2">
-                  <strong>🧪 Denominación:</strong> {insumoSeleccionado.denominacion}
-                </p>
-                <p className="mb-2">
-                  <strong>📂 Categoría:</strong> {insumoSeleccionado.categoria?.denominacion || "-"}
-                </p>
-                <p className="mb-2">
-                  <strong>⚖️ Unidad de Medida:</strong> {insumoSeleccionado.unidadMedida?.denominacion || "-"}
-                </p>
-                <p className="mb-2">
-                  <strong>💰 Precio Compra:</strong> ${insumoSeleccionado.precioCompra.toFixed(2)}
-                </p>
-                <p className="mb-2">
-                  <strong>🛒 Precio Venta:</strong> ${insumoSeleccionado.precioVenta.toFixed(2)}
-                </p>
+                <p className="mb-2"><strong>🧪 Denominación:</strong> {insumoSeleccionado.denominacion}</p>
+                <p className="mb-2"><strong>📂 Categoría:</strong> {insumoSeleccionado.categoria?.denominacion || "-"}</p>
+                <p className="mb-2"><strong>⚖️ Unidad de Medida:</strong> {insumoSeleccionado.unidadMedida?.denominacion || "-"}</p>
+                <p className="mb-2"><strong>💰 Precio Compra:</strong> ${insumoSeleccionado.precioCompra.toFixed(2)}</p>
+                <p className="mb-2"><strong>🛒 Precio Venta:</strong> ${insumoSeleccionado.precioVenta.toFixed(2)}</p>
               </div>
             </div>
           )}
         </Modal.Body>
-
         <Modal.Footer>
-          <Button variant="outline-secondary" onClick={handleCloseModal}>
+          <Button variant="outline-secondary" onClick={() => setShowModalDetalle(false)}>
             Cerrar
           </Button>
         </Modal.Footer>
       </Modal>
 
-      <Modal show={showModal} onHide={() => setShowModal(false)} centered>
+      {/* Modal de Información */}
+      <Modal show={showModalInfo} onHide={() => setShowModalInfo(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>{modalTitulo}</Modal.Title>
         </Modal.Header>
@@ -423,23 +422,27 @@ function GrillaInsumos() {
           <p>{modalMensaje}</p>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="primary" onClick={() => setShowModal(false)}>
+          <Button variant="primary" onClick={() => setShowModalInfo(false)}>
             Aceptar
           </Button>
         </Modal.Footer>
       </Modal>
-      <Modal show={mostrarModalConfirmacion} onHide={() => setMostrarModalConfirmacion(false)}>
+
+      {/* Modal de Confirmación */}
+      <Modal show={showModalConfirmacion} onHide={() => setShowModalConfirmacion(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>{modalTitulo}</Modal.Title>
         </Modal.Header>
         <Modal.Body>{modalMensaje}</Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setMostrarModalConfirmacion(false)}>
+          <Button variant="secondary" onClick={() => setShowModalConfirmacion(false)}>
             Cancelar
           </Button>
           <Button variant="danger" onClick={() => {
-            if (accionConfirmada) accionConfirmada();
-            setMostrarModalConfirmacion(false);
+            if (accionConfirmada) {
+              accionConfirmada();
+              setShowModalConfirmacion(false);
+            }
           }}>
             Confirmar
           </Button>
