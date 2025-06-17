@@ -15,6 +15,7 @@ public interface PromocionRepository extends MasterRepository<Promocion, Long> {
     @Query("SELECT p FROM Promocion p WHERE :fechaActual BETWEEN p.fechaInicio AND p.fechaFin")
     List<Promocion> findPromocionesActivas(@Param("fechaActual") LocalDate fechaActual);
     */
+    boolean existsById(Long id);
 
     boolean existsByDenominacion(String denominacion);
     boolean existsByDenominacionAndIdNot(String denominacion, Long id);
