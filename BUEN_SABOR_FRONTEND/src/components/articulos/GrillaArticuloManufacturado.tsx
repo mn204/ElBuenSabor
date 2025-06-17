@@ -22,6 +22,7 @@ function GrillaArticuloManufacturado() {
   const [page, setPage] = useState(0);
   const [size] = useState(10);
 
+
   // Filtros
   const [filtroDenominacion, setFiltroDenominacion] = useState("");
   const [filtroCategoria, setFiltroCategoria] = useState("");
@@ -31,8 +32,14 @@ function GrillaArticuloManufacturado() {
   const [categorias, setCategorias] = useState<Categoria[]>([]);
 
   // Modal
-  const [showModal, setShowModal] = useState(false);
+  const [showModalDetalle, setShowModalDetalle] = useState(false);
+  const [mostrarModalConfirmacion, setMostrarModalConfirmacion] = useState(false);
+  const [mostrarModalInfo, setMostrarModalInfo] = useState(false);
+  const [modalTitulo, setModalTitulo] = useState("");
+  const [modalMensaje, setModalMensaje] = useState("");
   const [articuloSeleccionado, setArticuloSeleccionado] = useState<ArticuloManufacturado | null>(null);
+  const [accionConfirmada, setAccionConfirmada] = useState<(() => void) | null>(null);
+
 
   useEffect(() => {
     cargarArticulos();
@@ -71,20 +78,21 @@ function GrillaArticuloManufacturado() {
 
   const handleVer = (row: ArticuloManufacturado) => {
     setArticuloSeleccionado(row);
-    setShowModal(true);
-  };
-
-  const handleCloseModal = () => {
-    setShowModal(false);
-    setArticuloSeleccionado(null);
+    setShowModalDetalle(true);
   };
 
   const handleActualizar = (row: ArticuloManufacturado) => {
     window.location.href = `/FormaularioManufacturado?id=${row.id}`;
   };
 
+  const confirmarAccion = (titulo: string, mensaje: string, accion: () => void) => {
+    setModalTitulo(titulo);
+    setModalMensaje(mensaje);
+    setAccionConfirmada(() => accion);
+    setMostrarModalConfirmacion(true);
+  };
+
   const eliminarArticulo = async (id: number) => {
-    if (!window.confirm("¿Seguro que desea eliminar este artículo manufacturado?")) return;
     try {
       await ArticuloManufacturadoService.delete(id);
       setArticulos(prev =>
@@ -92,14 +100,17 @@ function GrillaArticuloManufacturado() {
           a.id === id ? { ...a, eliminado: true } : a
         )
       );
-      alert("Artículo manufacturado eliminado correctamente");
+      setModalTitulo("Éxito");
+      setModalMensaje("Artículo manufacturado eliminado correctamente");
+      setMostrarModalInfo(true);
     } catch (err) {
-      alert("Error al eliminar el artículo manufacturado");
+      setModalTitulo("Error");
+      setModalMensaje("Error al eliminar el artículo manufacturado");
+      setMostrarModalInfo(true);
     }
   };
 
   const darDeAlta = async (id: number) => {
-    if (!window.confirm("¿Seguro que desea dar de alta este artículo manufacturado?")) return;
     try {
       await ArticuloManufacturadoService.changeEliminado(id);
       setArticulos(prev =>
@@ -107,9 +118,13 @@ function GrillaArticuloManufacturado() {
           a.id === id ? { ...a, eliminado: false } : a
         )
       );
-      alert("Artículo manufacturado dado de alta correctamente");
+      setModalTitulo("Éxito");
+      setModalMensaje("Artículo manufacturado dado de alta correctamente");
+      setMostrarModalInfo(true);
     } catch (err) {
-      alert("Error al dar de alta el artículo manufacturado");
+      setModalTitulo("Error");
+      setModalMensaje("Error al dar de alta el artículo manufacturado");
+      setMostrarModalInfo(true);
     }
   };
 
@@ -165,10 +180,16 @@ function GrillaArticuloManufacturado() {
           />
           {!row.eliminado ? (
             <BotonEliminar
-              onClick={() => eliminarArticulo(row.id!)}
+              onClick={() => confirmarAccion(
+                "Confirmar eliminación",
+                "¿Seguro que desea eliminar este artículo manufacturado?",
+                () => eliminarArticulo(row.id!))}
             />
           ) : (
-            <BotonAlta onClick={() => darDeAlta(row.id!)} />
+            <BotonAlta onClick={() => confirmarAccion(
+              "Confirmar alta",
+              "¿Seguro que desea dar de alta este artículo manufacturado?",
+              () => darDeAlta(row.id!))} />
           )}
         </div>
       ),
@@ -251,14 +272,11 @@ function GrillaArticuloManufacturado() {
             </button>
           </div>
         </div>
-
-        <Link
-          to="/FormularioManufacturado"
-          className="btn btn-success position-absolute"
-          style={{ right: 10, top: 10 }}
-        >
-          Crear Artículo Manufacturado
-        </Link>
+        <div className="text-center mt-4">
+          <Link to="/FormularioManufacturado" className="btn btn-success">
+            Crear Articulo Manufacturado
+          </Link>
+        </div>
       </div>
 
       {/* Tabla con paginación */}
@@ -307,40 +325,88 @@ function GrillaArticuloManufacturado() {
         )}
       </div>
 
-      <Modal show={showModal} onHide={handleCloseModal} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>Detalle del Artículo Manufacturado</Modal.Title>
-        </Modal.Header>
+      <Modal show={showModalDetalle} onHide={() => { setShowModalDetalle(false); setArticuloSeleccionado(null); }} centered size="md">        <Modal.Header closeButton className="bg-primary text-white">
+        <Modal.Title>🧾 Detalle del Artículo Manufacturado</Modal.Title>
+      </Modal.Header>
+
         <Modal.Body>
           {articuloSeleccionado && (
-            <div>
-              {articuloSeleccionado.imagenes[0] ? (
-                <img src={articuloSeleccionado.imagenes[0].denominacion} className="imgModalArtManu" alt="" />
+            <div className="text-center">
+              {articuloSeleccionado.imagenes?.[0]?.denominacion ? (
+                <img
+                  src={articuloSeleccionado.imagenes[0].denominacion}
+                  alt="Imagen del artículo"
+                  className="img-thumbnail rounded mb-3 shadow-sm"
+                  style={{ maxHeight: "150px", objectFit: "cover" }}
+                />
               ) : (
-                <div></div>
+                <div className="mb-3">Sin imagen disponible</div>
               )}
-              <p><b>Denominación:</b> {articuloSeleccionado.denominacion}</p>
-              <p><b>Descripción:</b> {articuloSeleccionado.descripcion}</p>
-              <p><b>Precio Venta:</b> ${articuloSeleccionado.precioVenta}</p>
-              <p><b>Categoría:</b> {articuloSeleccionado.categoria?.denominacion}</p>
-              <p><b>Unidad de Medida:</b> {articuloSeleccionado.unidadMedida?.denominacion}</p>
-              <p><b>Tiempo Estimado:</b> {articuloSeleccionado.tiempoEstimadoMinutos} min</p>
-              <p><b>Preparación:</b> {articuloSeleccionado.preparacion}</p>
-              <p><b>Estado:</b> {articuloSeleccionado.eliminado ? "Eliminado" : "Activo"}</p>
-              <b>Detalles:</b>
-              <ul>
-                {articuloSeleccionado.detalles?.map((det, idx) => (
-                  <li key={idx}>
-                    {det.articuloInsumo?.denominacion} - {det.cantidad} {det.articuloInsumo?.unidadMedida?.denominacion}
-                  </li>
-                ))}
-              </ul>
+
+              <div className="text-start px-2">
+                <p className="mb-2"><strong>🧪 Denominación:</strong> {articuloSeleccionado.denominacion}</p>
+                <p className="mb-2"><strong>📝 Descripción:</strong> {articuloSeleccionado.descripcion}</p>
+                <p className="mb-2"><strong>💰 Precio Venta:</strong> ${articuloSeleccionado.precioVenta.toFixed(2)}</p>
+                <p className="mb-2"><strong>📂 Categoría:</strong> {articuloSeleccionado.categoria?.denominacion || "-"}</p>
+                <p className="mb-2"><strong>⚖️ Unidad de Medida:</strong> {articuloSeleccionado.unidadMedida?.denominacion || "-"}</p>
+                <p className="mb-2"><strong>⏱️ Tiempo Estimado:</strong> {articuloSeleccionado.tiempoEstimadoMinutos} min</p>
+                <p className="mb-2"><strong>🍳 Preparación:</strong> {articuloSeleccionado.preparacion}</p>
+                <p className="mb-2"><strong>📌 Estado:</strong> {articuloSeleccionado.eliminado ? "Eliminado" : "Activo"}</p>
+
+                <div className="mt-3">
+                  <strong>📦 Detalles:</strong>
+                  {articuloSeleccionado.detalles?.length > 0 ? (
+                    <ul className="mt-2">
+                      {articuloSeleccionado.detalles.map((det, idx) => (
+                        <li key={idx}>
+                          {det.articuloInsumo?.denominacion} - {det.cantidad}{" "}
+                          {det.articuloInsumo?.unidadMedida?.denominacion}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="mt-2">Sin detalles disponibles</p>
+                  )}
+                </div>
+              </div>
             </div>
           )}
         </Modal.Body>
+
         <Modal.Footer>
-          <Button variant="secondary" onClick={handleCloseModal}>
+          <Button variant="outline-secondary" onClick={() => setShowModalDetalle(false)}>
             Cerrar
+          </Button>
+        </Modal.Footer>
+      </Modal>
+      {/* Modal de confirmación */}
+      <Modal show={mostrarModalConfirmacion} onHide={() => {setMostrarModalConfirmacion(false); setAccionConfirmada(null)}}>
+        <Modal.Header closeButton>
+          <Modal.Title>{modalTitulo}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>{modalMensaje}</Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setMostrarModalConfirmacion(false)}>
+            Cancelar
+          </Button>
+          <Button variant="danger" onClick={() => {
+            if (accionConfirmada) accionConfirmada();
+            setMostrarModalConfirmacion(false);
+          }}>
+            Confirmar
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Modal de información */}
+      <Modal show={mostrarModalInfo} onHide={() => setMostrarModalInfo(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>{modalTitulo}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>{modalMensaje}</Modal.Body>
+        <Modal.Footer>
+          <Button variant="primary" onClick={() => setMostrarModalInfo(false)}>
+            OK
           </Button>
         </Modal.Footer>
       </Modal>

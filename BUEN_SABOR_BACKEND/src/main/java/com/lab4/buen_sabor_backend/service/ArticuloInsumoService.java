@@ -12,11 +12,15 @@ public interface ArticuloInsumoService extends MasterService<ArticuloInsumo, Lon
     //Obtiene la receta completa de un artículo insumo con sus sucursales y existencias
     //Optional<ArticuloInsumo> obtenerRecetaCompleta(Long id);
     //Optional<ArticuloInsumo> obtenerRecetaCompleta(Long id);
-    //Busqueda de Stock Bajo
+    //Baja Logica
+    void bajaLogica(Long id);
+    //Alta logica
+    void altaLogica(Long id);
 
     /**
      * Busca un ingrediente por nombre exacto (case insensitive)
      */
+
     Optional<ArticuloInsumo> findByDenominacion(String denominacion);
 
     /**

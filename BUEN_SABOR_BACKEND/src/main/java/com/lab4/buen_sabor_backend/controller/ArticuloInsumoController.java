@@ -45,6 +45,18 @@ public class ArticuloInsumoController extends MasterControllerImpl<ArticuloInsum
         return articuloInsumoMapper.toDTO(entity);
     }
 
+    @DeleteMapping("/baja-logica/{id}")
+    public ResponseEntity<Void> bajaLogica(@PathVariable Long id) {
+        articuloInsumoService.bajaLogica(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/alta-logica/{id}")
+    public ResponseEntity<Void> altaLogica(@PathVariable Long id) {
+        articuloInsumoService.altaLogica(id);
+        return ResponseEntity.noContent().build();
+    }
+
     /**
      * Obtiene todos los ingredientes con información completa para la grilla
      */
