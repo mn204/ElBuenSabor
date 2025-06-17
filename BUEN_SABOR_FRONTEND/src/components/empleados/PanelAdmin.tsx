@@ -31,6 +31,7 @@ import GrillaInsumos from './GrillaInsumos.tsx';
 import GrillaCocina from "./GrillaCocina.tsx";
 import GrillaStock from './GrillaStock.tsx';
 import { GrillaPromocion } from './GrillaPromociones.tsx';
+import DashboardEstadisticas from './estadisticas/DashBoardEstadisticas.tsx';
 
 function PanelAdmin() {
 
@@ -150,7 +151,7 @@ function PanelAdmin() {
                 return (
                     <div>
                         <h4>{getTitulo('Estadisticas')}</h4>
-
+                        <DashboardEstadisticas/>
                     </div>
                 );
             case 'Empleados':
