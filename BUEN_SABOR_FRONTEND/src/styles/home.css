@@ -1,23 +1,27 @@
-.imagenHome{
+.imagenHome {
     width: 100%;
 }
 
-.home{
+.home {
     padding: 20px 20px;
 }
 
-.sliderCategorias{
+.SelectSucursalHome {
+    display: none !important;
+}
+
+.sliderCategorias {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 2em;
 }
 
-.categoriasTitle{
+.categoriasTitle {
     text-align: left;
 }
 
-.categoriaCard{
+.categoriaCard {
     display: flex;
     flex-direction: column;
     width: 150px;
@@ -32,42 +36,49 @@
     color: #000;
 }
 
-.categoriaCard img{
+.categoriaCard img {
     width: 100%;
     height: auto;
 }
 
-.flechaIzquierda, .flechaDerecha{
+.flechaIzquierda,
+.flechaDerecha {
     background-color: transparent;
     border: none;
 }
 
-.flechaIzquierda:hover, .flechaDerecha:hover{
+.flechaIzquierda:hover,
+.flechaDerecha:hover {
     cursor: pointer;
 }
 
-.imagenHomeResponsive{
+.imagenHomeResponsive {
     display: none;
 }
 
 @media screen and (max-width: 768px) {
-    .home{
+    .home {
         padding: 20px 0px;
         display: flex;
         flex-direction: column;
     }
-    .imagenHomeResponsive{
+
+    .imagenHomeResponsive {
         display: block;
     }
-    .imagenHome{
+
+    .imagenHome {
         display: none;
     }
-    .categoriasTitle{
+
+    .categoriasTitle {
         text-align: center;
     }
-    .imagenHome{
+
+    .imagenHome {
         height: auto;
     }
+
     .sliderCategorias {
         display: flex;
         flex-direction: row;
@@ -75,19 +86,29 @@
         overflow-x: auto;
         gap: 10px;
         padding-bottom: 10px;
-        scrollbar-width: none; /* Firefox */
-        -ms-overflow-style: none;  /* IE 10+ */
+        scrollbar-width: none;
+        /* Firefox */
+        -ms-overflow-style: none;
+        /* IE 10+ */
     }
 
-    .flechaIzquierda{
+    .SelectSucursalHome {
+        display: flex;
+    }
+
+    .flechaIzquierda {
         display: none;
     }
+
     .sliderCategorias::-webkit-scrollbar {
-        display: none; /* Chrome/Safari */
+        display: none;
+        /* Chrome/Safari */
     }
+
     .categoriaCard {
-        min-width: 140px; /* Ajusta según tu diseño */
+        min-width: 140px;
+        /* Ajusta según tu diseño */
         flex: 0 0 auto;
     }
-    
+
 }

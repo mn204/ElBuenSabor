@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import CardArticulo from "./CardArticulo";
 import Articulo from "../../models/Articulo";
 import ArticuloService from "../../services/ArticuloService";
+import { useSucursalUsuario } from "../../context/SucursalContext";
 
 // Interfaz para artículo con stock
 interface ArticuloConStock {
@@ -12,6 +13,7 @@ interface ArticuloConStock {
 }
 
 function Busqueda() {
+  const {sucursalActualUsuario}=useSucursalUsuario();
   const [searchParams, setSearchParams] = useSearchParams();
   const [resultados, setResultados] = useState<ArticuloConStock[]>([]);
   const [loading, setLoading] = useState(false);
@@ -24,8 +26,13 @@ function Busqueda() {
   // Función para consultar stock de un artículo
   const consultarStockArticulo = async (articulo: Articulo): Promise<boolean> => {
     try {
-      const tieneStock = await ArticuloService.consultarStock(articulo);
-      return tieneStock;
+      if(sucursalActualUsuario && sucursalActualUsuario.id){
+        console.log("consultando")
+        const tieneStock = await ArticuloService.consultarStock(articulo, sucursalActualUsuario.id);
+        return tieneStock;
+      }else{
+        return false;
+      }
     } catch (error) {
       console.error(`Error al consultar stock del artículo ${articulo.id}:`, error);
       return false; // En caso de error, asumimos sin stock
@@ -65,9 +72,9 @@ function Busqueda() {
     setLoading(true);
     setError(null);
 
+    let allResults: Articulo[] = [];
     const fetchData = async () => {
       try {
-        let allResults: Articulo[] = [];
 
         // 1. Buscar productos por denominación
         try {
@@ -94,24 +101,10 @@ function Busqueda() {
         } catch (error) {
           console.error('Error al buscar productos:', error);
         }
-
-        // 2. Obtener todos los artículos con stock > 0
-        try {
-          const articulosResponse = await fetch(
-            `http://localhost:8080/api/articulo/stock/0`
-          );
-          if (articulosResponse.ok) {
-            const articulosData = await articulosResponse.json();
-            // Combinar los productos encontrados con todos los artículos
-            allResults = [...allResults, ...articulosData];
-          }
-        } catch (error) {
-          console.error('Error al buscar artículos:', error);
-        }
-
         // Procesar artículos con stock
         const articulosConStock = await procesarArticulosConStock(allResults);
         setResultados(articulosConStock);
+        console.log(articulosConStock)
         setLoading(false);
 
       } catch (error) {
@@ -121,9 +114,8 @@ function Busqueda() {
         setLoading(false);
       }
     };
-
     fetchData();
-  }, [query, navigate]);
+  }, [query, navigate, sucursalActualUsuario]);
 
   // Función para actualizar stock de un artículo específico
   const actualizarStock = async (index: number) => {
@@ -136,8 +128,6 @@ function Busqueda() {
       )
     );
   };
-
-  console.log("Resultados en el render:", resultados);
 
   return (
     <div className="resultados-busqueda m-5">

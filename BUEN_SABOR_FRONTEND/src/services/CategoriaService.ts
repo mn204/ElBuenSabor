@@ -37,6 +37,17 @@ class CategoriaService {
         }
     }
 
+    async getByDenominacion(denominacion: string): Promise<Categoria[]> {
+        try {
+            const res = await fetch(`${API_URL}/buscar?denominacion=${denominacion}`);
+            if (!res.ok) throw new Error("Error al obtener el la categoria");
+            return await res.json();
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
+
     async create(articulo: any): Promise<any> {
         try {
             const res = await fetch(`${API_URL}`, {

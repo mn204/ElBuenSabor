@@ -1,4 +1,5 @@
 import Articulo from "../models/Articulo";
+import type Categoria from "../models/Categoria";
 
 const API_URL = "http://localhost:8080/api/articulo-insumos";
 
@@ -14,9 +15,12 @@ class ArticuloService {
         }
     }
 
-    async consultarStock(articulo: Articulo): Promise<boolean> {
+    async consultarStock(articulo: Articulo, sucursalId: number): Promise<boolean> {
         try {
-            const res = await fetch(`${API_URL}/verificar-stock`,{
+            console.log("Enviando articulo:", articulo);
+console.log("ID sucursal:", sucursalId);
+
+            const res = await fetch(`${API_URL}/verificar-stock/${sucursalId}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(articulo)
@@ -28,6 +32,19 @@ class ArticuloService {
             throw error;
         }
     }
+    async buscarPorIdCategoria(categoria: Categoria): Promise<Articulo[]> {
+        try {
+            const res = await fetch(`${API_URL}/categoria/${categoria.id}`, {
+                method: "GET"
+            });
+            if (!res.ok) throw new Error("Error al obtener artículos");
+            return await res.json();
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
+
 
     async delete(id: number): Promise<void> {
         try {

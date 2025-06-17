@@ -52,6 +52,10 @@ const Cardarticulo: React.FC<Props> = ({
         // Permitir navegación incluso si no hay stock
         navigate(`/articulo/${articulo.id}`);
     };
+    
+    const handleCardClickFalse = () => {
+        // Permitir navegación incluso si no hay stock
+    };
 
     const handleImageError = () => {
         setImageError(true);
@@ -65,7 +69,7 @@ const Cardarticulo: React.FC<Props> = ({
     };
 
     return (
-        <div className={`card-articulo ${isOutOfStock ? 'out-of-stock' : ''}`} onClick={handleCardClick}>
+        <div className={`card-articulo ${isOutOfStock ? 'out-of-stock' : ''}`} onClick={isOutOfStock ? handleCardClickFalse : handleCardClick}>
             <div className="card-articulo__image-container">
                 {isOutOfStock && (
                     <div className="card-articulo__overlay">
