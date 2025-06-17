@@ -109,7 +109,6 @@ function PanelAdmin() {
             case 'Productos':
                 return (
                     <div>
-                        <h4>Productos - {sucursalActual?.nombre}</h4>
                         <GrillaArticuloManufacturado />
                     </div>
                 );
@@ -122,7 +121,7 @@ function PanelAdmin() {
             case 'Pedidos':
                 return (
                     <div>
-                        <h4>{getTitulo('Pedidos')}</h4>
+                        <h2>{getTitulo('Pedidos')}</h2>
                         <GrillaPedidos />
                     </div>
                 );
@@ -140,16 +139,9 @@ function PanelAdmin() {
                         <GrillaDelivery/>
                     </div>
                 );
-            case 'Facturación':
-                return (
-                    <div>
-                        <h4>{getTitulo('Facturacion')}</h4>
-                    </div>
-                );
             case 'Estadísticas':
                 return (
                     <div>
-                        <h4>{getTitulo('Estadisticas')}</h4>
                         <DashboardEstadisticas/>
                     </div>
                 );

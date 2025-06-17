@@ -218,7 +218,7 @@ const DashboardEstadisticas: React.FC = () => {
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent'
                     }}>
-                        Analytics Dashboard
+                        Panel de Estadísticas
                     </h1>
                     <p style={{
                         fontSize: '18px',

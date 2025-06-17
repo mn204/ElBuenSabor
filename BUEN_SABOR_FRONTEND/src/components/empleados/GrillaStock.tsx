@@ -206,6 +206,27 @@ function GrillaStock() {
 
     const columns = [
         {
+            key: "imagen",
+            label: "Imagen",
+            render: (_: any, row: StockTableRow) => {
+                const imagenUrl = row.sucursalInsumo.articuloInsumo?.imagenes?.[0]?.denominacion;
+                return imagenUrl ? (
+                    <img
+                        src={imagenUrl}
+                        alt="Imagen insumo"
+                        style={{
+                            width: "50px",
+                            height: "50px",
+                            objectFit: "cover",
+                            borderRadius: "8px"
+                        }}
+                    />
+                ) : (
+                    "Sin imagen"
+                );
+            }
+        },
+        {
             key: "insumoNombre",
             label: "Insumo",
             render: (_: any, row: StockTableRow) => (

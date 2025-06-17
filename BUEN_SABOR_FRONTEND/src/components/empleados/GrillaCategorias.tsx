@@ -161,11 +161,26 @@ function CategoriaNodoUI({
     <li style={{ marginLeft: "1rem", borderLeft: "2px solid #eee", paddingLeft: "1rem", marginBottom: "0.5rem" }}>
       <div className="d-flex justify-content-between align-items-center">
         <div
-          style={{ cursor: categoria.hijos.length > 0 ? "pointer" : "default", fontWeight: 600 }}
-          onClick={() => categoria.hijos.length > 0 && setExpandido(!expandido)}
+            style={{ cursor: categoria.hijos.length > 0 ? "pointer" : "default", fontWeight: 600 }}
+            onClick={() => categoria.hijos.length > 0 && setExpandido(!expandido)}
+            className="d-flex align-items-center gap-2"
         >
-          {categoria.hijos.length > 0 ? (expandido ? "− " : "+ ") : "• "}
-          {categoria.denominacion}
+  <span>
+    {categoria.hijos.length > 0 ? (expandido ? "− " : "+ ") : "• "}
+  </span>
+          {categoria.urlImagen && (
+              <img
+                  src={categoria.urlImagen}
+                  alt={categoria.denominacion}
+                  style={{
+                    width: "30px",
+                    height: "30px",
+                    objectFit: "cover",
+                    borderRadius: "4px"
+                  }}
+              />
+          )}
+          <span>{categoria.denominacion}</span>
         </div>
         <div className="d-flex gap-2">
           <BotonVer onClick={() => onVer(categoria)} />
