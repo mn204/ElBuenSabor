@@ -1,4 +1,4 @@
-import { createContext, useEffect, useState } from "react";
+import { createContext, useCallback, useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import Articulo from "../models/Articulo";
 import Pedido from "../models/Pedido";
@@ -8,18 +8,22 @@ import Estado from "../models/enums/Estado";
 import type Domicilio from "../models/Domicilio";
 import ArticuloInsumo from "../models/ArticuloInsumo";
 import type ArticuloManufacturado from "../models/ArticuloManufacturado";
+import Promocion from "../models/Promocion";
 
 interface CarritoContextProps {
   pedido: Pedido;
   preferenceId: string;
   agregarAlCarrito: (articulo: Articulo, cantidad: number) => void;
+  // AGREGAR ESTAS NUEVAS FUNCIONES:
+  agregarPromocionAlCarrito: (promocion: Promocion) => void;
+  quitarPromocionCompleta: (promocionId: number) => void;
   quitarDelCarrito: (idArticulo: number) => void;
   restarDelCarrito: (idArticulo: number) => void;
   limpiarCarrito: () => void;
   enviarPedido: () => Promise<Pedido | null | undefined>;
   AgregarPreferenceId: (id: string) => void;
   guardarPedidoYObtener: () => Promise<Pedido | null>;
-  limpiarPreferenceId: ()=> void;
+  limpiarPreferenceId: () => void;
 }
 
 export const carritoContext = createContext<CarritoContextProps | undefined>(undefined);
@@ -50,20 +54,25 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
   const AgregarPreferenceId = (id: string) => {
     setIdPreference(id);
   }
+  // 2. MODIFICAR LA FUNCIÓN agregarAlCarrito EXISTENTE
   const agregarAlCarrito = (articulo: Articulo, cantidad: number) => {
     setPedido((prevPedido) => {
-      const detallesExistente = prevPedido.detalles.find(
-        (d) => d.articulo.id === articulo.id,
-      );
+      let detallesExistente;
+      if(articulo.id){
+        detallesExistente = prevPedido.detalles.find(
+          (d) => d.articulo.id === articulo.id
+        );
+      }
+
       let nuevosdetalles: PedidoDetalle[];
       if (detallesExistente) {
         nuevosdetalles = prevPedido.detalles.map((d) => {
-          if (d.articulo.id === articulo.id) {
+          if (d.articulo.id === articulo.id && !d.promocion) {
             const nuevaCantidad = d.cantidad + cantidad;
             return {
               ...d,
               cantidad: nuevaCantidad,
-              subTotal: articulo.precioVenta * nuevaCantidad, // <--- aquí
+              subTotal: articulo.precioVenta * nuevaCantidad,
             };
           }
           return d;
@@ -72,14 +81,59 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
         const nuevoDetalles = new PedidoDetalle();
         nuevoDetalles.articulo = articulo;
         nuevoDetalles.cantidad = cantidad;
-        nuevoDetalles.subTotal = articulo.precioVenta * cantidad; // <--- aquí
+        nuevoDetalles.subTotal = articulo.precioVenta * cantidad;
         nuevosdetalles = [...prevPedido.detalles, nuevoDetalles];
       }
 
-      const nuevoTotal = nuevosdetalles.reduce((acc, d) => acc + d.subTotal, 0); // <--- aquí
+      const nuevoTotal = nuevosdetalles.reduce((acc, d) => acc + d.subTotal, 0);
       return { ...prevPedido, detalles: nuevosdetalles, total: nuevoTotal };
     });
   };
+
+  const agregarPromocionAlCarrito = (promocion: Promocion) => {
+    setPedido((prevPedido) => {
+      // Lógica original para artículo
+      const detallesExistente = prevPedido.detalles.find(
+        (d) => d.promocion?.id === promocion.id
+      );
+
+      let nuevosdetalles: PedidoDetalle[];
+      if (detallesExistente) {
+        nuevosdetalles = prevPedido.detalles.map((d) => {
+          if (d.promocion?.id === promocion.id) {
+            const nuevaCantidad = d.cantidad + 1;
+            return {
+              ...d,
+              cantidad: nuevaCantidad,
+              subTotal: promocion.precioPromocional * nuevaCantidad,
+            };
+          }
+          return d;
+        });
+      } else {
+        const nuevoDetalles = new PedidoDetalle();
+        nuevoDetalles.promocion = promocion;
+        nuevoDetalles.cantidad = 1;
+        nuevoDetalles.subTotal = promocion.precioPromocional;
+        nuevosdetalles = [...prevPedido.detalles, nuevoDetalles];
+      }
+
+      const nuevoTotal = nuevosdetalles.reduce((acc, d) => acc + d.subTotal, 0);
+      return { ...prevPedido, detalles: nuevosdetalles, total: nuevoTotal };
+    });
+  };
+  // Función corregida para quitar promoción completa del carrito
+  const quitarPromocionCompleta = (promocionId: number) => {
+    setPedido((prevPedido) => {
+      // Solo quitar artículos SIN promoción
+      const nuevosdetalles = prevPedido.detalles.filter(
+        (d) => !(d.promocion?.id === promocionId)
+      );
+      const nuevoTotal = nuevosdetalles.reduce((acc, d) => acc + d.subTotal, 0);
+      return { ...prevPedido, detalles: nuevosdetalles, total: nuevoTotal };
+    });
+  };
+
   const obtenerFechaArgentina = () => {
     const ahora = new Date();
 
@@ -114,21 +168,29 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
     setPedido((prevPedido) => {
       const nuevosdetalles = prevPedido.detalles
         .map((d) => {
-          if (d.articulo.id === idArticulo) {
+          // Solo afectar artículos SIN promoción
+          if (d.articulo.id === idArticulo && !d.promocion) {
             const nuevaCantidad = d.cantidad - 1;
             if (nuevaCantidad <= 0) return null;
             return {
               ...d,
               cantidad: nuevaCantidad,
-              subTotal: nuevaCantidad * d.articulo.precioVenta, // <--- aquí
+              subTotal: nuevaCantidad * d.articulo.precioVenta,
+            };
+          } else if (d.promocion?.id === idArticulo) {
+            const nuevaCantidad = d.cantidad - 1;
+            if (nuevaCantidad <= 0) return null;
+            return {
+              ...d,
+              cantidad: nuevaCantidad,
+              subTotal: nuevaCantidad * d.promocion.precioPromocional,
             };
           }
           return d;
         })
         .filter((d): d is PedidoDetalle => d !== null);
 
-      const nuevoTotal = nuevosdetalles.reduce((acc, d) => acc + d.subTotal, 0); // <--- aquí
-
+      const nuevoTotal = nuevosdetalles.reduce((acc, d) => acc + d.subTotal, 0);
       return { ...prevPedido, detalles: nuevosdetalles, total: nuevoTotal };
     });
   };
@@ -137,8 +199,9 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
   };
   const quitarDelCarrito = (idArticulo: number) => {
     setPedido((prevPedido) => {
+      // Solo quitar artículos SIN promoción
       const nuevosdetalles = prevPedido.detalles.filter(
-        (d) => d.articulo.id !== idArticulo
+        (d) => !(d.articulo.id === idArticulo && !d.promocion)
       );
       const nuevoTotal = nuevosdetalles.reduce((acc, d) => acc + d.subTotal, 0);
       return { ...prevPedido, detalles: nuevosdetalles, total: nuevoTotal };
@@ -246,6 +309,8 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
         preferenceId,
         limpiarPreferenceId,
         agregarAlCarrito,
+        agregarPromocionAlCarrito,        // NUEVO
+        quitarPromocionCompleta,          // NUEVO
         restarDelCarrito,
         quitarDelCarrito,
         limpiarCarrito,

@@ -81,6 +81,7 @@ BUEN_SABOR_BACKEND/src/main/resources/firebase/
 6. Correr el proyecto desde tu IDE o terminal. Esto creará las tablas en la base de datos.
 
 7. Ejecutar manualmente el script `script_datos1.sql` en la base de datos.
+8. Luego ejecutar manualmente el script `script_datos2.sql` en la base de datos.
 
 ---
 

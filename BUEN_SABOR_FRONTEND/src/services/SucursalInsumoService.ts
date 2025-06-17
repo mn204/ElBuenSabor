@@ -2,7 +2,7 @@ import SucursalInsumo from "../models/SucursalInsumo";
 
 const API_URL = "http://localhost:8080/api/sucursal-insumo";
 
-class SucursalInsumoService{
+class SucursalInsumoService {
     async create(sucursalInsumo: SucursalInsumo): Promise<any> {
         try {
             const res = await fetch(`${API_URL}`, {
@@ -10,7 +10,7 @@ class SucursalInsumoService{
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(sucursalInsumo)
             });
-            if (!res.ok) throw new Error("Error al crear la categoria");
+            if (!res.ok) throw new Error("Error al crear el stock");
             return await res.json();
         } catch (error) {
             console.error(error);
@@ -18,6 +18,31 @@ class SucursalInsumoService{
         }
     }
 
+    async agregarStock(sucursalInsumo: SucursalInsumo): Promise<any> {
+        try {
+            const res = await fetch(`${API_URL}/${sucursalInsumo.id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(sucursalInsumo)
+            });
+            if (!res.ok) throw new Error("Error al agregar stock");
+            return await res.json();
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
+
+    async getAll(): Promise<SucursalInsumo[]> {
+        try {
+            const res = await fetch(`${API_URL}`);
+            if (!res.ok) throw new Error("Error al obtener insumos");
+            return await res.json();
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
     async getStockBajo(idSucursal?: number | null): Promise<SucursalInsumo[]> {
         try {
             const sucursalId = idSucursal != null ? `?idSucursal=${idSucursal}` : "";

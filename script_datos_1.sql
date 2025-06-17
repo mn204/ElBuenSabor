@@ -1,4 +1,4 @@
-USE buen_sabor;
+USE buen_sabor2;
 -- Datos Pais
 INSERT INTO PAIS (ELIMINADO, NOMBRE) VALUES (0, 'Argentina');
 -- Provincia

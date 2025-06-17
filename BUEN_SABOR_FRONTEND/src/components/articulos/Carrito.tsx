@@ -12,6 +12,7 @@ import PedidoService from "../../services/PedidoService";
 import { Button } from "react-bootstrap";
 import { FaPlus } from "react-icons/fa6";
 import ModalDomicilio from "../clientes/ModalDomicilio";
+import type Promocion from "../../models/Promocion";
 
 export function Carrito() {
   const { cliente, setCliente } = useAuth();
@@ -62,9 +63,11 @@ export function Carrito() {
     preferenceId,
     restarDelCarrito,
     agregarAlCarrito,
+    quitarPromocionCompleta,
     quitarDelCarrito,
     limpiarCarrito,
     guardarPedidoYObtener,
+    agregarPromocionAlCarrito,
   } = carritoCtx;
   const handleAgregar = () => {
     setDomicilioSeleccionado(null);
@@ -147,7 +150,6 @@ export function Carrito() {
       setPedidoGuardado(null);
     }
   }, [currentStep]);
-
   // Opción 4: Detectar cuando el usuario regresa de MercadoPago
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -166,85 +168,127 @@ export function Carrito() {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [preferenceId, carrito.length]);
-  const canProceedToConfirm = tipoEnvio && formaPago && (tipoEnvio === 'TAKEAWAY' || domicilioSeleccionado);
-
-  const renderStep1 = () => (
-    <div className="p-4" style={{ minHeight: "60vh" }}>
-      <h4 className="mb-4">Carrito de Compras</h4>
-      {carrito.length === 0 ? (
-        <p className="text-muted">El carrito está vacío.</p>
-      ) : (
-        <>
-          {stockError && (
-            <div className="alert alert-danger" role="alert">
-              {stockError}
-            </div>
-          )}
-          {carrito.map((item) => (
-            <div key={item.articulo.id} className="d-flex align-items-center mb-3 border-bottom pb-2">
-              <img
-                src={item.articulo.imagenes[0]?.denominacion}
-                alt="Imagen del artículo"
-                className="rounded"
-                style={{ width: "200px", height: "200px", objectFit: "cover", marginRight: "10px" }}
-              />
-              <div className="flex-grow-1">
-                <div className="d-flex justify-content-between mb-2 pb-2">
-                  <strong>{item.articulo.denominacion}</strong>
-                  <button
-                    className="btn btn-outline-danger btn-sm"
-                    style={{ width: "30px", height: "30px" }}
-                    onClick={() => quitarDelCarrito(item.articulo.id ? item.articulo.id : 0)}
-                  >
-                    X
-                  </button>
-                </div>
-                <div className="d-flex align-items-center justify-content-between">
-                  <small>Precio: ${item.articulo.precioVenta.toFixed(2)}</small>
-                  <div className="d-flex align-items-center mx-2">
-                    <button
-                      className="btn btn-outline-secondary btn-sm"
-                      style={{ background: "white", color: "black" }}
-                      onClick={() => restarDelCarrito(item.articulo.id ? item.articulo.id : 0)}
-                    >
-                      <strong>-</strong>
-                    </button>
-                    <span className="mx-2">{item.cantidad}</span>
-                    <button
-                      className="btn btn-outline-secondary btn-sm"
-                      style={{ background: "white", color: "black" }}
-                      onClick={() => agregarAlCarrito(item.articulo, 1)}
-                    >
-                      <strong>+</strong>
-                    </button>
+  const renderStep1 = () => {
+    return (
+      <>
+        {carrito.length === 0 ? (
+          <div style={{ minHeight: "60vh" }} className="d-flex align-items-center justify-content-center">No hay artículos en el carrito</div>
+        ) : (
+          <>
+            <div style={{margin: "20px 250px"}}>
+              {carrito.map((item) =>
+                item.promocion ? (
+                  <div key={`promo-${item.promocion.id}`} className="d-flex align-items-center mb-3 border-bottom pb-2">
+                    <img
+                      src={item.promocion.imagenes[0]?.denominacion}
+                      alt="Imagen del artículo"
+                      className="rounded"
+                      style={{ width: "200px", height: "200px", objectFit: "cover", marginRight: "10px" }}
+                    />
+                    <div className="flex-grow-1">
+                      <div className="d-flex justify-content-between mb-2 pb-2">
+                        <strong>{item.promocion.denominacion}</strong>
+                        <button
+                          className="btn btn-outline-danger btn-sm"
+                          style={{ width: "30px", height: "30px" }}
+                          onClick={() => quitarPromocionCompleta(item.promocion.id)}
+                        >
+                          X
+                        </button>
+                      </div>
+                      <div className="d-flex align-items-center justify-content-between">
+                        <small>Precio: ${item.promocion.precioPromocional.toFixed(2)}</small>
+                        <div className="d-flex align-items-center mx-2">
+                          <button
+                            className="btn btn-outline-secondary btn-sm"
+                            style={{ background: "white", color: "black" }}
+                            onClick={() => restarDelCarrito(item.promocion.id)}
+                          >
+                            <strong>-</strong>
+                          </button>
+                          <span className="mx-2">{item.cantidad}</span>
+                          <button
+                            className="btn btn-outline-secondary btn-sm"
+                            style={{ background: "white", color: "black" }}
+                            onClick={() => agregarPromocionAlCarrito(item.promocion!)}
+                          >
+                            <strong>+</strong>
+                          </button>
+                        </div>
+                      </div>
+                      <div className="text-end mt-4">Subtotal: ${item.subTotal.toFixed(2)}</div>
+                    </div>
                   </div>
-                </div>
-                <div className="text-end mt-4">Subtotal: ${item.subTotal.toFixed(2)}</div>
+                ) : (
+                  <div key={`articulo-${item.articulo.id}`} className="d-flex align-items-center mb-3 border-bottom pb-2">
+                    <img
+                      src={item.articulo.imagenes[0]?.denominacion}
+                      alt="Imagen del artículo"
+                      className="rounded"
+                      style={{ width: "200px", height: "200px", objectFit: "cover", marginRight: "10px" }}
+                    />
+                    <div className="flex-grow-1">
+                      <div className="d-flex justify-content-between mb-2 pb-2">
+                        <strong>{item.articulo.denominacion}</strong>
+                        <button
+                          className="btn btn-outline-danger btn-sm"
+                          style={{ width: "30px", height: "30px" }}
+                          onClick={() => quitarDelCarrito(item.articulo.id)}
+                        >
+                          X
+                        </button>
+                      </div>
+                      <div className="d-flex align-items-center justify-content-between">
+                        <small>Precio: ${item.articulo.precioVenta.toFixed(2)}</small>
+                        <div className="d-flex align-items-center mx-2">
+                          <button
+                            className="btn btn-outline-secondary btn-sm"
+                            style={{ background: "white", color: "black" }}
+                            onClick={() => restarDelCarrito(item.articulo.id)}
+                          >
+                            <strong>-</strong>
+                          </button>
+                          <span className="mx-2">{item.cantidad}</span>
+                          <button
+                            className="btn btn-outline-secondary btn-sm"
+                            style={{ background: "white", color: "black" }}
+                            onClick={() => agregarAlCarrito(item.articulo, 1)}
+                          >
+                            <strong>+</strong>
+                          </button>
+                        </div>
+                      </div>
+                      <div className="text-end mt-4">Subtotal: ${item.subTotal.toFixed(2)}</div>
+                    </div>
+                  </div>
+                )
+              )}
+
+              <div className="mt-3 text-end">
+                <strong>
+                  Total: $
+                  {carrito.reduce((acc, item) => acc + item.subTotal, 0).toFixed(2)}
+                </strong>
+              </div>
+
+              <div className="d-flex justify-content-between mt-3">
+                <button className="btn btn-warning" onClick={limpiarCarrito}>Limpiar carrito</button>
+                <button
+                  className="btn btn-success"
+                  onClick={handleProceedToStep2}
+                  disabled={verificandoStock}
+                >
+                  {verificandoStock ? 'Verificando stock...' : 'Realizar pedido'}
+                </button>
               </div>
             </div>
-          ))}
-          <div className="mt-3 text-end">
-            <strong>
-              Total: $
-              {carrito
-                .reduce((acc, item) => acc + item.subTotal, 0)
-                .toFixed(2)}
-            </strong>
-          </div>
-          <div className="d-flex justify-content-between mt-3">
-            <button className="btn btn-warning" onClick={limpiarCarrito}>Limpiar carrito</button>
-            <button
-              className="btn btn-success"
-              onClick={handleProceedToStep2}
-              disabled={verificandoStock}
-            >
-              {verificandoStock ? 'Verificando stock...' : 'Realizar pedido'}
-            </button>
-          </div>
-        </>
-      )}
-    </div>
-  );
+          </>
+        )}
+      </>
+
+    );
+  };
+
 
   const renderStep2 = () => (
     <div className="p-4">
@@ -451,12 +495,12 @@ export function Carrito() {
               </div>
             ) : (
               <button
-                className={`btn btn-lg ${canProceedToConfirm && !stockError
+                className={`btn btn-lg ${!stockError
                   ? 'btn-success'
                   : 'btn-secondary'
                   }`}
                 onClick={handlePagarConMP}
-                disabled={!canProceedToConfirm || stockError !== null || verificandoStock}
+                disabled={stockError !== null || verificandoStock}
               >
                 {verificandoStock ? 'Verificando...' : 'Confirmar Pedido'}
               </button>

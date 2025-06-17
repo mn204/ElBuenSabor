@@ -122,9 +122,8 @@ function PanelAdmin() {
             case 'Pedidos':
                 return (
                     <div>
-                        <h4>Pedidos - {sucursalActual?.nombre}</h4>
-                        <GrillaPedidos />
                         <h4>{getTitulo('Pedidos')}</h4>
+                        <GrillaPedidos />
                     </div>
                 );
             case 'Cocina':

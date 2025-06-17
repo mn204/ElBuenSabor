@@ -3,7 +3,6 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import CardArticulo from "./CardArticulo";
 import Articulo from "../../models/Articulo";
 import ArticuloManufacturadoService from "../../services/ArticuloManufacturadoService";
-import ArticuloInsumoService from "../../services/ArticuloInsumoService";
 
 function Busqueda() {
   const [searchParams, setSearchParams] = useSearchParams();
