@@ -19,6 +19,7 @@ export function useManufacturado() {
   const [porcentajeGanancia, setPorcentajeGanancia] = useState(0);
   const [imagenes, setImagenes] = useState<File[]>([]);
   
+  
   const limpiarFormulario = () => {
     setDenominacion("");
     setDescripcion("");
