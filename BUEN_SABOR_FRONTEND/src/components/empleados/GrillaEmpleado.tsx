@@ -18,6 +18,7 @@ import Sucursal from "../../models/Sucursal";
 import { obtenerSucursales } from "../../services/SucursalService";
 import FormDatosEmpleado from "./FormDatosEmpleado";
 import { ChevronLeft, ChevronRight } from "react-bootstrap-icons";
+import Cliente from "../../models/Cliente.ts";
 
 const GrillaEmpleado = () => {
     const [empleados, setEmpleados] = useState<Empleado[]>([]);
@@ -157,6 +158,21 @@ const GrillaEmpleado = () => {
     };
 
     const columns = [
+        {
+            key: "imagen",
+            label: "Imagen",
+            render: (_: any, row: Emplado) =>
+                row.usuario.photoUrl ? (
+                    <img
+                        src={row.usuario.photoUrl}
+                        alt="Foto"
+                        style={{ width: "50px", height: "50px", objectFit: "cover", borderRadius: "8px" }}
+                    />
+                ) : (
+                    "Sin imagen"
+                ),
+        },
+
         {
             key: "id",
             label: "ID",
