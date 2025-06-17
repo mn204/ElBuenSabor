@@ -217,11 +217,14 @@ function FormArticuloManufacturado() {
 
   return (
     <div className="formArticuloManufacturado">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="mb-0">
+      <div className="d-flex align-items-center mb-4 position-relative">
+        <h2
+          className="mb-0 position-absolute"
+          style={{ left: '50%', transform: 'translateX(-50%)' }}
+        >
           {idFromUrl ? "Editar Producto" : "Nuevo Producto"}
         </h2>
-        <Link to="/empleado/productos" className="btn btn-outline-secondary">
+        <Link to="/empleado/productos" className="btn btn-outline-secondary ms-auto">
           Volver a Productos
         </Link>
       </div>
@@ -254,7 +257,7 @@ function FormArticuloManufacturado() {
           />
         </div>
       </div>
-      
+
       {/* Botón Agregar Insumo */}
       <div className="d-flex justify-content-center my-4">
         <Button
@@ -265,11 +268,11 @@ function FormArticuloManufacturado() {
           Agregar Insumo
         </Button>
       </div>
-      
+
       <div className="detalles-insumos-section mt-4">
         <DetalleInsumosTable {...tableProps} />
       </div>
-      
+
       {/* Resumen movido abajo */}
       {detalles.length > 0 && (
         <div className="row justify-content-center mt-4">
@@ -298,7 +301,7 @@ function FormArticuloManufacturado() {
                   ${totalConGanancia.toFixed(2)}
                 </strong>
               </div>
-              
+
               <Button
                 variant={idFromUrl ? "warning" : "success"}
                 className="w-100"
@@ -312,7 +315,7 @@ function FormArticuloManufacturado() {
           </div>
         </div>
       )}
-      
+
       <ModalAgregarInsumo {...modalProps} />
     </div>
   );

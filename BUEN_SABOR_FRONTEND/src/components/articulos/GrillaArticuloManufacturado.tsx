@@ -179,8 +179,8 @@ function GrillaArticuloManufacturado() {
     <div className="position-relative">
       <h2>Productos</h2>
       {/* Filtros */}
-      <div className="filtros-container bg-light p-4 rounded mb-4">
-        <div className="row g-3">
+      <div className="filtros-container bg-light p-4 rounded mb-4 shadow-sm">
+        <div className="row g-3 align-items-center">
           <div className="col-md-3">
             <input
               type="text"
@@ -216,6 +216,7 @@ function GrillaArticuloManufacturado() {
           <div className="col-md-2">
             <input
               type="number"
+              min="0"
               className="form-control"
               placeholder="Precio mín."
               value={filtroPrecioMin}
@@ -225,16 +226,18 @@ function GrillaArticuloManufacturado() {
           <div className="col-md-2">
             <input
               type="number"
+              min="0"
               className="form-control"
               placeholder="Precio máx."
               value={filtroPrecioMax}
               onChange={e => setFiltroPrecioMax(e.target.value)}
             />
           </div>
-          <div className="col-md-1">
-            <Button
-              variant="outline-primary"
-              className="w-100"
+          <div className="col-md-1 d-flex justify-content-center">
+            <button
+              type="button"
+              className="btn btn-outline-primary btn-sm w-100"
+              style={{ minHeight: '38px' }}
               onClick={() => {
                 setFiltroDenominacion("");
                 setFiltroCategoria("");
@@ -245,10 +248,15 @@ function GrillaArticuloManufacturado() {
               }}
             >
               Ver Todos
-            </Button>
+            </button>
           </div>
         </div>
-        <Link className="btn border-success" style={{ right: 10, top: 10 }} to="/FormularioManufacturado">
+
+        <Link
+          to="/FormularioManufacturado"
+          className="btn btn-success position-absolute"
+          style={{ right: 10, top: 10 }}
+        >
           Crear Artículo Manufacturado
         </Link>
       </div>
