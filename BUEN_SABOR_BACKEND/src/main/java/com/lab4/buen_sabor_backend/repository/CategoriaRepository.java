@@ -17,5 +17,6 @@ public interface CategoriaRepository extends MasterRepository<Categoria, Long> {
 
     List<Categoria> findAll(); // Para mostrar todos
     List<Categoria> findByEliminadoFalse();
+    List<Categoria> findByCategoriaPadreIdAndEliminadoFalse(Long categoriaId);
 
 }

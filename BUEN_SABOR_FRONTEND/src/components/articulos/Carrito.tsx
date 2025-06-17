@@ -12,7 +12,6 @@ import PedidoService from "../../services/PedidoService";
 import { Button } from "react-bootstrap";
 import { FaPlus } from "react-icons/fa6";
 import ModalDomicilio from "../clientes/ModalDomicilio";
-import type Promocion from "../../models/Promocion";
 
 export function Carrito() {
   const { cliente, setCliente } = useAuth();
@@ -97,11 +96,15 @@ export function Carrito() {
   };
 
   const handleProceedToStep2 = async () => {
-    const stockOk = await verificarStock();
-    if (stockOk) {
-      setCurrentStep(2);
-      setTipoEnvio(null);
-      setFormaPago(null);
+    if (!cliente) {
+      setStockError("Debe Iniciar Secion para continuar")
+    } else {
+      const stockOk = await verificarStock();
+      if (stockOk) {
+        setCurrentStep(2);
+        setTipoEnvio(null);
+        setFormaPago(null);
+      }
     }
   };
 
@@ -121,6 +124,19 @@ export function Carrito() {
     setShowDomicilioModal(false);
   };
 
+  const guardarPedidoTakeAway = async () => {
+    // Verificar stock nuevamente antes de confirmar
+    const stockOk = await verificarStock();
+    if (!stockOk) {
+      return;
+    }
+    const pedidoFinal = await guardarPedidoYObtener();
+    if(pedidoFinal){
+      limpiarCarrito()
+    }
+    window.location.href = `/pedidoConfirmado/${pedidoFinal!.id}`;
+  }
+
   const handlePagarConMP = async () => {
     // Verificar stock nuevamente antes de confirmar
     const stockOk = await verificarStock();
@@ -128,8 +144,8 @@ export function Carrito() {
       return;
     }
     const pedidoFinal = await guardarPedidoYObtener();
-    limpiarCarrito()
     if (pedidoFinal) {
+      limpiarCarrito()
       setPedidoGuardado(pedidoFinal);
     }
   };
@@ -175,7 +191,12 @@ export function Carrito() {
           <div style={{ minHeight: "60vh" }} className="d-flex align-items-center justify-content-center">No hay artículos en el carrito</div>
         ) : (
           <>
-            <div style={{margin: "20px 250px"}}>
+            {stockError && (
+              <div className="alert alert-danger m-5" role="alert">
+                {stockError}
+              </div>
+            )}
+            <div style={{ margin: "20px 250px" }}>
               {carrito.map((item) =>
                 item.promocion ? (
                   <div key={`promo-${item.promocion.id}`} className="d-flex align-items-center mb-3 border-bottom pb-2">
@@ -301,7 +322,6 @@ export function Carrito() {
         </button>
         <h4>Datos de Entrega y Pago</h4>
       </div>
-
       {stockError && (
         <div className="alert alert-danger" role="alert">
           {stockError}
@@ -312,23 +332,6 @@ export function Carrito() {
         <div className="row">
           {/* Columna izquierda - Opciones (70%) */}
           <div className="col-lg-8 pe-4">
-            {/* Información de Sucursal */}
-            <div className="card mb-4">
-              <div className="card-header">
-                <h5>Sucursal Seleccionada</h5>
-              </div>
-              <div className="card-body">
-                <div className="p-3 bg-light rounded">
-                  <strong>{sucursalActualUsuario?.nombre}</strong>
-                  <p className="mb-0 text-muted">
-                    {sucursalActualUsuario?.domicilio?.calle} {sucursalActualUsuario?.domicilio?.numero}
-                    <br />
-                    {sucursalActualUsuario?.domicilio?.localidad?.nombre}
-                  </p>
-                </div>
-              </div>
-            </div>
-
             {/* Forma de Entrega */}
             <div className="card mb-4">
               <div className="card-header">
@@ -481,32 +484,48 @@ export function Carrito() {
                 </div>
               </div>
             </div>
+            <div className="d-grid gap-2">
+              {pedidoGuardado && (preferenceId != undefined) &&
+                <CheckoutMP pedido={pedidoGuardado} />
+              }
+              {preferenceId != undefined ? (
+                <div>
+                  <Wallet
+                    initialization={{ preferenceId: preferenceId, redirectMode: "blank" }}
+                  />
+                </div>
+              ) : (
+                <button
+                  className={`btn btn-lg ${!stockError
+                    ? 'btn-success'
+                    : 'btn-secondary'
+                    }`}
+                  onClick={tipoEnvio == 'DELIVERY' ? handlePagarConMP : guardarPedidoTakeAway}
+                  disabled={stockError !== null || verificandoStock}
+                >
+                  {verificandoStock ? 'Verificando...' : 'Confirmar Pedido'}
+                </button>
+              )
+              }
+            </div>
+            {/* Información de Sucursal */}
+            <div className="card mb-4 mt-2">
+              <div className="card-header">
+                <h5>Sucursal Seleccionada</h5>
+              </div>
+              <div className="card-body">
+                <div className="p-3 bg-light rounded">
+                  <strong>{sucursalActualUsuario?.nombre}</strong>
+                  <p className="mb-0 text-muted">
+                    {sucursalActualUsuario?.domicilio?.calle} {sucursalActualUsuario?.domicilio?.numero}
+                    <br />
+                    {sucursalActualUsuario?.domicilio?.localidad?.nombre}
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div className="d-grid gap-2">
-            {pedidoGuardado && (preferenceId != undefined) &&
-              <CheckoutMP pedido={pedidoGuardado} />
-            }
-            {preferenceId != undefined ? (
-              <div>
-                <Wallet
-                  initialization={{ preferenceId: preferenceId, redirectMode: "blank" }}
-                />
-              </div>
-            ) : (
-              <button
-                className={`btn btn-lg ${!stockError
-                  ? 'btn-success'
-                  : 'btn-secondary'
-                  }`}
-                onClick={handlePagarConMP}
-                disabled={stockError !== null || verificandoStock}
-              >
-                {verificandoStock ? 'Verificando...' : 'Confirmar Pedido'}
-              </button>
-            )
-            }
-          </div>
         </div>
       </div>
     </div>

@@ -7,7 +7,9 @@ import com.lab4.buen_sabor_backend.model.enums.Rol;
 import com.lab4.buen_sabor_backend.repository.EmpleadoRepository;
 import com.lab4.buen_sabor_backend.service.*;
 import com.lab4.buen_sabor_backend.service.impl.specification.PedidoSpecification;
+
 import static com.lab4.buen_sabor_backend.service.impl.specification.PedidoSpecification.*;
+
 import com.lab4.buen_sabor_backend.model.enums.Estado;
 import com.lab4.buen_sabor_backend.repository.PedidoRepository;
 import org.springframework.transaction.annotation.Transactional; // CAMBIO AQUÍ
@@ -20,6 +22,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -59,7 +62,7 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
     @Transactional
     public Pedido save(Pedido entity) {
         // Validaciones antes de guardar
-        for(DetallePedido detalle : entity.getDetalles()) {
+        for (DetallePedido detalle : entity.getDetalles()) {
             detalle.setPedido(entity);
         }
         logger.info("Guardando Pedido: {}", entity.getId());
@@ -153,53 +156,87 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
             Map<Long, RequerimientoInfo> requerimientos = new HashMap<>();
             Sucursal sucursal = pedido.getSucursal();
             double totalCosto = 0.0;
-
             for (DetallePedido detPed : pedido.getDetalles()) {
-                Articulo art = detPed.getArticulo();
-                int cantidadPed = detPed.getCantidad();
+                if (detPed.getPromocion() != null) {
+                    for (DetallePromocion deta : detPed.getPromocion().getDetalles()) {
+                        int cantidadPed = deta.getCantidad();
+                        Articulo art = deta.getArticulo();
 
-                try {
-                    // Intentar como insumo directo
-                    ArticuloInsumo insumo = articuloInsumoService.getById(art.getId());
+                        try {
+                            // Intentar como insumo directo
+                            ArticuloInsumo insumo = articuloInsumoService.getById(art.getId());
 
-                    if (!insumo.getEsParaElaborar()) {
+                            if (!insumo.getEsParaElaborar()) {
 
-                        SucursalInsumo si = sucursalInsumoService.findBySucursalIdAndArticuloInsumoId(sucursal.getId(), insumo.getId());
-                        if (si == null) {
-                            return false; // No existe Sucursal insumo en esta sucursal
-                        }
+                                SucursalInsumo si = sucursalInsumoService.findBySucursalIdAndArticuloInsumoId(sucursal.getId(), insumo.getId());
+                                if (si == null) {
+                                    throw new RuntimeException("El articulo no tiene stock");
+                                }
 
-                        // Consolidar requerimientos por ID de SucursalInsumo
-                        Long siId = si.getId();
-                        requerimientos.merge(siId,
-                                new RequerimientoInfo(si, (double)cantidadPed, insumo.getPrecioCompra() * cantidadPed),
-                                (existing, nuevo) -> new RequerimientoInfo(
-                                        existing.getSucursalInsumo(),
-                                        existing.getCantidadRequerida() + nuevo.getCantidadRequerida(),
-                                        existing.getCostoTotal() + nuevo.getCostoTotal()
-                                )
-                        );
-                    }
-
-                } catch (EntityNotFoundException e) {
-                    // Es un artículo manufacturado
-                    try {
-                        ArticuloManufacturado man = articuloManufacturadoService.getById(art.getId());
-
-                        for (DetalleArticuloManufacturado dam : man.getDetalles()) {
-                            ArticuloInsumo ai = dam.getArticuloInsumo();
-                            SucursalInsumo si = sucursalInsumoService.findBySucursalIdAndArticuloInsumoId(sucursal.getId(), ai.getId());
-                            if (si == null) {
-                                return false; // No existe Sucursal insumo en esta sucursal
+                                // Consolidar requerimientos por ID de SucursalInsumo
+                                Long siId = si.getId();
+                                requerimientos.merge(siId,
+                                        new RequerimientoInfo(si, (double) cantidadPed, insumo.getPrecioCompra() * cantidadPed),
+                                        (existing, nuevo) -> new RequerimientoInfo(
+                                                existing.getSucursalInsumo(),
+                                                existing.getCantidadRequerida() + nuevo.getCantidadRequerida(),
+                                                existing.getCostoTotal() + nuevo.getCostoTotal()
+                                        )
+                                );
                             }
 
-                            double cantidadRequerida = dam.getCantidad() * cantidadPed;
-                            double costoComponente = ai.getPrecioCompra() * cantidadRequerida;
+                        } catch (EntityNotFoundException e) {
+                            // Es un artículo manufacturado
+                            try {
+                                ArticuloManufacturado man = articuloManufacturadoService.getById(art.getId());
+
+                                for (DetalleArticuloManufacturado dam : man.getDetalles()) {
+                                    ArticuloInsumo ai = dam.getArticuloInsumo();
+                                    SucursalInsumo si = sucursalInsumoService.findBySucursalIdAndArticuloInsumoId(sucursal.getId(), ai.getId());
+                                    if (si == null) {
+                                        throw new RuntimeException("El articulo no tiene stock");
+                                    }
+
+                                    double cantidadRequerida = dam.getCantidad() * cantidadPed;
+                                    double costoComponente = ai.getPrecioCompra() * cantidadRequerida;
+
+                                    // Consolidar requerimientos por ID de SucursalInsumo
+                                    Long siId = si.getId();
+                                    requerimientos.merge(siId,
+                                            new RequerimientoInfo(si, cantidadRequerida, costoComponente),
+                                            (existing, nuevo) -> new RequerimientoInfo(
+                                                    existing.getSucursalInsumo(),
+                                                    existing.getCantidadRequerida() + nuevo.getCantidadRequerida(),
+                                                    existing.getCostoTotal() + nuevo.getCostoTotal()
+                                            )
+                                    );
+                                }
+                            } catch (EntityNotFoundException ex) {
+                                // Artículo no existe
+                                throw new RuntimeException("El articulo no existe");
+                            }
+                        }
+                    }
+                }
+                if (detPed.getArticulo() != null && detPed.getArticulo().getId() != null) {
+                    Articulo art2 = detPed.getArticulo();
+                    int cantidadPed = detPed.getCantidad();
+
+                    try {
+                        // Intentar como insumo directo
+                        ArticuloInsumo insumo = articuloInsumoService.getById(art2.getId());
+
+                        if (!insumo.getEsParaElaborar()) {
+
+                            SucursalInsumo si = sucursalInsumoService.findBySucursalIdAndArticuloInsumoId(sucursal.getId(), insumo.getId());
+                            if (si == null) {
+                                throw new RuntimeException("El articulo no tiene stock");
+                            }
 
                             // Consolidar requerimientos por ID de SucursalInsumo
                             Long siId = si.getId();
                             requerimientos.merge(siId,
-                                    new RequerimientoInfo(si, cantidadRequerida, costoComponente),
+                                    new RequerimientoInfo(si, (double) cantidadPed, insumo.getPrecioCompra() * cantidadPed),
                                     (existing, nuevo) -> new RequerimientoInfo(
                                             existing.getSucursalInsumo(),
                                             existing.getCantidadRequerida() + nuevo.getCantidadRequerida(),
@@ -207,9 +244,37 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
                                     )
                             );
                         }
-                    } catch (EntityNotFoundException ex) {
-                        // Artículo no existe
-                        return false;
+
+                    } catch (EntityNotFoundException e) {
+                        // Es un artículo manufacturado
+                        try {
+                            ArticuloManufacturado man = articuloManufacturadoService.getById(art2.getId());
+
+                            for (DetalleArticuloManufacturado dam : man.getDetalles()) {
+                                ArticuloInsumo ai = dam.getArticuloInsumo();
+                                SucursalInsumo si = sucursalInsumoService.findBySucursalIdAndArticuloInsumoId(sucursal.getId(), ai.getId());
+                                if (si == null) {
+                                    throw new RuntimeException("El articulo no tiene stock");
+                                }
+
+                                double cantidadRequerida = dam.getCantidad() * cantidadPed;
+                                double costoComponente = ai.getPrecioCompra() * cantidadRequerida;
+
+                                // Consolidar requerimientos por ID de SucursalInsumo
+                                Long siId = si.getId();
+                                requerimientos.merge(siId,
+                                        new RequerimientoInfo(si, cantidadRequerida, costoComponente),
+                                        (existing, nuevo) -> new RequerimientoInfo(
+                                                existing.getSucursalInsumo(),
+                                                existing.getCantidadRequerida() + nuevo.getCantidadRequerida(),
+                                                existing.getCostoTotal() + nuevo.getCostoTotal()
+                                        )
+                                );
+                            }
+                        } catch (EntityNotFoundException ex) {
+                            // Artículo no existe
+                            throw new RuntimeException("El articulo no existe");
+                        }
                     }
                 }
             }
@@ -229,9 +294,7 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
                 si = sucursalInsumoService.getById(si.getId());
 
                 if (si.getStockActual() < requerido) {
-                    System.out.println("Stock insuficiente para insumo ID: " + si.getId() +
-                            ". Requerido: " + requerido + ", Disponible: " + si.getStockActual());
-                    return false;
+                    throw new RuntimeException("No hay stock del insumo ID: " + si.getId() + " en la sucursal: " + sucursal.getNombre());
                 }
             }
 
@@ -240,7 +303,7 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
 
         } catch (Exception e) {
             logger.error("Error al procesar pedido: ", e);
-            return false;
+            throw new RuntimeException("Error al procesar pedido: ", e);
         }
     }
 
@@ -295,52 +358,88 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
         Map<Long, RequerimientoInfo> requerimientos = new HashMap<>();
         Sucursal sucursal = pedido.getSucursal();
         double totalCosto = 0.0;
-
+        Articulo art;
         for (DetallePedido detPed : pedido.getDetalles()) {
-            Articulo art = detPed.getArticulo();
-            int cantidadPed = detPed.getCantidad();
+            if (detPed.getPromocion() != null) {
+                for (DetallePromocion deta : detPed.getPromocion().getDetalles()) {
+                    art = deta.getArticulo();
+                    int cantidadPed = deta.getCantidad();
 
-            try {
-                // Intentar como insumo directo
-                ArticuloInsumo insumo = articuloInsumoService.getById(art.getId());
+                    try {
+                        // Intentar como insumo directo
+                        ArticuloInsumo insumo = articuloInsumoService.getById(art.getId());
 
-                if (!insumo.getEsParaElaborar()) {
-                    SucursalInsumo si = sucursalInsumoService.findBySucursalIdAndArticuloInsumoId(sucursal.getId(), insumo.getId());
-                    if (si == null) {
-                        throw new RuntimeException("No hay stock del insumo ID: " + art.getId() + " en la sucursal: " + sucursal.getNombre());
-                    }
-                    // Consolidar requerimientos por ID de SucursalInsumo
-                    Long siId = si.getId();
-                    requerimientos.merge(siId,
-                            new RequerimientoInfo(si, (double)cantidadPed, insumo.getPrecioCompra() * cantidadPed),
-                            (existing, nuevo) -> new RequerimientoInfo(
-                                    existing.getSucursalInsumo(),
-                                    existing.getCantidadRequerida() + nuevo.getCantidadRequerida(),
-                                    existing.getCostoTotal() + nuevo.getCostoTotal()
-                            )
-                    );
-                }
+                        if (!insumo.getEsParaElaborar()) {
 
-            } catch (EntityNotFoundException e) {
-                // Es un artículo manufacturado
-                try {
-                    ArticuloManufacturado man = articuloManufacturadoService.getById(art.getId());
+                            SucursalInsumo si = sucursalInsumoService.findBySucursalIdAndArticuloInsumoId(sucursal.getId(), insumo.getId());
+                            if (si == null) {
+                                throw new RuntimeException("El articulo no tiene stock");
+                            }
 
-                    for (DetalleArticuloManufacturado dam : man.getDetalles()) {
-                        ArticuloInsumo ai = dam.getArticuloInsumo();
-
-                        SucursalInsumo si = sucursalInsumoService.findBySucursalIdAndArticuloInsumoId(sucursal.getId(), ai.getId());
-                        if (si == null) {
-                            throw new RuntimeException("No hay stock del insumo ID: " + art.getId() + " en la sucursal: " + sucursal.getNombre());
+                            // Consolidar requerimientos por ID de SucursalInsumo
+                            Long siId = si.getId();
+                            requerimientos.merge(siId,
+                                    new RequerimientoInfo(si, (double) cantidadPed, insumo.getPrecioCompra() * cantidadPed),
+                                    (existing, nuevo) -> new RequerimientoInfo(
+                                            existing.getSucursalInsumo(),
+                                            existing.getCantidadRequerida() + nuevo.getCantidadRequerida(),
+                                            existing.getCostoTotal() + nuevo.getCostoTotal()
+                                    )
+                            );
                         }
 
-                        double cantidadRequerida = dam.getCantidad() * cantidadPed;
-                        double costoComponente = ai.getPrecioCompra() * cantidadRequerida;
+                    } catch (EntityNotFoundException e) {
+                        // Es un artículo manufacturado
+                        try {
+                            ArticuloManufacturado man = articuloManufacturadoService.getById(art.getId());
+
+                            for (DetalleArticuloManufacturado dam : man.getDetalles()) {
+                                ArticuloInsumo ai = dam.getArticuloInsumo();
+                                SucursalInsumo si = sucursalInsumoService.findBySucursalIdAndArticuloInsumoId(sucursal.getId(), ai.getId());
+                                if (si == null) {
+                                    throw new RuntimeException("El articulo no tiene stock");
+                                }
+
+                                double cantidadRequerida = dam.getCantidad() * cantidadPed;
+                                double costoComponente = ai.getPrecioCompra() * cantidadRequerida;
+
+                                // Consolidar requerimientos por ID de SucursalInsumo
+                                Long siId = si.getId();
+                                requerimientos.merge(siId,
+                                        new RequerimientoInfo(si, cantidadRequerida, costoComponente),
+                                        (existing, nuevo) -> new RequerimientoInfo(
+                                                existing.getSucursalInsumo(),
+                                                existing.getCantidadRequerida() + nuevo.getCantidadRequerida(),
+                                                existing.getCostoTotal() + nuevo.getCostoTotal()
+                                        )
+                                );
+                            }
+                        } catch (EntityNotFoundException ex) {
+                            // Artículo no existe
+                            throw new RuntimeException("El articulo no existe");
+                        }
+                    }
+                }
+            }
+            if (detPed.getArticulo() != null && detPed.getArticulo().getId() != null) {
+                art = detPed.getArticulo();
+                int cantidadPed = detPed.getCantidad();
+
+                try {
+                    // Intentar como insumo directo
+                    ArticuloInsumo insumo = articuloInsumoService.getById(art.getId());
+
+                    if (!insumo.getEsParaElaborar()) {
+
+                        SucursalInsumo si = sucursalInsumoService.findBySucursalIdAndArticuloInsumoId(sucursal.getId(), insumo.getId());
+                        if (si == null) {
+                            throw new RuntimeException("El articulo no tiene stock");
+                        }
 
                         // Consolidar requerimientos por ID de SucursalInsumo
                         Long siId = si.getId();
                         requerimientos.merge(siId,
-                                new RequerimientoInfo(si, cantidadRequerida, costoComponente),
+                                new RequerimientoInfo(si, (double) cantidadPed, insumo.getPrecioCompra() * cantidadPed),
                                 (existing, nuevo) -> new RequerimientoInfo(
                                         existing.getSucursalInsumo(),
                                         existing.getCantidadRequerida() + nuevo.getCantidadRequerida(),
@@ -348,9 +447,37 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
                                 )
                         );
                     }
-                } catch (EntityNotFoundException ex) {
-                    // Artículo no existe
-                    throw new RuntimeException("Artículo con ID: " + art.getId() + " no encontrado");
+
+                } catch (EntityNotFoundException e) {
+                    // Es un artículo manufacturado
+                    try {
+                        ArticuloManufacturado man = articuloManufacturadoService.getById(art.getId());
+
+                        for (DetalleArticuloManufacturado dam : man.getDetalles()) {
+                            ArticuloInsumo ai = dam.getArticuloInsumo();
+                            SucursalInsumo si = sucursalInsumoService.findBySucursalIdAndArticuloInsumoId(sucursal.getId(), ai.getId());
+                            if (si == null) {
+                                throw new RuntimeException("El articulo no tiene stock");
+                            }
+
+                            double cantidadRequerida = dam.getCantidad() * cantidadPed;
+                            double costoComponente = ai.getPrecioCompra() * cantidadRequerida;
+
+                            // Consolidar requerimientos por ID de SucursalInsumo
+                            Long siId = si.getId();
+                            requerimientos.merge(siId,
+                                    new RequerimientoInfo(si, cantidadRequerida, costoComponente),
+                                    (existing, nuevo) -> new RequerimientoInfo(
+                                            existing.getSucursalInsumo(),
+                                            existing.getCantidadRequerida() + nuevo.getCantidadRequerida(),
+                                            existing.getCostoTotal() + nuevo.getCostoTotal()
+                                    )
+                            );
+                        }
+                    } catch (EntityNotFoundException ex) {
+                        // Artículo no existe
+                        throw new RuntimeException("El articulo no existe");
+                    }
                 }
             }
         }
@@ -370,8 +497,7 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
             si = sucursalInsumoService.getById(si.getId());
 
             if (si.getStockActual() < requerido) {
-                throw new RuntimeException("Stock insuficiente para insumo ID: " + si.getId() +
-                        ". Requerido: " + requerido + ", Disponible: " + si.getStockActual());
+                throw new RuntimeException("No hay stock del insumo ID: " + si.getId() + " en la sucursal: " + sucursal.getNombre());
             }
         }
 
@@ -407,7 +533,7 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
             }
 
             // Guardar pedido
-            for(DetallePedido detalle : pedido.getDetalles()) {
+            for (DetallePedido detalle : pedido.getDetalles()) {
                 detalle.setPedido(pedido);
             }
             pedidoRepository.save(pedido);
@@ -431,9 +557,17 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
             this.costoTotal = costoTotal;
         }
 
-        public SucursalInsumo getSucursalInsumo() { return sucursalInsumo; }
-        public double getCantidadRequerida() { return cantidadRequerida; }
-        public double getCostoTotal() { return costoTotal; }
+        public SucursalInsumo getSucursalInsumo() {
+            return sucursalInsumo;
+        }
+
+        public double getCantidadRequerida() {
+            return cantidadRequerida;
+        }
+
+        public double getCostoTotal() {
+            return costoTotal;
+        }
     }
 
     @Override

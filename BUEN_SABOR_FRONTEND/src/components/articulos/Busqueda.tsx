@@ -68,7 +68,7 @@ function Busqueda() {
   console.log("Resultados en el render:", resultados);
 
   return (
-    <div className="resultados-busqueda">
+    <div className="resultados-busqueda m-5">
       {loading && <p>Cargando resultados...</p>}
       {error && <p>Error: {error}</p>}
       {query && !loading && !error && resultados.length === 0 && (
@@ -76,7 +76,7 @@ function Busqueda() {
       )}
       {resultados.length > 1 && (
         <>
-          <h2>Resultados para "{query}"</h2>
+          <h2 className="mb-5">Resultados para "{query}"</h2>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
             {resultados.map((articulo) => (
               <CardArticulo key={articulo.id} articulo={articulo} />

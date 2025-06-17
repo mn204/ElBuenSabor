@@ -15,6 +15,6 @@ export default class Promocion {
     imagenes: ImagenPromocion[] = [];
     detalles: DetallePromocion[] = [];
     activa: boolean = false;
-    sucursal!: Sucursal;
+    sucursales!: Sucursal[];
     eliminado!: boolean;
 }

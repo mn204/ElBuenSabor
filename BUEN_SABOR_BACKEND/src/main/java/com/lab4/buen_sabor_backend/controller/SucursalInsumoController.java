@@ -45,4 +45,9 @@ public class SucursalInsumoController extends MasterControllerImpl<SucursalInsum
         List<SucursalInsumoDTO> sucursalInsumosDTO = sucursalInsumoMapper.toDTOsList(sucursalInsumos);
         return ResponseEntity.ok(sucursalInsumosDTO);
     }
+
+    @PutMapping("/agregarStock")
+    public void agregarStock(@RequestBody SucursalInsumo surcursalInsumo) {
+        sucursalInsumoService.agregarStock(surcursalInsumo);
+    }
 }

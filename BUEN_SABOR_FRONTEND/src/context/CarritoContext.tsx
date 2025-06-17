@@ -59,6 +59,7 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
     setPedido((prevPedido) => {
       let detallesExistente;
       if(articulo.id){
+        console.log(articulo)
         detallesExistente = prevPedido.detalles.find(
           (d) => d.articulo.id === articulo.id
         );
@@ -247,17 +248,6 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
       // Función para calcular el tiempo total de preparación
       const calcularTiempoPreparacion = (pedido: Pedido): number => {
         let tiempoTotalMinutos = 0;
-
-        for (const detalle of pedido.detalles) {
-          const articulo = detalle.articulo;
-
-          // Verificar si es un ArticuloManufacturado
-          if ('tiempoEstimadoMinutos' in articulo) {
-            const articuloManufacturado = articulo as ArticuloManufacturado || ArticuloInsumo;
-            // Multiplicar el tiempo por la cantidad de ese artículo
-            tiempoTotalMinutos += articuloManufacturado.tiempoEstimadoMinutos * detalle.cantidad;
-          }
-        }
 
         return tiempoTotalMinutos;
       };
