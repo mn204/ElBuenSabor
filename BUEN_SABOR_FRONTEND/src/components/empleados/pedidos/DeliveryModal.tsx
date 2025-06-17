@@ -63,8 +63,8 @@ const DeliveryModal: React.FC<Props> = ({ show, onHide, pedido }) => {
                             <strong>Delivery:</strong> {delivery?.nombre} {delivery?.apellido}<br />
                             <strong>Estado:</strong> {pedido.estado}<br /><br />
                             <Button
-                                variant="success"
                                 size="sm"
+                                variant="success"
                                 className="ms-2"
                                 onClick={() => setShowConfirm(true)}
                             >
@@ -98,12 +98,42 @@ const DeliveryModal: React.FC<Props> = ({ show, onHide, pedido }) => {
                                 </tr>
                                 </thead>
                                 <tbody>
-                                {detalles.map((detalle) => (
-                                    <tr key={detalle.id}>
-                                        <td>{detalle.articulo.denominacion}</td>
-                                        <td>{detalle.cantidad}</td>
-                                    </tr>
-                                ))}
+                                {detalles.map((detalle) => {
+                                    const esArticulo = !!detalle.articulo?.denominacion;
+                                    const esPromocion = !!detalle.promocion?.denominacion;
+
+                                    const nombre = esArticulo
+                                        ? detalle.articulo.denominacion
+                                        : esPromocion
+                                            ? `🎁 Promo: ${detalle.promocion.denominacion}`
+                                            : "Sin nombre";
+
+                                    return (
+                                        <React.Fragment key={detalle.id}>
+                                            <tr>
+                                                <td>{nombre}</td>
+                                                <td>{detalle.cantidad}</td>
+                                            </tr>
+
+                                            {/* Si es promoción, mostrar el detalle interno */}
+                                            {esPromocion && detalle.promocion.detalles?.length > 0 && (
+                                                <tr>
+                                                    <td colSpan={2}>
+                                                        <ul className="mb-0 ps-3">
+                                                            {detalle.promocion.detalles.map((dPromo) => (
+                                                                <li key={dPromo.id} className="text-muted small">
+                                                                    {dPromo.articulo?.denominacion} x{dPromo.cantidad}
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </React.Fragment>
+                                    );
+                                })}
+
+
                                 </tbody>
                             </Table>
                         </Col>

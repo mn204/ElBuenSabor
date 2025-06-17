@@ -126,32 +126,50 @@ const PedidoDetalleModal: React.FC<Props> = ({ show, onHide, pedido, onEstadoCha
             </tr>
           </thead>
           <tbody>
-            {pedido.detalles.map((d, idx) => {
-              const esArticulo = !!d.articulo?.denominacion;
-              const esPromocion = !!d.promocion?.denominacion;
+          {pedido.detalles.map((d, idx) => {
+            const esArticulo = !!d.articulo?.denominacion;
+            const esPromocion = !!d.promocion?.denominacion;
 
-              const nombre = esArticulo
+            const nombre = esArticulo
                 ? d.articulo.denominacion
                 : esPromocion
-                  ? `🎁 Promo: ${d.promocion.denominacion}`
-                  : "Sin nombre";
+                    ? `🎁 Promo: ${d.promocion.denominacion}`
+                    : "Sin nombre";
 
-              const precioUnitario = esArticulo
+            const precioUnitario = esArticulo
                 ? d.articulo.precioVenta?.toFixed(2)
                 : esPromocion
-                  ? d.promocion.precioPromocional.toFixed(2)
-                  : "-";
+                    ? d.promocion.precioPromocional.toFixed(2)
+                    : "-";
 
-              return (
-                <tr key={idx}>
-                  <td>{nombre}</td>
-                  <td>{d.cantidad}</td>
-                  <td>${precioUnitario}</td>
-                  <td>${d.subTotal.toFixed(2)}</td>
-                </tr>
-              );
-            })}
+            return (
+                <React.Fragment key={idx}>
+                  <tr>
+                    <td>{nombre}</td>
+                    <td>{d.cantidad}</td>
+                    <td>${precioUnitario}</td>
+                    <td>${d.subTotal.toFixed(2)}</td>
+                  </tr>
+
+                  {/* Subfila si es promoción */}
+                  {esPromocion && d.promocion.detalles?.length > 0 && (
+                      <tr>
+                        <td colSpan={4}>
+                          <ul className="mb-0 ps-3">
+                            {d.promocion.detalles.map((dPromo) => (
+                                <li key={dPromo.id} className="text-muted small">
+                                  {dPromo.articulo?.denominacion} x{dPromo.cantidad}
+                                </li>
+                            ))}
+                          </ul>
+                        </td>
+                      </tr>
+                  )}
+                </React.Fragment>
+            );
+          })}
           </tbody>
+
         </Table>
 
         <p><strong>Total:</strong> ${pedido.total.toFixed(2)}</p>

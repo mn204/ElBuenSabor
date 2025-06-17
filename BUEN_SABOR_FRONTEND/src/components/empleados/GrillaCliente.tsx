@@ -136,6 +136,22 @@ const GrillaCliente = () => {
 
     const columns = [
         {
+            key: "imagen",
+            label: "Imagen",
+            render: (_: any, row: Cliente) =>
+                row.usuario.photoUrl ? (
+                    <img
+                        src={row.usuario.photoUrl}
+                        alt="Foto"
+                        style={{ width: "50px", height: "50px", objectFit: "cover", borderRadius: "8px" }}
+                    />
+                ) : (
+                    "Sin imagen"
+                ),
+        },
+
+
+        {
             key: "id",
             label: "ID",
             render: (_: any, row: Cliente) => row.id,
