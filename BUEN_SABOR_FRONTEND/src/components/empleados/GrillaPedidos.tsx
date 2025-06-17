@@ -19,6 +19,7 @@ interface Props {
 }
 
 const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
+    const [loadingEstados, setLoadingEstados] = useState<Record<number, boolean>>({});
     const { sucursalActual, sucursalIdSeleccionada } = useSucursal();
     const { empleado, usuario } = useAuth();
 
@@ -136,6 +137,9 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
 
     const handleCambiarEstado = async (pedidoId: number, nuevoEstado: Estado) => {
         try {
+            // Activar loading para este pedido específico
+            setLoadingEstados(prev => ({ ...prev, [pedidoId]: true }));
+
             const pedido = pedidos.find(p => p.id === pedidoId);
             if (!pedido) {
                 alert("Pedido no encontrado");
@@ -169,6 +173,9 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
         } catch (error) {
             console.error("Error al cambiar estado:", error);
             alert("Error al cambiar el estado del pedido");
+        } finally {
+            // Desactivar loading para este pedido
+            setLoadingEstados(prev => ({ ...prev, [pedidoId]: false }));
         }
     };
 
@@ -359,7 +366,7 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
             render: (_: any, row: Pedido) => {
                 const estadosDisponibles = getEstadosDisponibles(row.estado);
                 const botonDeshabilitado = isBotonCambioDeshabilitado(row.estado);
-
+                const isLoadingEstado = loadingEstados[row.id!] || false;
                 return (
                     <div className="d-flex flex-column gap-1">
                         <div className="d-flex gap-2 align-items-center">
@@ -368,7 +375,7 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
                                 className={`border-${getColorEstado(row.estado)}`}
                                 value={estadoSeleccionado[row.id!] || row.estado}
                                 onChange={(e) => setEstadoSeleccionado({ ...estadoSeleccionado, [row.id!]: e.target.value as Estado })}
-                                disabled={botonDeshabilitado}
+                                disabled={botonDeshabilitado || isLoadingEstado}
                             >
                                 {estadosDisponibles.map((estado) => (
                                     <option key={estado} value={estado}>{estado}</option>
@@ -378,9 +385,18 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
                                 size="sm"
                                 variant={getColorEstado(estadoSeleccionado[row.id!] || row.estado)}
                                 onClick={() => handleCambiarEstado(row.id!, estadoSeleccionado[row.id!] || row.estado)}
-                                disabled={botonDeshabilitado || !estadoSeleccionado[row.id!] || estadoSeleccionado[row.id!] === row.estado}
+                                disabled={botonDeshabilitado || !estadoSeleccionado[row.id!] || estadoSeleccionado[row.id!] === row.estado || isLoadingEstado}
                             >
-                                Cambiar
+                                {isLoadingEstado ? (
+                                    <>
+                                        <div className="spinner-border spinner-border-sm me-2" role="status">
+                                            <span className="visually-hidden">Cambiando estado...</span>
+                                        </div>
+                                        Cambiando Estado...
+                                    </>
+                                ) : (
+                                    'Cambiar'
+                                )}
                             </Button>
                         </div>
                         <div className="d-flex gap-2">
