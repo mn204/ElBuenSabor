@@ -57,10 +57,12 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
   // 2. MODIFICAR LA FUNCIÓN agregarAlCarrito EXISTENTE
   const agregarAlCarrito = (articulo: Articulo, cantidad: number) => {
     setPedido((prevPedido) => {
-      // Lógica original para artículos sin promoción
-      const detallesExistente = prevPedido.detalles.find(
-        (d) => d.articulo.id === articulo.id
-      );
+      let detallesExistente;
+      if(articulo.id){
+        detallesExistente = prevPedido.detalles.find(
+          (d) => d.articulo.id === articulo.id
+        );
+      }
 
       let nuevosdetalles: PedidoDetalle[];
       if (detallesExistente) {

@@ -11,7 +11,7 @@ const CardArticulo: React.FC<Props> = ({ articulo }) => {
     const carritoCtx = useCarrito();
   
   const handleAgregarAlCarrito = () => {
-    if (carritoCtx && articulo) {
+    if (carritoCtx && articulo.id) {
       console.log(articulo)
       carritoCtx.agregarAlCarrito(articulo, 1);
     }

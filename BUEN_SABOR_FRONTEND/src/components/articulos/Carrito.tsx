@@ -172,113 +172,115 @@ export function Carrito() {
     return (
       <>
         {carrito.length === 0 ? (
-          <div style={{minHeight: "60vh"}} className="d-flex align-items-center justify-content-center">No hay artículos en el carrito</div>
+          <div style={{ minHeight: "60vh" }} className="d-flex align-items-center justify-content-center">No hay artículos en el carrito</div>
         ) : (
           <>
-            {carrito.map((item) =>
-              item.promocion ? (
-                <div key={`promo-${item.promocion.id}`} className="d-flex align-items-center mb-3 border-bottom pb-2">
-                  <img
-                    src={item.promocion.imagenes[0]?.denominacion}
-                    alt="Imagen del artículo"
-                    className="rounded"
-                    style={{ width: "200px", height: "200px", objectFit: "cover", marginRight: "10px" }}
-                  />
-                  <div className="flex-grow-1">
-                    <div className="d-flex justify-content-between mb-2 pb-2">
-                      <strong>{item.promocion.denominacion}</strong>
-                      <button
-                        className="btn btn-outline-danger btn-sm"
-                        style={{ width: "30px", height: "30px" }}
-                        onClick={() => quitarPromocionCompleta(item.promocion.id)}
-                      >
-                        X
-                      </button>
-                    </div>
-                    <div className="d-flex align-items-center justify-content-between">
-                      <small>Precio: ${item.promocion.precioPromocional.toFixed(2)}</small>
-                      <div className="d-flex align-items-center mx-2">
+            <div style={{margin: "20px 250px"}}>
+              {carrito.map((item) =>
+                item.promocion ? (
+                  <div key={`promo-${item.promocion.id}`} className="d-flex align-items-center mb-3 border-bottom pb-2">
+                    <img
+                      src={item.promocion.imagenes[0]?.denominacion}
+                      alt="Imagen del artículo"
+                      className="rounded"
+                      style={{ width: "200px", height: "200px", objectFit: "cover", marginRight: "10px" }}
+                    />
+                    <div className="flex-grow-1">
+                      <div className="d-flex justify-content-between mb-2 pb-2">
+                        <strong>{item.promocion.denominacion}</strong>
                         <button
-                          className="btn btn-outline-secondary btn-sm"
-                          style={{ background: "white", color: "black" }}
-                          onClick={() => restarDelCarrito(item.promocion.id)}
+                          className="btn btn-outline-danger btn-sm"
+                          style={{ width: "30px", height: "30px" }}
+                          onClick={() => quitarPromocionCompleta(item.promocion.id)}
                         >
-                          <strong>-</strong>
-                        </button>
-                        <span className="mx-2">{item.cantidad}</span>
-                        <button
-                          className="btn btn-outline-secondary btn-sm"
-                          style={{ background: "white", color: "black" }}
-                          onClick={() => agregarPromocionAlCarrito(item.promocion!)}
-                        >
-                          <strong>+</strong>
+                          X
                         </button>
                       </div>
+                      <div className="d-flex align-items-center justify-content-between">
+                        <small>Precio: ${item.promocion.precioPromocional.toFixed(2)}</small>
+                        <div className="d-flex align-items-center mx-2">
+                          <button
+                            className="btn btn-outline-secondary btn-sm"
+                            style={{ background: "white", color: "black" }}
+                            onClick={() => restarDelCarrito(item.promocion.id)}
+                          >
+                            <strong>-</strong>
+                          </button>
+                          <span className="mx-2">{item.cantidad}</span>
+                          <button
+                            className="btn btn-outline-secondary btn-sm"
+                            style={{ background: "white", color: "black" }}
+                            onClick={() => agregarPromocionAlCarrito(item.promocion!)}
+                          >
+                            <strong>+</strong>
+                          </button>
+                        </div>
+                      </div>
+                      <div className="text-end mt-4">Subtotal: ${item.subTotal.toFixed(2)}</div>
                     </div>
-                    <div className="text-end mt-4">Subtotal: ${item.subTotal.toFixed(2)}</div>
                   </div>
-                </div>
-              ) : (
-                <div key={`articulo-${item.articulo.id}`} className="d-flex align-items-center mb-3 border-bottom pb-2">
-                  <img
-                    src={item.articulo.imagenes[0]?.denominacion}
-                    alt="Imagen del artículo"
-                    className="rounded"
-                    style={{ width: "200px", height: "200px", objectFit: "cover", marginRight: "10px" }}
-                  />
-                  <div className="flex-grow-1">
-                    <div className="d-flex justify-content-between mb-2 pb-2">
-                      <strong>{item.articulo.denominacion}</strong>
-                      <button
-                        className="btn btn-outline-danger btn-sm"
-                        style={{ width: "30px", height: "30px" }}
-                        onClick={() => quitarDelCarrito(item.articulo.id)}
-                      >
-                        X
-                      </button>
-                    </div>
-                    <div className="d-flex align-items-center justify-content-between">
-                      <small>Precio: ${item.articulo.precioVenta.toFixed(2)}</small>
-                      <div className="d-flex align-items-center mx-2">
+                ) : (
+                  <div key={`articulo-${item.articulo.id}`} className="d-flex align-items-center mb-3 border-bottom pb-2">
+                    <img
+                      src={item.articulo.imagenes[0]?.denominacion}
+                      alt="Imagen del artículo"
+                      className="rounded"
+                      style={{ width: "200px", height: "200px", objectFit: "cover", marginRight: "10px" }}
+                    />
+                    <div className="flex-grow-1">
+                      <div className="d-flex justify-content-between mb-2 pb-2">
+                        <strong>{item.articulo.denominacion}</strong>
                         <button
-                          className="btn btn-outline-secondary btn-sm"
-                          style={{ background: "white", color: "black" }}
-                          onClick={() => restarDelCarrito(item.articulo.id)}
+                          className="btn btn-outline-danger btn-sm"
+                          style={{ width: "30px", height: "30px" }}
+                          onClick={() => quitarDelCarrito(item.articulo.id)}
                         >
-                          <strong>-</strong>
-                        </button>
-                        <span className="mx-2">{item.cantidad}</span>
-                        <button
-                          className="btn btn-outline-secondary btn-sm"
-                          style={{ background: "white", color: "black" }}
-                          onClick={() => agregarAlCarrito(item.articulo, 1)}
-                        >
-                          <strong>+</strong>
+                          X
                         </button>
                       </div>
+                      <div className="d-flex align-items-center justify-content-between">
+                        <small>Precio: ${item.articulo.precioVenta.toFixed(2)}</small>
+                        <div className="d-flex align-items-center mx-2">
+                          <button
+                            className="btn btn-outline-secondary btn-sm"
+                            style={{ background: "white", color: "black" }}
+                            onClick={() => restarDelCarrito(item.articulo.id)}
+                          >
+                            <strong>-</strong>
+                          </button>
+                          <span className="mx-2">{item.cantidad}</span>
+                          <button
+                            className="btn btn-outline-secondary btn-sm"
+                            style={{ background: "white", color: "black" }}
+                            onClick={() => agregarAlCarrito(item.articulo, 1)}
+                          >
+                            <strong>+</strong>
+                          </button>
+                        </div>
+                      </div>
+                      <div className="text-end mt-4">Subtotal: ${item.subTotal.toFixed(2)}</div>
                     </div>
-                    <div className="text-end mt-4">Subtotal: ${item.subTotal.toFixed(2)}</div>
                   </div>
-                </div>
-              )
-            )}
+                )
+              )}
 
-            <div className="mt-3 text-end">
-              <strong>
-                Total: $
-                {carrito.reduce((acc, item) => acc + item.subTotal, 0).toFixed(2)}
-              </strong>
-            </div>
+              <div className="mt-3 text-end">
+                <strong>
+                  Total: $
+                  {carrito.reduce((acc, item) => acc + item.subTotal, 0).toFixed(2)}
+                </strong>
+              </div>
 
-            <div className="d-flex justify-content-between mt-3">
-              <button className="btn btn-warning" onClick={limpiarCarrito}>Limpiar carrito</button>
-              <button
-                className="btn btn-success"
-                onClick={handleProceedToStep2}
-                disabled={verificandoStock}
-              >
-                {verificandoStock ? 'Verificando stock...' : 'Realizar pedido'}
-              </button>
+              <div className="d-flex justify-content-between mt-3">
+                <button className="btn btn-warning" onClick={limpiarCarrito}>Limpiar carrito</button>
+                <button
+                  className="btn btn-success"
+                  onClick={handleProceedToStep2}
+                  disabled={verificandoStock}
+                >
+                  {verificandoStock ? 'Verificando stock...' : 'Realizar pedido'}
+                </button>
+              </div>
             </div>
           </>
         )}

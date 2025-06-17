@@ -2,7 +2,7 @@ import '../../styles/navbar.css'
 import IconoEmpresa from '../../assets/IconoEmpresa.jpg';
 import Vector from '../../assets/Carrito.svg';
 import Buscador from './Buscador';
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Dropdown, Modal, Form } from 'react-bootstrap'; // <- Agregado Form aquí
 import LoginUsuario from '../auth/LoginUsuario.tsx';
 import { Link, useNavigate } from 'react-router-dom';
@@ -10,8 +10,10 @@ import RegisterCliente from '../auth/RegisterCliente.tsx';
 import { useAuth } from "../../context/AuthContext.tsx";
 import { useSucursal } from "../../context/SucursalContextEmpleado.tsx";
 import { useSucursalUsuario } from '../../context/SucursalContext.tsx';
+import { useCarrito } from '../../hooks/useCarrito.ts';
 
 function Navbar() {
+    const carritoCtx = useCarrito();
     const [showModal, setShowModal] = useState(false);
     const [isLoginView, setIsLoginView] = useState(true);
     const [busqueda, setBusqueda] = useState("");
@@ -19,6 +21,10 @@ function Navbar() {
     const { isAuthenticated, getUserDisplayName, logout, usuario, user, empleado } = useAuth();
     const { sucursalActual, sucursales, cambiarSucursal, esModoTodasSucursales } = useSucursal();
     const { sucursalActualUsuario, sucursalesUsuario, cambiarSucursalUsuario } = useSucursalUsuario();
+    const cantidadArticulos = useMemo(() => {
+        return carritoCtx.pedido.detalles.reduce((total, item) => total + item.cantidad, 0);
+    }, [carritoCtx.pedido.detalles]);
+
 
     const handleOpenLogin = () => {
         setIsLoginView(true);
@@ -201,7 +207,10 @@ function Navbar() {
                         )}
 
                         {(!isAuthenticated || usuario?.rol === "CLIENTE") && (
-                            <Link to="/carrito" className="btnCarrito">
+                            <Link to="/carrito" className="btnCarrito position-relative" style={{ textDecoration: "none" }}>
+                                {cantidadArticulos > 0 &&
+                                    <span className='position-absolute text-white' style={{ bottom: 0, left: 0, backgroundColor: "red", borderRadius: 100, padding: "1px 6px", fontSize: 10 }}>{cantidadArticulos}</span>
+                                }
                                 <img className="carrito" src={Vector} alt="logoCarrito" />
                             </Link>
                         )}
