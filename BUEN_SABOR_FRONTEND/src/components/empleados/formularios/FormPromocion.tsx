@@ -51,6 +51,17 @@ function FormPromocion() {
         }
     }, [showModal]);
 
+    // Utilidades
+    const totalArticulos = detalles!.reduce((acc, det) => {
+        const precio = det.articulo?.precioVenta ?? 0;
+        return acc + precio * det.cantidad;
+    }, 0);
+
+    const totalConGanancia = totalArticulos + (totalArticulos * (porcentajeGanancia / 100));
+    useEffect(() => {
+        setPrecio(totalConGanancia)
+    }, [totalConGanancia]);
+
     const cargarArticulos = () => {
         ArticuloInsumoService.getAllNoParaElaborar().then(setArticulos);
         ArticuloManufacturadoService.getAll().then((art) => setArticulos(prev => [...prev, ...art]));
@@ -67,13 +78,6 @@ function FormPromocion() {
         setDetalles([])
         setImagenes([])
     }
-    // Utilidades
-    const totalArticulos = detalles!.reduce((acc, det) => {
-        const precio = det.articulo?.precioVenta ?? 0;
-        return acc + precio * det.cantidad;
-    }, 0);
-
-    const totalConGanancia = totalArticulos + (totalArticulos * (porcentajeGanancia / 100));
 
 
     // Handlers
@@ -501,7 +505,7 @@ function FormPromocion() {
                         </div>
                         <hr />
                         <div className="d-flex justify-content-between align-items-center mb-3">
-                            <span className="fs-5 fw-bold">Precio:</span>
+                            <span className="fs-5 fw-bold">Precio: {totalConGanancia.toFixed(2)}</span>
                             <div className="d-flex align-items-center justify-content-between gap-3 mb-3">
                                 <span className="fs-6">% Ganancia:</span>
                                 <input

@@ -8,7 +8,7 @@ import {
     actualizarEmailPorFirebaseUid,
     obtenerUsuarioPorEmail
 } from "../../services/UsuarioService.ts";
-import {Button, Col, Container, Form, Modal, Row} from "react-bootstrap";
+import {Button, Col, Container, Form, Modal, Row, Card, Badge} from "react-bootstrap";
 import {useState} from "react";
 import FormDatosCliente from "../clientes/FormDatosCliente.tsx";
 import FormDatosEmpleado from "../empleados/FormDatosEmpleado.tsx";
@@ -26,8 +26,6 @@ function Perfil() {
 
     const handleAbrirModalEmail = () => setShowEmailModal(true);
     const handleCerrarModalEmail = () => setShowEmailModal(false);
-
-
 
     const [newEmail1, setNewEmail1] = useState('');
     const [newEmail2, setNewEmail2] = useState('');
@@ -60,7 +58,6 @@ function Perfil() {
         const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return regex.test(email);
     }
-
 
     const handleNewEmail1Change = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
@@ -197,62 +194,252 @@ function Perfil() {
         }
     };
 
-
     return (
-        <div>
-            <Container className="perfil text-center">
-                <h2 className="perfilTitle">Mi Perfil</h2>
+        <div className="bg-light min-vh-100 py-5">
+            <Container className="perfil">
+                {/* Header con gradiente */}
+                <div className="text-center mb-5">
+                    <div className="bg-primary text-white py-4 rounded-top" style={{
+                        background: 'linear-gradient(135deg, #007bff 0%, #0056b3 100%)',
+                        boxShadow: '0 4px 15px rgba(0, 123, 255, 0.3)'
+                    }}>
+                        <h1 className="display-5 fw-bold mb-0">
+                            <i className="bi bi-person-circle me-3"></i>
+                            Mi Perfil
+                        </h1>
+                        <p className="lead mb-0 opacity-75">Gestiona tu información personal</p>
+                    </div>
+                </div>
 
-                <Row className="perfilContainer justify-content-center align-items-center">
-                    {/* DATOS */}
-                    <Col xs={12} md={6} className="text-md-start text-center">
-                        <div className="perfilInfo">
-                            <p className="perfilInfoText">Nombre: {nombre} {apellido}</p>
-                            <p className="perfilInfoText">DNI: {dni}</p>
-                            <p className="perfilInfoText">Fecha de nacimiento: {fechaFormateada}</p>
-                            {esEmpleado && <p className="perfilInfoText">Rol: {rol}</p>}
-                            {esEmpleado && <p className="perfilInfoText">Sucursal: {empleado?.sucursal?.nombre}</p>}
-                            <p className="perfilInfoText">Email: {email}</p>
-                            <p className="perfilInfoText">Teléfono: {telefono}</p>
-                            {esEmpleado && domicilio && (
-                                <p className="perfilInfoText">
-                                    Domicilio: {domicilio.calle} {domicilio.numero}, {domicilio.localidad.nombre}, {domicilio.localidad.provincia.nombre}, {domicilio.localidad.provincia.pais.nombre}
-                                </p>
-                            )}
-                        </div>
-                    </Col>
+                {/* Card principal */}
+                <Card className="shadow-lg border-0 rounded-4 overflow-hidden">
+                    <Card.Body className="p-0">
+                        <Row className="g-0">
+                            {/* Sección de información */}
+                            <Col lg={8} className="p-4 p-lg-5">
+                                <div className="mb-4">
+                                    <h3 className="text-primary mb-3 fw-bold">
+                                        <i className="bi bi-info-circle me-2"></i>
+                                        Información Personal
+                                    </h3>
+                                    
+                                    <Row className="g-4">
+                                        <Col md={6}>
+                                            <div className="info-item p-3 bg-light rounded-3 h-100">
+                                                <div className="d-flex align-items-center mb-2">
+                                                    <i className="bi bi-person-fill text-primary me-2"></i>
+                                                    <small className="text-muted fw-semibold">NOMBRE COMPLETO</small>
+                                                </div>
+                                                <p className="mb-0 fw-bold text-dark">{nombre} {apellido}</p>
+                                            </div>
+                                        </Col>
+                                        
+                                        <Col md={6}>
+                                            <div className="info-item p-3 bg-light rounded-3 h-100">
+                                                <div className="d-flex align-items-center mb-2">
+                                                    <i className="bi bi-card-text text-primary me-2"></i>
+                                                    <small className="text-muted fw-semibold">DNI</small>
+                                                </div>
+                                                <p className="mb-0 fw-bold text-dark">{dni}</p>
+                                            </div>
+                                        </Col>
+                                        
+                                        <Col md={6}>
+                                            <div className="info-item p-3 bg-light rounded-3 h-100">
+                                                <div className="d-flex align-items-center mb-2">
+                                                    <i className="bi bi-calendar-date text-primary me-2"></i>
+                                                    <small className="text-muted fw-semibold">FECHA DE NACIMIENTO</small>
+                                                </div>
+                                                <p className="mb-0 fw-bold text-dark">{fechaFormateada}</p>
+                                            </div>
+                                        </Col>
+                                        
+                                        <Col md={6}>
+                                            <div className="info-item p-3 bg-light rounded-3 h-100">
+                                                <div className="d-flex align-items-center mb-2">
+                                                    <i className="bi bi-telephone-fill text-primary me-2"></i>
+                                                    <small className="text-muted fw-semibold">TELÉFONO</small>
+                                                </div>
+                                                <p className="mb-0 fw-bold text-dark">{telefono}</p>
+                                            </div>
+                                        </Col>
+                                        
+                                        <Col md={12}>
+                                            <div className="info-item p-3 bg-light rounded-3 h-100">
+                                                <div className="d-flex align-items-center mb-2">
+                                                    <i className="bi bi-envelope-fill text-primary me-2"></i>
+                                                    <small className="text-muted fw-semibold">EMAIL</small>
+                                                </div>
+                                                <p className="mb-0 fw-bold text-dark">{email}</p>
+                                            </div>
+                                        </Col>
+                                        
+                                        {esEmpleado && (
+                                            <>
+                                                <Col md={6}>
+                                                    <div className="info-item p-3 bg-warning bg-opacity-10 rounded-3 h-100 border border-warning border-opacity-25">
+                                                        <div className="d-flex align-items-center mb-2">
+                                                            <i className="bi bi-shield-fill-check text-warning me-2"></i>
+                                                            <small className="text-muted fw-semibold">ROL</small>
+                                                        </div>
+                                                        <div className="d-flex align-items-center">
+                                                            <Badge bg="warning" text="dark" className="px-3 py-2 fs-6">
+                                                                {rol}
+                                                            </Badge>
+                                                        </div>
+                                                    </div>
+                                                </Col>
+                                                
+                                                <Col md={6}>
+                                                    <div className="info-item p-3 bg-success bg-opacity-10 rounded-3 h-100 border border-success border-opacity-25">
+                                                        <div className="d-flex align-items-center mb-2">
+                                                            <i className="bi bi-building text-success me-2"></i>
+                                                            <small className="text-muted fw-semibold">SUCURSAL</small>
+                                                        </div>
+                                                        <p className="mb-0 fw-bold text-success">{empleado?.sucursal?.nombre}</p>
+                                                    </div>
+                                                </Col>
+                                                
+                                                {domicilio && (
+                                                    <Col md={12}>
+                                                        <div className="info-item p-3 bg-light rounded-3">
+                                                            <div className="d-flex align-items-center mb-2">
+                                                                <i className="bi bi-geo-alt-fill text-primary me-2"></i>
+                                                                <small className="text-muted fw-semibold">DOMICILIO</small>
+                                                            </div>
+                                                            <p className="mb-0 fw-bold text-dark">
+                                                                {domicilio.calle} {domicilio.numero}, {domicilio.localidad.nombre}, {domicilio.localidad.provincia.nombre}, {domicilio.localidad.provincia.pais.nombre}
+                                                            </p>
+                                                        </div>
+                                                    </Col>
+                                                )}
+                                            </>
+                                        )}
+                                    </Row>
+                                </div>
+                            </Col>
 
-                    {/* IMAGEN */}
-                    <Col xs={12} md="auto" className="text-center mt-4 mt-md-0">
-                        <div className="perfilImagenContainer position-relative mx-auto">
-                            <img
-                                src={user?.photoURL || usuario?.photoUrl || LogoEmpresa}
-                                alt="Imagen de perfil"
-                                className="perfilImagen rounded-circle"
-                            />
-                            {esCliente && providerId === "password" && (
-                                <i
-                                    className="bi bi-pencil-fill position-absolute bottom-0 end-0 bg-white rounded-circle p-1"
-                                    role="button"
-                                    onClick={handleAbrirModalImagen}
-                                    style={{ cursor: "pointer" }}
-                                ></i>
-                            )}
-                        </div>
-                    </Col>
-                </Row>
+                            {/* Sección de imagen */}
+                            <Col lg={4} className="bg-gradient p-4 p-lg-5 d-flex flex-column align-items-center justify-content-center text-center" style={{
+                                background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)'
+                            }}>
+                                <div className="position-relative mb-4">
+                                    <div className="position-relative">
+                                        <img
+                                            src={user?.photoURL || usuario?.photoUrl || LogoEmpresa}
+                                            alt="Imagen de perfil"
+                                            className="rounded-circle shadow-lg border border-4 border-white"
+                                            style={{ 
+                                                width: '180px', 
+                                                height: '180px', 
+                                                objectFit: 'cover',
+                                                boxShadow: '0 8px 25px rgba(0,0,0,0.15)'
+                                            }}
+                                        />
+                                        {esCliente && providerId === "password" && (
+                                            <Button
+                                                variant="primary"
+                                                size="sm"
+                                                className="position-absolute bottom-0 end-0 rounded-circle p-2 shadow"
+                                                onClick={handleAbrirModalImagen}
+                                                style={{ 
+                                                    width: '40px', 
+                                                    height: '40px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center'
+                                                }}
+                                            >
+                                                <i className="bi bi-camera-fill"></i>
+                                            </Button>
+                                        )}
+                                    </div>
+                                </div>
+                                
+                                <div className="text-center">
+                                    <h4 className="fw-bold text-dark mb-1">{nombre} {apellido}</h4>
+                                    {esEmpleado && (
+                                        <Badge bg="primary" className="mb-3 px-3 py-2">
+                                            <i className="bi bi-briefcase-fill me-1"></i>
+                                            {rol}
+                                        </Badge>
+                                    )}
+                                    {esCliente && (
+                                        <Badge bg="success" className="mb-3 px-3 py-2">
+                                            <i className="bi bi-person-fill me-1"></i>
+                                            Cliente
+                                        </Badge>
+                                    )}
+                                </div>
+                            </Col>
+                        </Row>
+                    </Card.Body>
+                </Card>
 
-                {/* BOTONES */}
-                <div className="buttons d-flex flex-column justify-content-center align-items-center">
-                    {/* Mostrar botón para cualquier usuario autenticado */}
-                    <button className="perfilButton" onClick={() => setShowFormDatos(true)}>Cambiar datos personales</button>
-                    {esCliente && providerId === 'password' && (
-                        <button className="perfilButton" onClick={handleAbrirModalEmail}>Cambiar el Mail</button>
-                    )}
-                    {((esCliente && providerId === 'password') || esEmpleado) && (
-                        <button className="perfilButton" onClick={handleCambiarContrasena}>Cambiar Contraseña</button>
-                    )}
-                    <button className="perfilButton" onClick={handleCerrarSesion}>Cerrar Sesión</button>
+                {/* Botones de acción */}
+                <div className="mt-5">
+                    <Card className="shadow border-0 rounded-4">
+                        <Card.Body className="p-4">
+                            <h4 className="text-primary mb-4 fw-bold">
+                                <i className="bi bi-gear-fill me-2"></i>
+                                Configuración de Cuenta
+                            </h4>
+                            
+                            <Row className="g-3">
+                                <Col lg={6}>
+                                    <Button 
+                                        variant="outline-primary" 
+                                        size="lg" 
+                                        className="w-100 py-3 fw-semibold rounded-3 border-2"
+                                        onClick={() => setShowFormDatos(true)}
+                                    >
+                                        <i className="bi bi-person-gear me-2"></i>
+                                        Cambiar Datos Personales
+                                    </Button>
+                                </Col>
+                                
+                                {esCliente && providerId === 'password' && (
+                                    <Col lg={6}>
+                                        <Button 
+                                            variant="outline-info" 
+                                            size="lg" 
+                                            className="w-100 py-3 fw-semibold rounded-3 border-2"
+                                            onClick={handleAbrirModalEmail}
+                                        >
+                                            <i className="bi bi-envelope-at me-2"></i>
+                                            Cambiar Email
+                                        </Button>
+                                    </Col>
+                                )}
+                                
+                                {((esCliente && providerId === 'password') || esEmpleado) && (
+                                    <Col lg={6}>
+                                        <Button 
+                                            variant="outline-warning" 
+                                            size="lg" 
+                                            className="w-100 py-3 fw-semibold rounded-3 border-2"
+                                            onClick={handleCambiarContrasena}
+                                        >
+                                            <i className="bi bi-key me-2"></i>
+                                            Cambiar Contraseña
+                                        </Button>
+                                    </Col>
+                                )}
+                                
+                                <Col lg={6}>
+                                    <Button 
+                                        variant="outline-danger" 
+                                        size="lg" 
+                                        className="w-100 py-3 fw-semibold rounded-3 border-2"
+                                        onClick={handleCerrarSesion}
+                                    >
+                                        <i className="bi bi-box-arrow-right me-2"></i>
+                                        Cerrar Sesión
+                                    </Button>
+                                </Col>
+                            </Row>
+                        </Card.Body>
+                    </Card>
                 </div>
             </Container>
 
@@ -284,89 +471,143 @@ function Perfil() {
                 />
             )}
 
-            {/* modal email */ }
-            <Modal show={showEmailModal} onHide={handleCerrarModalEmail} centered>
-                <Modal.Header closeButton>
-                    <Modal.Title>Cambiar Email</Modal.Title>
+            {/* Modal email */}
+            <Modal show={showEmailModal} onHide={handleCerrarModalEmail} centered size="lg">
+                <Modal.Header closeButton className="border-0 pb-0">
+                    <Modal.Title className="text-primary fw-bold">
+                        <i className="bi bi-envelope-at me-2"></i>
+                        Cambiar Email
+                    </Modal.Title>
                 </Modal.Header>
-                <Modal.Body>
-                    <p>Cambiar el mail te pedira que vuelvas a loguearte a la pagina.</p>
+                <Modal.Body className="px-4 py-4">
+                    <div className="alert alert-info border-0 rounded-3 mb-4">
+                        <i className="bi bi-info-circle me-2"></i>
+                        Cambiar el email te pedirá que vuelvas a loguearte en la página.
+                    </div>
 
                     <Form>
-                        <Form.Group>
-                            <Form.Label>Nuevo Email</Form.Label>
-                            <Form.Control
-                                type="email"
-                                value={newEmail1}
-                                onChange={handleNewEmail1Change}
-                                placeholder="Ingresá tu nuevo email"
-                                isInvalid={!!email1Error}
-                            />
-                            <Form.Control.Feedback type="invalid">
-                                {email1Error}
-                            </Form.Control.Feedback>
-                        </Form.Group>
+                        <Row className="g-4">
+                            <Col md={6}>
+                                <Form.Group>
+                                    <Form.Label className="fw-semibold text-dark">
+                                        <i className="bi bi-envelope me-1"></i>
+                                        Nuevo Email
+                                    </Form.Label>
+                                    <Form.Control
+                                        type="email"
+                                        size="lg"
+                                        value={newEmail1}
+                                        onChange={handleNewEmail1Change}
+                                        placeholder="Ingresá tu nuevo email"
+                                        isInvalid={!!email1Error}
+                                        className="rounded-3"
+                                    />
+                                    <Form.Control.Feedback type="invalid">
+                                        {email1Error}
+                                    </Form.Control.Feedback>
+                                </Form.Group>
+                            </Col>
 
-                        <Form.Group>
-                            <Form.Label>Repetir Email</Form.Label>
-                            <Form.Control
-                                type="email"
-                                value={newEmail2}
-                                onChange={handleNewEmail2Change}
-                                placeholder="Repetí tu nuevo email"
-                                isInvalid={!!email2Error}
-                            />
-                            <Form.Control.Feedback type="invalid">
-                                {email2Error}
-                            </Form.Control.Feedback>
-                        </Form.Group>
+                            <Col md={6}>
+                                <Form.Group>
+                                    <Form.Label className="fw-semibold text-dark">
+                                        <i className="bi bi-envelope-check me-1"></i>
+                                        Repetir Email
+                                    </Form.Label>
+                                    <Form.Control
+                                        type="email"
+                                        size="lg"
+                                        value={newEmail2}
+                                        onChange={handleNewEmail2Change}
+                                        placeholder="Repetí tu nuevo email"
+                                        isInvalid={!!email2Error}
+                                        className="rounded-3"
+                                    />
+                                    <Form.Control.Feedback type="invalid">
+                                        {email2Error}
+                                    </Form.Control.Feedback>
+                                </Form.Group>
+                            </Col>
 
-                        <Form.Group className="mt-3">
-                            <Form.Label>Contraseña actual</Form.Label>
-                            <Form.Control
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                placeholder="Ingresá tu contraseña"
-                            />
-                        </Form.Group>
-                        {error && <p className="text-danger mt-2">{error}</p>}
-                        {success && <p className="text-success mt-2">{success}</p>}
+                            <Col md={12}>
+                                <Form.Group>
+                                    <Form.Label className="fw-semibold text-dark">
+                                        <i className="bi bi-lock me-1"></i>
+                                        Contraseña Actual
+                                    </Form.Label>
+                                    <Form.Control
+                                        type="password"
+                                        size="lg"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        placeholder="Ingresá tu contraseña actual"
+                                        className="rounded-3"
+                                    />
+                                </Form.Group>
+                            </Col>
+                        </Row>
+                        
+                        {error && (
+                            <div className="alert alert-danger border-0 rounded-3 mt-3">
+                                <i className="bi bi-exclamation-triangle me-2"></i>
+                                {error}
+                            </div>
+                        )}
+                        {success && (
+                            <div className="alert alert-success border-0 rounded-3 mt-3">
+                                <i className="bi bi-check-circle me-2"></i>
+                                {success}
+                            </div>
+                        )}
                     </Form>
                 </Modal.Body>
-                <Modal.Footer>
-                    <Button variant="secondary" onClick={handleCerrarModalEmail}>
+                <Modal.Footer className="border-0 pt-0">
+                    <Button variant="outline-secondary" size="lg" onClick={handleCerrarModalEmail} className="px-4 rounded-3">
+                        <i className="bi bi-x-lg me-1"></i>
                         Cancelar
                     </Button>
-                    <Button variant="primary" onClick={handleEmailChange}>
+                    <Button variant="primary" size="lg" onClick={handleEmailChange} className="px-4 rounded-3 fw-semibold">
+                        <i className="bi bi-check-lg me-1"></i>
                         Cambiar Email
                     </Button>
                 </Modal.Footer>
             </Modal>
 
-            {/* modal imagen */}
-            <Modal show={showImagenModal} onHide={handleCerrarModalImagen}>
-                <Modal.Header closeButton>
-                    <Modal.Title>Actualizar imagen de perfil</Modal.Title>
+            {/* Modal imagen */}
+            <Modal show={showImagenModal} onHide={handleCerrarModalImagen} centered>
+                <Modal.Header closeButton className="border-0 pb-0">
+                    <Modal.Title className="text-primary fw-bold">
+                        <i className="bi bi-camera me-2"></i>
+                        Actualizar Imagen de Perfil
+                    </Modal.Title>
                 </Modal.Header>
-                <Modal.Body>
-                    <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => setNuevaImagen(e.target.files?.[0] || null)}
-                    />
+                <Modal.Body className="px-4 py-4">
+                    <div className="text-center mb-4">
+                        <div className="upload-area p-4 border border-2 border-dashed border-primary rounded-3 bg-light">
+                            <i className="bi bi-cloud-upload display-4 text-primary mb-3"></i>
+                            <p className="text-muted mb-3">Selecciona una nueva imagen para tu perfil</p>
+                            <Form.Control
+                                type="file"
+                                accept="image/*"
+                                size="lg"
+                                onChange={(e) => setNuevaImagen(e.target.files?.[0] || null)}
+                                className="rounded-3"
+                            />
+                        </div>
+                    </div>
                 </Modal.Body>
-                <Modal.Footer>
-                    <Button variant="secondary" onClick={handleCerrarModalImagen}>
+                <Modal.Footer className="border-0 pt-0">
+                    <Button variant="outline-secondary" size="lg" onClick={handleCerrarModalImagen} className="px-4 rounded-3">
+                        <i className="bi bi-x-lg me-1"></i>
                         Cancelar
                     </Button>
-                    <Button variant="primary" onClick={handleSubirImagen}>
+                    <Button variant="primary" size="lg" onClick={handleSubirImagen} className="px-4 rounded-3 fw-semibold">
+                        <i className="bi bi-upload me-1"></i>
                         Subir Imagen
                     </Button>
                 </Modal.Footer>
             </Modal>
-
-            </div>
+        </div>
     );
 }
 
