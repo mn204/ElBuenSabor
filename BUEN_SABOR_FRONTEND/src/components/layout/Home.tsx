@@ -55,7 +55,7 @@ function Home() {
 
             <h2 className='categoriasTitle'>¡Nuestras Promos!</h2>
             {promocion.length > 0 ? (
-                <div className="promociones-container d-flex gap-2 m-5">
+                <div className="promociones-container gap-2 m-5">
                     {promocion.map((promo) => (
                         <CardPromocion key={promo.id} promocion={promo} />
                     ))}

@@ -5,21 +5,67 @@ import CategoriaService from "../../services/CategoriaService"; // Ajusta la rut
 import ArticuloService from "../../services/ArticuloService"; // Ajusta la ruta según tu estructura
 import Categoria from "../../models/Categoria";
 import Articulo from "../../models/Articulo"; // Asume que tienes este modelo
+import { useSucursalUsuario } from "../../context/SucursalContext";
 
+// Interfaz para artículo con stock
+interface ArticuloConStock {
+    articulo: Articulo;
+    stock: boolean;
+    stockLoading: boolean;
+}
 const BusquedaCategoria: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-
+    const { sucursalActualUsuario } = useSucursalUsuario();
+    const [resultados, setResultados] = useState<ArticuloConStock[]>([]);
     const [categoria, setCategoria] = useState<Categoria | null>(null);
     const [articulos, setArticulos] = useState<Articulo[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const consultarStockArticulo = async (articulo: Articulo): Promise<boolean> => {
+        try {
+            if (sucursalActualUsuario && sucursalActualUsuario.id) {
+                console.log("consultando")
+                const tieneStock = await ArticuloService.consultarStock(articulo, sucursalActualUsuario.id);
+                return tieneStock;
+            } else {
+                return false;
+            }
+        } catch (error) {
+            console.error(`Error al consultar stock del artículo ${articulo.id}:`, error);
+            return false; // En caso de error, asumimos sin stock
+        }
+    };
 
+    // Función para procesar artículos y obtener su stock
+    const procesarArticulosConStock = async (articulos: Articulo[]): Promise<ArticuloConStock[]> => {
+        const articulosConStock: ArticuloConStock[] = articulos.map(articulo => ({
+            articulo,
+            stock: false, // Cambiado de 0 a false
+            stockLoading: true
+        }));
+
+        // Actualizar stock de cada artículo de forma asíncrona
+        const stockPromises = articulos.map(async (articulo, index) => {
+            const stock = await consultarStockArticulo(articulo);
+            return { index, stock };
+        });
+
+        // Procesar resultados del stock
+        const stockResults = await Promise.allSettled(stockPromises);
+
+        stockResults.forEach((result, index) => {
+            if (result.status === 'fulfilled') {
+                articulosConStock[result.value.index].stock = result.value.stock;
+            }
+            articulosConStock[index].stockLoading = false;
+        });
+
+        return articulosConStock;
+    };
     useEffect(() => {
         const fetchCategoriaYArticulos = async () => {
-            if (!id) {
-                setError("ID de categoría no válido");
-                setLoading(false);
+            if (!id || !sucursalActualUsuario?.id) {
                 return;
             }
 
@@ -27,7 +73,6 @@ const BusquedaCategoria: React.FC = () => {
                 setLoading(true);
                 setError(null);
 
-                // Buscar la categoría por ID
                 const categoriaEncontrada = await CategoriaService.getById(parseInt(id));
                 if (!categoriaEncontrada) {
                     setError("Categoría no encontrada");
@@ -37,11 +82,10 @@ const BusquedaCategoria: React.FC = () => {
 
                 setCategoria(categoriaEncontrada);
 
-                // Buscar artículos de esa categoría
                 const articulosEncontrados = await ArticuloService.buscarPorIdCategoria(categoriaEncontrada);
-                setArticulos(articulosEncontrados);
-                console.log(articulosEncontrados)
-
+                setArticulos(articulosEncontrados); // ESTO NO LO ESTÁS HACIENDO (⬅ importante para mostrar el count)
+                const articulosConStock = await procesarArticulosConStock(articulosEncontrados);
+                setResultados(articulosConStock);
             } catch (err) {
                 console.error("Error al cargar categoría y artículos:", err);
                 setError("Error al cargar la información. Por favor, intenta de nuevo.");
@@ -51,7 +95,8 @@ const BusquedaCategoria: React.FC = () => {
         };
 
         fetchCategoriaYArticulos();
-    }, [id]);
+    }, [id, sucursalActualUsuario]);
+
 
     const handleVolverAtras = () => {
         navigate(-1); // Volver a la página anterior
@@ -87,6 +132,18 @@ const BusquedaCategoria: React.FC = () => {
     const handleBackClick = () => {
         navigate(-1);
     };
+    const actualizarStock = async (index: number) => {
+        const nuevoStock = await consultarStockArticulo(resultados[index].articulo);
+        setResultados(prev =>
+            prev.map((item, i) =>
+                i === index
+                    ? { ...item, stock: nuevoStock, stockLoading: false }
+                    : item
+            )
+        );
+    };
+
+
     return (
         <div className="busqueda-categoria m-5">
             {/* Header con información de la categoría */}
@@ -122,10 +179,13 @@ const BusquedaCategoria: React.FC = () => {
             <div className="busqueda-categoria__content">
                 {articulos.length > 0 ? (
                     <div className="busqueda-categoria__grid d-flex gap-5">
-                        {articulos.map((articulo) => (
+                        {resultados.map((item, index) => (
                             <CardArticulo
-                                key={articulo.id}
-                                articulo={articulo}
+                                key={item.articulo.id}
+                                articulo={item.articulo}
+                                stock={item.stock}
+                                stockLoading={item.stockLoading}
+                                onStockUpdate={() => actualizarStock(index)}
                             />
                         ))}
                     </div>

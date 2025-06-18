@@ -82,7 +82,7 @@ function GrillaArticuloManufacturado() {
   };
 
   const handleActualizar = (row: ArticuloManufacturado) => {
-    window.location.href = `/FormaularioManufacturado?id=${row.id}`;
+    window.location.href = `/FormularioManufacturado?id=${row.id}`;
   };
 
   const confirmarAccion = (titulo: string, mensaje: string, accion: () => void) => {

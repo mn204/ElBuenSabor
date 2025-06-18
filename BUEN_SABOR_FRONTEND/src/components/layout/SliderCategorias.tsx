@@ -58,7 +58,7 @@ function Slider() {
 
     const handlePrev = () => {
         if (categorias) {
-            setStart((prev) => (prev - 1) % categorias.length);
+            setStart((prev) => ((prev - 1) % categorias.length)>0 ? (prev - 1) % categorias.length : (prev) % categorias.length);
         }
     };
 
