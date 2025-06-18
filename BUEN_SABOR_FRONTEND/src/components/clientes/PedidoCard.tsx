@@ -4,8 +4,7 @@ import { Card, Button, Row, Col, Badge } from "react-bootstrap";
 import { Download, Eye } from "react-bootstrap-icons";
 import Pedido from "../../models/Pedido";
 import Estado from "../../models/enums/Estado";
-import { formatFechaConOffset } from "../../funciones/formatFecha.ts";
-
+import dayjs from "dayjs";
 interface Props {
     pedido: Pedido;
     onVerDetalle: (pedidoId: number) => void;
@@ -40,7 +39,7 @@ const PedidoCard: React.FC<Props> = ({ pedido, onVerDetalle, onDescargarFactura 
                         <h5 className="mb-2">Pedido #{pedido.id}</h5>
                         <p className="mb-1"><strong>Hora de entrega:</strong> {pedido.horaEstimadaFinalizacion}</p>
                             <small className="text-muted">
-                                {formatFechaConOffset(pedido.fechaPedido)}
+                                {dayjs(pedido.fechaPedido).format("DD/MM/YYYY HH:mm")}
                             </small>
                         <p className="mb-0 mt-2"><strong>Total:</strong> ${pedido.total.toFixed(2)}</p>
                     </Col>

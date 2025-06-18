@@ -5,12 +5,12 @@ import Estado from "../../../models/enums/Estado.ts";
 import pedidoService from "../../../services/PedidoService.ts";
 import { ReusableTable } from "../../Tabla";
 import { ChevronLeft, ChevronRight } from "react-bootstrap-icons";
-import { formatFechaConOffset } from "../../../funciones/formatFecha.ts";
 import { useAuth } from "../../../context/AuthContext.tsx";
 import { useSucursal } from "../../../context/SucursalContextEmpleado.tsx";
 import { obtenerSucursales } from "../../../services/SucursalService.ts";
 import type Sucursal from "../../../models/Sucursal.ts";
 import DeliveryModal from "../pedidos/DeliveryModal.tsx";
+import dayjs from "dayjs";
 
 const GrillaDelivery: React.FC = () => {
     const { sucursalActual, esModoTodasSucursales, sucursalIdSeleccionada } = useSucursal();
@@ -162,7 +162,7 @@ const GrillaDelivery: React.FC = () => {
         {
             key: "fecha",
             label: "Fecha",
-            render: (_: any, row: Pedido) => new Date(row.fechaPedido).toLocaleDateString("es-ES")
+            render: (_: any, row: Pedido) => dayjs(row.fechaPedido).format("DD/MM/YYYY HH:mm")
         },
         {
             key: "horaEstimada",

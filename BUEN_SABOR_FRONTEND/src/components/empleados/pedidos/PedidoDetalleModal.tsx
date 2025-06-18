@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import { Modal, Button, Table, Form } from "react-bootstrap";
 import Pedido from "../../../models/Pedido.ts";
-import { formatFechaConOffset } from "../../../funciones/formatFecha.ts";
 import { Badge } from "react-bootstrap";
 import Estado from "../../../models/enums/Estado.ts";
 import Rol from "../../../models/enums/Rol.ts";
 import PedidoService from "../../../services/PedidoService";
 import { useSucursal } from "../../../context/SucursalContextEmpleado";
 import { useAuth } from "../../../context/AuthContext";
+import dayjs from "dayjs";
 interface Props {
   show: boolean;
   onHide: () => void;
@@ -215,7 +215,7 @@ const PedidoDetalleModal: React.FC<Props> = ({ show, onHide, pedido, onEstadoCha
         </Modal.Header>
 
         <Modal.Body>
-          <p><strong>Fecha:</strong> {formatFechaConOffset(pedido.fechaPedido)}</p>
+          <p><strong>Fecha:</strong> {dayjs(pedido.fechaPedido).format("DD/MM/YYYY HH:mm")}</p>
           <p><strong>Sucursal:</strong> {pedido.sucursal.nombre}</p>
           <p><strong>Forma de pago:</strong> {pedido.formaPago}</p>
           <p><strong>Forma de entrega:</strong> {pedido.tipoEnvio}</p>
