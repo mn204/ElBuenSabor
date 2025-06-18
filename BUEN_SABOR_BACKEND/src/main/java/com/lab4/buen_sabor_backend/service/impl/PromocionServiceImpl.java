@@ -37,6 +37,11 @@ public class PromocionServiceImpl extends MasterServiceImpl<Promocion, Long> imp
         return promocionRepository.findPromocionesActivasPorSucursalConArticulosNoEliminados(sucursal);
     }
 
+    @Override
+    public List<Promocion> findByDetalles_Articulo_Id(Long id) {
+        return promocionRepository.findByDetalles_Articulo_Id(id);
+    }
+
 
     @Override
     @Transactional
