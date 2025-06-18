@@ -36,13 +36,19 @@ const PedidoCard: React.FC<Props> = ({ pedido, onVerDetalle, onDescargarFactura 
         <Card.Body>
             <Row className="align-items-center gx-3 gy-2">
                 <Col xs={12} md={8}>
-                        <h5 className="mb-2">Pedido #{pedido.id}</h5>
-                        <p className="mb-1"><strong>Hora de entrega:</strong> {pedido.horaEstimadaFinalizacion}</p>
-                            <small className="text-muted">
-                                {dayjs(pedido.fechaPedido).format("DD/MM/YYYY HH:mm")}
-                            </small>
-                        <p className="mb-0 mt-2"><strong>Total:</strong> ${pedido.total.toFixed(2)}</p>
-                    </Col>
+                    <h5 className="mb-2">Pedido #{pedido.id}</h5>
+                    <p className="mb-1"><strong>Hora de entrega:</strong> {pedido.horaEstimadaFinalizacion}</p>
+                    <small className="text-muted">
+                        {dayjs(pedido.fechaPedido).format("DD/MM/YYYY HH:mm")}
+                    </small>
+                    <p className="mb-0 mt-2"><strong>Total:</strong> ${pedido.total.toFixed(2)}</p>
+                    <p className="mb-0">
+                        <strong>Estado de pago:</strong>
+                        <span className={`ms-2 badge ${pedido.pagado ? 'bg-success' : 'bg-warning'}`}>
+            {pedido.pagado ? 'PAGADO ✓' : 'PENDIENTE DE PAGO'}
+        </span>
+                    </p>
+                </Col>
                     <Col xs={12} md={4} className="text-md-end mt-3 mt-md-0">
                         <Badge bg={getColorEstado(pedido.estado as Estado)} className="mb-2">{pedido.estado}</Badge>
                         <div>

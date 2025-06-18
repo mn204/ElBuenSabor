@@ -431,7 +431,7 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
         { key: "tipoPago", label: "Medio de Pago", render: (_: any, row: Pedido) => row.formaPago },
         { key: "pagado", label: "Pagado", render: (_: any, row: Pedido) => row.pagado ? "SI" : "NO" },
         { key: "estado", label: "Estado", render: (_: any, row: Pedido) => row.estado },
-
+        { key: "sucursal", label: "Sucursal", render: (_: any, row: Pedido) => row.sucursal.nombre },
         {
             key: "acciones",
             label: "Acciones",
@@ -474,7 +474,7 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
                         <div className="d-flex gap-2">
                             <Button variant="primary" size="sm" onClick={() => handleVerDetalle(row.id!)}>Detalle</Button>
                             <Button variant="outline-secondary" size="sm" onClick={() => handleDescargarFactura(row.id!)}>Factura</Button>
-                            {!row.pagado && (
+                            {!row.pagado && row.estado !== Estado.CANCELADO && (
                                 <Button variant="success" size="sm" onClick={() => handleMarcarPagado(row.id!)}>Pagado ✓</Button>
                             )}
                         </div>
