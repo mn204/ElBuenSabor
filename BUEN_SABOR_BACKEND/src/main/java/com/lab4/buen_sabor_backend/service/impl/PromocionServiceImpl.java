@@ -28,7 +28,7 @@ public class PromocionServiceImpl extends MasterServiceImpl<Promocion, Long> imp
 
     @Override
     public List<Promocion> findPromocionsBySucursal(Sucursal sucursal) {
-        return promocionRepository.findBySucursales(sucursal);
+        return promocionRepository.findBySucursalesAndEliminadoFalse(sucursal);
     }
     @Override
     @Transactional

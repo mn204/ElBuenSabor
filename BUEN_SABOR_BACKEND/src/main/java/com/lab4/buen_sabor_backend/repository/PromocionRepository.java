@@ -19,7 +19,7 @@ public interface PromocionRepository extends MasterRepository<Promocion, Long> {
     */
     boolean existsById(Long id);
 
-    List<Promocion> findBySucursales(Sucursal sucursal);
+    List<Promocion> findBySucursalesAndEliminadoFalse(Sucursal sucursal);
 
     boolean existsByDenominacion(String denominacion);
     boolean existsByDenominacionAndIdNot(String denominacion, Long id);

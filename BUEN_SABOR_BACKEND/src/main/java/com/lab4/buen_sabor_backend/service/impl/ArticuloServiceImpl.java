@@ -129,7 +129,7 @@ public class ArticuloServiceImpl extends MasterServiceImpl<Articulo, Long>
 
     @Override
     public List<Articulo> findArticuloByCategoriaId(Long categoriaId) {
-        return articuloRepository.findArticuloByCategoriaId(categoriaId);
+        return articuloRepository.findArticuloByCategoriaIdAndEliminadoFalse(categoriaId);
     }
 
     // Clase auxiliar (si no existe ya)
