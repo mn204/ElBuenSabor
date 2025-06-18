@@ -18,6 +18,32 @@ class SucursalInsumoService {
         }
     }
 
+    async update(sucursalInsumo: SucursalInsumo, id: number): Promise<any> {
+        try {
+            const res = await fetch(`${API_URL}/${id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(sucursalInsumo)
+            });
+            if (!res.ok) throw new Error("Error al crear el stock");
+            return await res.json();
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
+
+    async getById(id: number): Promise<SucursalInsumo> {
+        try {
+            const res = await fetch(`${API_URL}/${id}`);
+            if (!res.ok) throw new Error("Error al crear el stock");
+            return await res.json();
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
+
     async agregarStock(sucursalInsumo: SucursalInsumo): Promise<any> {
         try {
             const res = await fetch(`${API_URL}/${sucursalInsumo.id}`, {
@@ -47,6 +73,17 @@ class SucursalInsumoService {
         try {
             const sucursalId = idSucursal != null ? `?idSucursal=${idSucursal}` : "";
             const res = await fetch(`${API_URL}/stock-bajo${sucursalId}`);
+            if (!res.ok) throw new Error("Error al obtener stock bajo");
+            return await res.json();
+        } catch (error) {
+            console.error("Error en getStockBajo:", error);
+            throw error;
+        }
+    }
+    
+    async getBySucursal(idSucursal: number): Promise<SucursalInsumo[]> {
+        try {
+            const res = await fetch(`${API_URL}/sucursal/${idSucursal}`);
             if (!res.ok) throw new Error("Error al obtener stock bajo");
             return await res.json();
         } catch (error) {

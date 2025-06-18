@@ -4,76 +4,89 @@ import Sucursal from '../models/Sucursal';
 import { obtenerSucursales } from '../services/SucursalService';
 
 interface SucursalContextType {
-    sucursalActualUsuario: Sucursal | null;
-    sucursalesUsuario: Sucursal[];
-    cambiarSucursalUsuario: (sucursal: Sucursal) => void;
-    loading: boolean;
+  sucursalActualUsuario: Sucursal | null;
+  sucursalesUsuario: Sucursal[];
+  cambiarSucursalUsuario: (sucursal: Sucursal) => void;
+  loading: boolean;
 }
 
 const SucursalContext = createContext<SucursalContextType | undefined>(undefined);
 
 interface SucursalProviderProps {
-    children: ReactNode;
+  children: ReactNode;
 }
 
 export const SucursalProviderUsuario: React.FC<SucursalProviderProps> = ({ children }) => {
-    const [sucursalActualUsuario, setSucursalActual] = useState<Sucursal | null>(null);
-    const [sucursalesUsuario, setSucursales] = useState<Sucursal[]>([]);
-    const [loading, setLoading] = useState(true);
-    const cargarSucursales = async () => {
-        try {
-            const sucursalesData = await obtenerSucursales();
-            setSucursales(sucursalesData);
-        } catch (error) {
-            console.error('Error al cargar sucursales:', error);
+  const [sucursalActualUsuario, setSucursalActual] = useState<Sucursal | null>(null);
+  const [sucursalesUsuario, setSucursales] = useState<Sucursal[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const cargarSucursales = async () => {
+    try {
+      const sucursalesData = await obtenerSucursales();
+      setSucursales(sucursalesData);
+      return sucursalesData;
+    } catch (error) {
+      console.error('Error al cargar sucursales:', error);
+      return [];
+    }
+  };
+
+  useEffect(() => {
+    const inicializarContextoSucursal = async () => {
+      try {
+        const sucursalesData = await cargarSucursales();
+
+        // Verificamos si hay una sucursal persistida
+        const storedSucursal = localStorage.getItem('sucursalActualUsuario');
+        if (storedSucursal) {
+          const sucursalGuardada: Sucursal = JSON.parse(storedSucursal);
+          const existe = sucursalesData.find(s => s.id === sucursalGuardada.id);
+          if (existe) {
+            setSucursalActual(sucursalGuardada);
+            return;
+          }
         }
+
+        // Si no hay sucursal guardada o no es válida, usar la por defecto
+        const sucursalPorDefecto = sucursalesData.find(s => s.id === 1) || sucursalesData[0];
+        if (sucursalPorDefecto) {
+          setSucursalActual(sucursalPorDefecto);
+          localStorage.setItem('sucursalActualUsuario', JSON.stringify(sucursalPorDefecto));
+        }
+      } catch (error) {
+        console.error('Error al inicializar contexto de sucursal:', error);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    // Inicializar el contexto de sucursal cuando el usuario se autentica
-    useEffect(() => {
-        const inicializarContextoSucursal = async () => {
-            try {
-                    // Para administradores: cargar todas las sucursales y establecer por defecto la sucursal 1
-                    await cargarSucursales();
-                    const sucursalesData = await obtenerSucursales();
+    inicializarContextoSucursal();
+  }, []);
 
-                    // Buscar sucursal con id 1 o la primera disponible
-                    const sucursalPorDefecto = sucursalesData.find(s => s.id === 1) || sucursalesData[0];
-                    if (sucursalPorDefecto) {
-                        setSucursalActual(sucursalPorDefecto);
-                    }
-            } catch (error) {
-                console.error('Error al inicializar contexto de sucursal:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
+  const cambiarSucursalUsuario = (sucursal: Sucursal) => {
+    setSucursalActual(sucursal);
+    localStorage.setItem('sucursalActualUsuario', JSON.stringify(sucursal));
+  };
 
-        inicializarContextoSucursal();
-    }, []);
+  const value = {
+    sucursalActualUsuario,
+    sucursalesUsuario,
+    cambiarSucursalUsuario,
+    loading
+  };
 
-    const cambiarSucursalUsuario = (sucursal: Sucursal) => {
-        setSucursalActual(sucursal);
-    };
-
-    const value = {
-        sucursalActualUsuario,
-        sucursalesUsuario,
-        cambiarSucursalUsuario,
-        loading
-    };
-
-    return (
-        <SucursalContext.Provider value={value}>
-            {children}
-        </SucursalContext.Provider>
-    );
+  return (
+    <SucursalContext.Provider value={value}>
+      {children}
+    </SucursalContext.Provider>
+  );
 };
 
 export const useSucursalUsuario = () => {
-    const context = useContext(SucursalContext);
-    if (context === undefined) {
-        throw new Error('useSucursal debe ser usado dentro de un SucursalProvider');
-    }
-    return context;
+  const context = useContext(SucursalContext);
+  if (context === undefined) {
+    throw new Error('useSucursalUsuario debe ser usado dentro de un SucursalProviderUsuario');
+  }
+  return context;
 };
