@@ -50,10 +50,10 @@ function Home() {
             <img className='imagenHome' src={Imagen1} alt="" />
             <img className='imagenHomeResponsive' src={Imagen1Responsive} alt="" />
 
-            <h2 className='categoriasTitle'>Categorias</h2>
+            <h2 className='categoriasTitle p-3'>Categorias</h2>
             <Slider />
 
-            <h2 className='categoriasTitle'>¡Nuestras Promos!</h2>
+            <h2 className='categoriasTitle p-3'>¡Nuestras Promos!</h2>
             {promocion.length > 0 ? (
                 <div className="promociones-container gap-2 m-5">
                     {promocion.map((promo) => (
@@ -64,8 +64,6 @@ function Home() {
                 <div className="sin-promos">Aún no tenemos promociones</div>
             )}
 
-            <img className='imagenHome' src={Imagen2} alt="" />
-            <img className='imagenHomeResponsive' src={Imagen2Responsive} alt="" />
         </div>
     );
 }

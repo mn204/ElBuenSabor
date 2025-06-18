@@ -29,6 +29,7 @@ import FormPromocion from './components/empleados/formularios/FormPromocion.tsx'
 import PedidoConfirmado from './components/articulos/PedidoConfirmado.tsx';
 import PromocionDetalle from './components/articulos/PromocionDetalle.tsx';
 import BusquedaCategoria from './components/articulos/BusquedaCategoria.tsx';
+import CarritoProtegido from './context/CarritoProtected.tsx';
 
 
 function AppContent() {
@@ -79,7 +80,7 @@ function AppContent() {
           </ProtectedRoute>
         } />
 
-        <Route path="/carrito" element={<Carrito />} />
+        <Route path="/carrito" element={<CarritoProtegido />} />
 
 
 
