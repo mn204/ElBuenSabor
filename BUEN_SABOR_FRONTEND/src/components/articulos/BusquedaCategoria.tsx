@@ -178,15 +178,16 @@ const BusquedaCategoria: React.FC = () => {
             {/* Lista de artículos */}
             <div className="busqueda-categoria__content">
                 {articulos.length > 0 ? (
-                    <div className="busqueda-categoria__grid d-flex gap-5">
+                    <div className="row g-3 g-md-4 g-lg-5">
                         {resultados.map((item, index) => (
-                            <CardArticulo
-                                key={item.articulo.id}
-                                articulo={item.articulo}
-                                stock={item.stock}
-                                stockLoading={item.stockLoading}
-                                onStockUpdate={() => actualizarStock(index)}
-                            />
+                            <div key={item.articulo.id} className="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-3">
+                                <CardArticulo
+                                    articulo={item.articulo}
+                                    stock={item.stock}
+                                    stockLoading={item.stockLoading}
+                                    onStockUpdate={() => actualizarStock(index)}
+                                />
+                            </div>
                         ))}
                     </div>
                 ) : (

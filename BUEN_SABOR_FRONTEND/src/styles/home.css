@@ -103,7 +103,7 @@
     }
 
     .SelectSucursalHome {
-        display: flex;
+        display: flex !important;
     }
 
     .flechaIzquierda {

@@ -219,250 +219,307 @@ export function Carrito() {
   }, [preferenceId, carrito.length]);
 
   const renderStep1 = () => {
-  return (
-    <>
-      {carrito.length === 0 ? (
-        <div className="d-flex align-items-center justify-content-center" style={{ minHeight: "60vh" }}>
-          <div className="text-center">
-            <div className="mb-4">
-              <svg width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-muted">
-                <circle cx="9" cy="21" r="1"></circle>
-                <circle cx="20" cy="21" r="1"></circle>
-                <path d="m1 1 4 4 5.8 8.8a2 2 0 0 0 1.7 1.2h9.9a2 2 0 0 0 1.7-1.2L19 8H7"></path>
-              </svg>
-            </div>
-            <h4 className="text-muted mb-3">Tu carrito está vacío</h4>
-            <p className="text-muted">Agrega algunos productos para comenzar</p>
-            <Button onClick={()=>navigate("/")}>
-              Ver Productos
-            </Button>
-          </div>
-        </div>
-      ) : (
-        <div className="container-fluid px-4 py-3">
-          {stockError && (
-            <div className="alert alert-danger mx-auto mb-4" role="alert" style={{ maxWidth: "800px" }}>
-              <div className="d-flex align-items-center">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="me-2">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <line x1="15" y1="9" x2="9" y2="15"></line>
-                  <line x1="9" y1="9" x2="15" y2="15"></line>
+    return (
+      <>
+        {carrito.length === 0 ? (
+          <div className="d-flex align-items-center justify-content-center" style={{ minHeight: "60vh" }}>
+            <div className="text-center">
+              <div className="mb-4">
+                <svg width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-muted">
+                  <circle cx="9" cy="21" r="1"></circle>
+                  <circle cx="20" cy="21" r="1"></circle>
+                  <path d="m1 1 4 4 5.8 8.8a2 2 0 0 0 1.7 1.2h9.9a2 2 0 0 0 1.7-1.2L19 8H7"></path>
                 </svg>
-                {stockError}
               </div>
+              <h4 className="text-muted mb-3">Tu carrito está vacío</h4>
+              <p className="text-muted">Agrega algunos productos para comenzar</p>
+              <Button onClick={() => navigate("/")}>
+                Ver Productos
+              </Button>
             </div>
-          )}
-          
-          <div className="row justify-content-center">
-            <div className="col-12 col-lg-8">
-              <div className="card shadow-sm border-0">
-                <div className="card-header bg-white py-3">
-                  <h5 className="mb-0 d-flex align-items-center">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="me-2">
-                      <circle cx="9" cy="21" r="1"></circle>
-                      <circle cx="20" cy="21" r="1"></circle>
-                      <path d="m1 1 4 4 5.8 8.8a2 2 0 0 0 1.7 1.2h9.9a2 2 0 0 0 1.7-1.2L19 8H7"></path>
-                    </svg>
-                    Carrito de Compras
-                    <span className="badge bg-primary ms-2">{carrito.length}</span>
-                  </h5>
+          </div>
+        ) : (
+          <div className="container-fluid px-4 py-3">
+            {stockError && (
+              <div className="alert alert-danger mx-auto mb-4" role="alert" style={{ maxWidth: "800px" }}>
+                <div className="d-flex align-items-center">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="me-2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="15" y1="9" x2="9" y2="15"></line>
+                    <line x1="9" y1="9" x2="15" y2="15"></line>
+                  </svg>
+                  {stockError}
                 </div>
-                
-                <div className="card-body p-0">
-                  {carrito.map((item, index) =>
-                    item.promocion ? (
-                      <div key={`promo-${item.promocion.id}`} className={`p-4 ${index !== carrito.length - 1 ? 'border-bottom' : ''}`}>
-                        <div className="row align-items-center">
-                          <div className="col-md-3 col-sm-4 mb-3 mb-sm-0">
-                            <div className="position-relative">
-                              <img
-                                src={item.promocion.imagenes[0]?.denominacion}
-                                alt={item.promocion.denominacion}
-                                className="img-fluid rounded-3 shadow-sm"
-                                style={{ 
-                                  width: "100%", 
-                                  height: "150px", 
-                                  objectFit: "cover",
-                                  transition: "transform 0.2s ease"
-                                }}
-                                onMouseEnter={(e) => e.target.style.transform = "scale(1.05)"}
-                                onMouseLeave={(e) => e.target.style.transform = "scale(1)"}
-                              />
-                              <div className="position-absolute top-0 start-0">
-                                <span className="badge bg-success rounded-pill px-2 py-1">
-                                  <small>Promoción</small>
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <div className="col-md-9 col-sm-8">
-                            <div className="d-flex justify-content-between align-items-start mb-2">
-                              <h6 className="mb-1 fw-semibold text-dark">{item.promocion.denominacion}</h6>
-                              <button
-                                className="btn btn-outline-danger btn-sm rounded-circle p-0 d-flex align-items-center justify-content-center"
-                                style={{ width: "32px", height: "32px", fontSize: "14px" }}
-                                onClick={() => quitarPromocionCompleta(item.promocion.id)}
-                                title="Eliminar del carrito"
-                              >
-                                ×
-                              </button>
-                            </div>
-                            
-                            <div className="mb-3">
-                              <span className="badge bg-light text-dark border px-3 py-2 rounded-pill">
-                                <strong>${item.promocion.precioPromocional.toFixed(2)}</strong>
-                              </span>
-                            </div>
-                            
-                            <div className="d-flex align-items-center justify-content-between">
-                              <div className="d-flex align-items-center">
-                                <span className="text-muted me-3">Cantidad:</span>
-                                <div className="btn-group" role="group">
-                                  <button
-                                    className="btn btn-outline-secondary btn-sm px-3"
-                                    onClick={() => restarDelCarrito(item.promocion.id)}
-                                    disabled={item.cantidad <= 1}
-                                  >
-                                    −
-                                  </button>
-                                  <span className="btn btn-outline-secondary btn-sm px-3 bg-light">
-                                    {item.cantidad}
-                                  </span>
-                                  <button
-                                    className="btn btn-outline-secondary btn-sm px-3"
-                                    onClick={() => agregarPromocionAlCarrito(item.promocion)}
-                                  >
-                                    +
-                                  </button>
+              </div>
+            )}
+
+            <div className="row justify-content-center">
+              <div className="col-12 col-lg-8">
+                <div className="card shadow-sm border-0">
+                  <div className="card-header bg-white py-3">
+                    <h5 className="mb-0 d-flex align-items-center">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="me-2">
+                        <circle cx="9" cy="21" r="1"></circle>
+                        <circle cx="20" cy="21" r="1"></circle>
+                        <path d="m1 1 4 4 5.8 8.8a2 2 0 0 0 1.7 1.2h9.9a2 2 0 0 0 1.7-1.2L19 8H7"></path>
+                      </svg>
+                      Carrito de Compras
+                      <span className="badge bg-primary ms-2">{carrito.length}</span>
+                    </h5>
+                  </div>
+
+                  <div className="card-body p-0">
+                    {carrito.map((item, index) =>
+                      item.promocion ? (
+                        // PROMOCIÓN
+                        <div key={`promo-${item.promocion.id}`} className={`p-3 p-md-4 ${index !== carrito.length - 1 ? 'border-bottom' : ''}`}>
+                          <div className="row g-3 g-md-4 align-items-start align-items-lg-center">
+
+                            {/* Imagen de la promoción */}
+                            <div className="col-12 col-sm-4 col-md-3 col-lg-2">
+                              <div className="text-center text-sm-start">
+                                <div className="position-relative">
+                                  <img
+                                    src={item.promocion.imagenes[0]?.denominacion}
+                                    alt={item.promocion.denominacion}
+                                    className="img-fluid rounded-3 shadow-sm"
+                                    style={{
+                                      width: "100%",
+                                      maxWidth: "200px",
+                                      height: "120px",
+                                      objectFit: "cover",
+                                      transition: "transform 0.2s ease"
+                                    }}
+                                    onMouseEnter={(e) => e.target.style.transform = "scale(1.05)"}
+                                    onMouseLeave={(e) => e.target.style.transform = "scale(1)"}
+                                  />
+                                  <div className="position-absolute top-0 start-0 m-1">
+                                    <span className="badge bg-success rounded-pill px-2 py-1">
+                                      <small>Promoción</small>
+                                    </span>
+                                  </div>
                                 </div>
                               </div>
-                              
-                              <div className="text-end">
-                                <div className="text-muted small">Subtotal</div>
-                                <div className="h6 mb-0 text-primary fw-bold">
-                                  ${item.subTotal.toFixed(2)}
+                            </div>
+
+                            {/* Información de la promoción */}
+                            <div className="col-12 col-sm-8 col-md-9 col-lg-10">
+                              <div className="row g-3 align-items-start">
+
+                                {/* Título y botón eliminar */}
+                                <div className="col-12">
+                                  <div className="d-flex justify-content-between align-items-start mb-2">
+                                    <h6 className="mb-1 fw-semibold text-dark flex-grow-1 me-3">
+                                      {item.promocion.denominacion}
+                                    </h6>
+                                    <button
+                                      className="btn btn-outline-danger btn-sm rounded-circle p-0 d-flex align-items-center justify-content-center flex-shrink-0"
+                                      style={{ width: "32px", height: "32px", fontSize: "14px" }}
+                                      onClick={() => quitarPromocionCompleta(item.promocion!.id!)}
+                                      title="Eliminar del carrito"
+                                    >
+                                      ×
+                                    </button>
+                                  </div>
+
+                                  {/* Precio promocional */}
+                                  <div className="mb-3">
+                                    <span className="badge bg-success text-white border px-3 py-2 rounded-pill">
+                                      <strong>${item.promocion.precioPromocional.toFixed(2)}</strong>
+                                    </span>
+                                  </div>
                                 </div>
+
+                                {/* Controles de cantidad y subtotal */}
+                                <div className="col-12">
+                                  <div className="row g-3 align-items-center">
+
+                                    {/* Controles de cantidad */}
+                                    <div className="col-12 col-md-6 col-lg-5">
+                                      <div className="d-flex align-items-center justify-content-start">
+                                        <span className="text-muted me-3 flex-shrink-0">Cantidad:</span>
+                                        <div className="btn-group" role="group">
+                                          <button
+                                            className="btn btn-outline-secondary btn-sm px-2 px-sm-3"
+                                            onClick={() => restarDelCarrito(item.promocion!.id!)}
+                                            disabled={item.cantidad <= 1}
+                                          >
+                                            −
+                                          </button>
+                                          <span className="btn btn-outline-secondary btn-sm px-2 px-sm-3 bg-light">
+                                            {item.cantidad}
+                                          </span>
+                                          <button
+                                            className="btn btn-outline-secondary btn-sm px-2 px-sm-3"
+                                            onClick={() => agregarPromocionAlCarrito(item.promocion!)}
+                                          >
+                                            +
+                                          </button>
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    {/* Subtotal */}
+                                    <div className="col-12 col-md-6 col-lg-7">
+                                      <div className="text-start text-md-end">
+                                        <div className="text-muted small">Subtotal</div>
+                                        <div className="h6 mb-0 text-success fw-bold">
+                                          ${item.subTotal.toFixed(2)}
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                  </div>
+                                </div>
+
                               </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    ) : (
-                      <div key={`articulo-${item.articulo.id}`} className={`p-4 ${index !== carrito.length - 1 ? 'border-bottom' : ''}`}>
-                        <div className="row align-items-center">
-                          <div className="col-md-3 col-sm-4 mb-3 mb-sm-0">
-                            <img
-                              src={item.articulo.imagenes[0]?.denominacion}
-                              alt={item.articulo.denominacion}
-                              className="img-fluid rounded-3 shadow-sm"
-                              style={{ 
-                                width: "100%", 
-                                height: "150px", 
-                                objectFit: "cover",
-                                transition: "transform 0.2s ease"
-                              }}
-                              onMouseEnter={(e) => e.target.style.transform = "scale(1.05)"}
-                              onMouseLeave={(e) => e.target.style.transform = "scale(1)"}
-                            />
-                          </div>
-                          
-                          <div className="col-md-9 col-sm-8">
-                            <div className="d-flex justify-content-between align-items-start mb-2">
-                              <h6 className="mb-1 fw-semibold text-dark">{item.articulo.denominacion}</h6>
-                              <button
-                                className="btn btn-outline-danger btn-sm rounded-circle p-0 d-flex align-items-center justify-content-center"
-                                style={{ width: "32px", height: "32px", fontSize: "14px" }}
-                                onClick={() => quitarDelCarrito(item.articulo.id)}
-                                title="Eliminar del carrito"
-                              >
-                                ×
-                              </button>
-                            </div>
-                            
-                            <div className="mb-3">
-                              <span className="badge bg-light text-dark border px-3 py-2 rounded-pill">
-                                <strong>${item.articulo.precioVenta.toFixed(2)}</strong>
-                              </span>
-                            </div>
-                            
-                            <div className="d-flex align-items-center justify-content-between">
-                              <div className="d-flex align-items-center">
-                                <span className="text-muted me-3">Cantidad:</span>
-                                <div className="btn-group" role="group">
-                                  <button
-                                    className="btn btn-outline-secondary btn-sm px-3"
-                                    onClick={() => restarDelCarrito(item.articulo.id)}
-                                    disabled={item.cantidad <= 1}
-                                  >
-                                    −
-                                  </button>
-                                  <span className="btn btn-outline-secondary btn-sm px-3 bg-light">
-                                    {item.cantidad}
-                                  </span>
-                                  <button
-                                    className="btn btn-outline-secondary btn-sm px-3"
-                                    onClick={() => agregarAlCarrito(item.articulo, 1)}
-                                  >
-                                    +
-                                  </button>
-                                </div>
+                      ) : (
+                        // ARTÍCULO
+                        <div key={`articulo-${item.articulo!.id}`} className={`p-3 p-md-4 ${index !== carrito.length - 1 ? 'border-bottom' : ''}`}>
+                          <div className="row g-3 g-md-4 align-items-start align-items-lg-center">
+
+                            {/* Imagen del producto */}
+                            <div className="col-12 col-sm-4 col-md-3 col-lg-2">
+                              <div className="text-center text-sm-start">
+                                <img
+                                  src={item.articulo!.imagenes[0]?.denominacion}
+                                  alt={item.articulo!.denominacion}
+                                  className="img-fluid rounded-3 shadow-sm"
+                                  style={{
+                                    width: "100%",
+                                    maxWidth: "200px",
+                                    height: "120px",
+                                    objectFit: "cover",
+                                    transition: "transform 0.2s ease"
+                                  }}
+                                  onMouseEnter={(e) => e.target.style.transform = "scale(1.05)"}
+                                  onMouseLeave={(e) => e.target.style.transform = "scale(1)"}
+                                />
                               </div>
-                              
-                              <div className="text-end">
-                                <div className="text-muted small">Subtotal</div>
-                                <div className="h6 mb-0 text-primary fw-bold">
-                                  ${item.subTotal.toFixed(2)}
+                            </div>
+
+                            {/* Información del producto */}
+                            <div className="col-12 col-sm-8 col-md-9 col-lg-10">
+                              <div className="row g-3 align-items-start">
+
+                                {/* Título y botón eliminar */}
+                                <div className="col-12">
+                                  <div className="d-flex justify-content-between align-items-start mb-2">
+                                    <h6 className="mb-1 fw-semibold text-dark flex-grow-1 me-3">
+                                      {item.articulo!.denominacion}
+                                    </h6>
+                                    <button
+                                      className="btn btn-outline-danger btn-sm rounded-circle p-0 d-flex align-items-center justify-content-center flex-shrink-0"
+                                      style={{ width: "32px", height: "32px", fontSize: "14px" }}
+                                      onClick={() => quitarDelCarrito(item.articulo!.id)}
+                                      title="Eliminar del carrito"
+                                    >
+                                      ×
+                                    </button>
+                                  </div>
+
+                                  {/* Precio unitario */}
+                                  <div className="mb-3">
+                                    <span className="badge bg-light text-dark border px-3 py-2 rounded-pill">
+                                      <strong>${item.articulo!.precioVenta.toFixed(2)}</strong>
+                                    </span>
+                                  </div>
                                 </div>
+
+                                {/* Controles de cantidad y subtotal */}
+                                <div className="col-12">
+                                  <div className="row g-3 align-items-center">
+
+                                    {/* Controles de cantidad */}
+                                    <div className="col-12 col-md-6 col-lg-5">
+                                      <div className="d-flex align-items-center justify-content-start">
+                                        <span className="text-muted me-3 flex-shrink-0">Cantidad:</span>
+                                        <div className="btn-group" role="group">
+                                          <button
+                                            className="btn btn-outline-secondary btn-sm px-2 px-sm-3"
+                                            onClick={() => restarDelCarrito(item.articulo!.id)}
+                                            disabled={item.cantidad <= 1}
+                                          >
+                                            −
+                                          </button>
+                                          <span className="btn btn-outline-secondary btn-sm px-2 px-sm-3 bg-light">
+                                            {item.cantidad}
+                                          </span>
+                                          <button
+                                            className="btn btn-outline-secondary btn-sm px-2 px-sm-3"
+                                            onClick={() => agregarAlCarrito(item.articulo!, 1)}
+                                          >
+                                            +
+                                          </button>
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    {/* Subtotal */}
+                                    <div className="col-12 col-md-6 col-lg-7">
+                                      <div className="text-start text-md-end">
+                                        <div className="text-muted small">Subtotal</div>
+                                        <div className="h6 mb-0 text-primary fw-bold">
+                                          ${item.subTotal.toFixed(2)}
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                  </div>
+                                </div>
+
                               </div>
                             </div>
                           </div>
                         </div>
+                      )
+                    )}
+                  </div>
+
+                  <div className="card-footer bg-light">
+                    <div className="row align-items-center">
+                      <div className="col-md-6">
+                        <div className="h4 mb-0 text-success fw-bold">
+                          Total: ${carrito.reduce((acc, item) => acc + item.subTotal, 0).toFixed(2)}
+                        </div>
                       </div>
-                    )
-                  )}
-                </div>
-                
-                <div className="card-footer bg-light">
-                  <div className="row align-items-center">
-                    <div className="col-md-6">
-                      <div className="h4 mb-0 text-success fw-bold">
-                        Total: ${carrito.reduce((acc, item) => acc + item.subTotal, 0).toFixed(2)}
-                      </div>
-                    </div>
-                    <div className="col-md-6">
-                      <div className="d-flex justify-content-end gap-2 mt-3 mt-md-0">
-                        <button 
-                          className="btn btn-outline-warning d-flex align-items-center px-4"
-                          onClick={limpiarCarrito}
-                        >
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="me-2">
-                            <polyline points="3,6 5,6 21,6"></polyline>
-                            <path d="m19,6v14a2,2 0 0,1-2,2H7a2,2 0 0,1-2-2V6m3,0V4a2,2 0 0,1,2-2h4a2,2 0 0,1,2,2v2"></path>
-                          </svg>
-                          Limpiar
-                        </button>
-                        <button
-                          className="btn btn-success d-flex align-items-center px-4"
-                          onClick={handleProceedToStep2}
-                          disabled={verificandoStock}
-                        >
-                          {verificandoStock ? (
-                            <>
-                              <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                              Verificando...
-                            </>
-                          ) : (
-                            <>
-                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="me-2">
-                                <path d="M9 12l2 2 4-4"></path>
-                                <path d="M21 12c-1 0-3-1-3-3s2-3 3-3 3 1 3 3-2 3-3 3"></path>
-                                <path d="M3 12c1 0 3-1 3-3s-2-3-3-3-3 1-3 3 2 3 3 3"></path>
-                              </svg>
-                              Realizar pedido
-                            </>
-                          )}
-                        </button>
+                      <div className="col-md-6">
+                        <div className="d-flex justify-content-end gap-2 mt-3 mt-md-0">
+                          <button
+                            className="btn btn-outline-warning d-flex align-items-center px-4"
+                            onClick={limpiarCarrito}
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="me-2">
+                              <polyline points="3,6 5,6 21,6"></polyline>
+                              <path d="m19,6v14a2,2 0 0,1-2,2H7a2,2 0 0,1-2-2V6m3,0V4a2,2 0 0,1,2-2h4a2,2 0 0,1,2,2v2"></path>
+                            </svg>
+                            Limpiar
+                          </button>
+                          <button
+                            className="btn btn-success d-flex align-items-center px-4"
+                            onClick={handleProceedToStep2}
+                            disabled={verificandoStock}
+                          >
+                            {verificandoStock ? (
+                              <>
+                                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                Verificando...
+                              </>
+                            ) : (
+                              <>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="me-2">
+                                  <path d="M9 12l2 2 4-4"></path>
+                                  <path d="M21 12c-1 0-3-1-3-3s2-3 3-3 3 1 3 3-2 3-3 3"></path>
+                                  <path d="M3 12c1 0 3-1 3-3s-2-3-3-3-3 1-3 3 2 3 3 3"></path>
+                                </svg>
+                                Realizar pedido
+                              </>
+                            )}
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -470,11 +527,10 @@ export function Carrito() {
               </div>
             </div>
           </div>
-        </div>
-      )}
-    </>
-  );
-};
+        )}
+      </>
+    );
+  };
 
   const renderStep2 = () => (
     <div className="p-4">
@@ -623,7 +679,7 @@ export function Carrito() {
                       {item.cantidad}x {item.articulo?.denominacion}
                     </span>
                     <span>
-                      ${(item.subTotal || (item.cantidad * item.articulo.precioVenta)).toFixed(2)}
+                      ${(item.subTotal || (item.cantidad * item.articulo!.precioVenta)).toFixed(2)}
                     </span>
                   </div>
                 ))}
@@ -642,7 +698,7 @@ export function Carrito() {
                     ${(() => {
                       const items = carrito && carrito.length > 0 ? carrito : pedidoGuardado?.detalles || [];
                       return items.reduce((acc, item) => {
-                        return acc + (item.subTotal || (item.cantidad * item.articulo.precioVenta));
+                        return acc + (item.subTotal || (item.cantidad * item.articulo!.precioVenta));
                       }, 0).toFixed(2);
                     })()}
                   </strong>
