@@ -162,11 +162,11 @@ const GrillaDelivery: React.FC = () => {
         {
             key: "fecha",
             label: "Fecha",
-            render: (_: any, row: Pedido) => formatFechaConOffset(row.fechaPedido)
+            render: (_: any, row: Pedido) => new Date(row.fechaPedido).toLocaleDateString("es-ES")
         },
         {
             key: "horaEstimada",
-            label: "Hora Estimada",
+            label: "Hora Llegada",
             render: (_: any, row: Pedido) => row.horaEstimadaFinalizacion || "No especificada"
         },
         // Columna de delivery solo visible para admin
