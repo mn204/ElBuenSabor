@@ -4,6 +4,7 @@ import Pedido from "../../../models/Pedido.ts";
 import pedidoService from "../../../services/PedidoService.ts";
 import Estado from "../../../models/enums/Estado.ts";
 import dayjs from "dayjs";
+
 interface Props {
     show: boolean;
     onHide: () => void;
@@ -22,6 +23,11 @@ const DeliveryModal: React.FC<Props> = ({ show, onHide, pedido }) => {
     const detalles = pedido.detalles;
 
     const abrirEnGoogleMaps = () => {
+        // Verificar que localidad no sea null antes de usarla
+        if (!domicilio.localidad) {
+            alert("No se puede abrir el mapa: localidad no disponible");
+            return;
+        }
         const direccion = `${domicilio.calle} ${domicilio.numero}, ${domicilio.localidad.nombre}`;
         const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(direccion)}`;
         window.open(url, '_blank');
@@ -78,9 +84,15 @@ const DeliveryModal: React.FC<Props> = ({ show, onHide, pedido }) => {
                             <div>
                                 Referencia: {domicilio.detalles || "-"}, {domicilio.calle} {domicilio.numero}, CP {domicilio.codigoPostal}
                                 {domicilio.piso && `, Piso ${domicilio.piso}`}
-                                {domicilio.nroDepartamento && `, Dpto ${domicilio.nroDepartamento}`} - {domicilio.localidad.nombre}
+                                {domicilio.nroDepartamento && `, Dpto ${domicilio.nroDepartamento}`} - {domicilio.localidad?.nombre || 'Localidad no disponible'}
                             </div>
-                            <Button variant="outline-primary" size="sm" className="mt-2" onClick={abrirEnGoogleMaps}>
+                            <Button
+                                variant="outline-primary"
+                                size="sm"
+                                className="mt-2"
+                                onClick={abrirEnGoogleMaps}
+                                disabled={!domicilio.localidad}
+                            >
                                 📍 Ver ubicación en Google Maps
                             </Button>
                         </Col>
@@ -97,7 +109,7 @@ const DeliveryModal: React.FC<Props> = ({ show, onHide, pedido }) => {
                                 </tr>
                                 </thead>
                                 <tbody>
-                                {detalles.map((detalle) => {
+                                {detalles && detalles.length > 0 ? detalles.map((detalle) => {
                                     const esArticulo = !!detalle.articulo?.denominacion;
                                     const esPromocion = !!detalle.promocion?.denominacion;
 
@@ -130,9 +142,13 @@ const DeliveryModal: React.FC<Props> = ({ show, onHide, pedido }) => {
                                             )}
                                         </React.Fragment>
                                     );
-                                })}
-
-
+                                }) : (
+                                    <tr>
+                                        <td colSpan={2} className="text-center text-muted">
+                                            No hay detalles disponibles para este pedido
+                                        </td>
+                                    </tr>
+                                )}
                                 </tbody>
                             </Table>
                         </Col>
