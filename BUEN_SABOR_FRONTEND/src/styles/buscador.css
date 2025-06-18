@@ -57,4 +57,7 @@
         padding: 10px;
         width: 200px;
     }
+    .slider-button{
+        display: none !important;
+    }
 }

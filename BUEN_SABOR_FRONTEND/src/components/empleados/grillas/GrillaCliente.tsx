@@ -1,27 +1,31 @@
 import { useEffect, useState } from "react";
-import Cliente from "../../models/Cliente";
+import Cliente from "../../../models/Cliente.ts";
 import {
     getClientesFiltrados,
     eliminarCliente,
     darDeAltaCliente,
     obtenerClientePorId
-} from "../../services/ClienteService";
-import { ReusableTable } from "../Tabla";
-import BotonVer from "../layout/BotonVer";
-import BotonEliminar from "../layout/BotonEliminar";
-import BotonAlta from "../layout/BotonAlta.tsx";
-import googleLogo from "../../assets/google_logo.png";
+} from "../../../services/ClienteService.ts";
+import { ReusableTable } from "../../Tabla";
+import BotonVer from "../../layout/BotonVer.tsx";
+import BotonEliminar from "../../layout/BotonEliminar.tsx";
+import BotonAlta from "../../layout/BotonAlta.tsx";
+import googleLogo from "../../../assets/google_logo.png";
 import { Modal, Form, Button } from "react-bootstrap";
-import { darDeAltaUsuario, eliminarUsuario } from "../../services/UsuarioService.ts";
-import PedidoClienteModal from "./pedidos/PedidoClienteModal.tsx";
+import { darDeAltaUsuario, eliminarUsuario } from "../../../services/UsuarioService.ts";
+import PedidoClienteModal from "../pedidos/PedidoClienteModal.tsx";
 import { ChevronLeft, ChevronRight } from "react-bootstrap-icons";
+import pedidoService from "../../../services/PedidoService";
 
 const GrillaCliente = () => {
     const [clientes, setClientes] = useState<Cliente[]>([]);
     const [search, setSearch] = useState("");
     const [estado, setEstado] = useState("todos");
     const [ordenAsc, setOrdenAsc] = useState(true);
+    // NUEVO: Estado para el tipo de ordenamiento
+    const [tipoOrden, setTipoOrden] = useState<"nombre" | "pedidos">("nombre");
     const [loading, setLoading] = useState(false);
+    const [pedidosPorCliente, setPedidosPorCliente] = useState<{ [clienteId: number]: number }>({});
 
     // Paginación
     const [page, setPage] = useState(0);
@@ -35,6 +39,24 @@ const GrillaCliente = () => {
     const [showModal, setShowModal] = useState(false);
     const [mostrarDomicilios, setMostrarDomicilios] = useState(false);
 
+    const cargarPedidosPorCliente = async (clientes: Cliente[]) => {
+        // Solo cargar si no estamos ordenando por pedidos (ya que el backend ya los ordena)
+        if (tipoOrden === "pedidos") return;
+
+        const nuevosContadores: { [clienteId: number]: number } = {};
+        await Promise.all(
+            clientes.map(async (cliente) => {
+                try {
+                    const count = await pedidoService.getPedidosClienteCount(cliente.id!);
+                    nuevosContadores[cliente.id!] = count;
+                } catch (error) {
+                    nuevosContadores[cliente.id!] = 0;
+                }
+            })
+        );
+        setPedidosPorCliente(nuevosContadores);
+    };
+
     const handleVerPedidos = (cliente: Cliente) => {
         setClientePedidos(cliente);
         setShowPedidosModal(true);
@@ -46,7 +68,7 @@ const GrillaCliente = () => {
         setMostrarDomicilios(false);
     };
 
-    // Cargar clientes con filtros y paginación
+    // ACTUALIZADO: Cargar clientes con filtros y paginación
     const cargarClientes = async () => {
         try {
             setLoading(true);
@@ -55,6 +77,7 @@ const GrillaCliente = () => {
             const filtros: {
                 busqueda?: string;
                 ordenar?: string;
+                ordenarPorPedidos?: string;
                 eliminado?: boolean;
             } = {};
 
@@ -69,10 +92,13 @@ const GrillaCliente = () => {
             } else if (estado === "inactivos") {
                 filtros.eliminado = true;
             }
-            // Si estado === "todos", no asignamos filtros.eliminado (queda undefined)
 
-            // Configurar ordenamiento
-            filtros.ordenar = ordenAsc ? "asc" : "desc";
+            // NUEVO: Configurar ordenamiento según el tipo seleccionado
+            if (tipoOrden === "nombre") {
+                filtros.ordenar = ordenAsc ? "asc" : "desc";
+            } else if (tipoOrden === "pedidos") {
+                filtros.ordenarPorPedidos = ordenAsc ? "asc" : "desc";
+            }
 
             const result = await getClientesFiltrados(
                 filtros,
@@ -81,6 +107,7 @@ const GrillaCliente = () => {
             );
 
             setClientes(result.content);
+            await cargarPedidosPorCliente(result.content);
             setTotalPages(result.totalPages);
         } catch (error) {
             console.error("Error al cargar clientes:", error);
@@ -90,15 +117,15 @@ const GrillaCliente = () => {
         }
     };
 
-    // Efecto para cargar clientes cuando cambian los filtros
+    // ACTUALIZADO: Efecto para cargar clientes cuando cambian los filtros
     useEffect(() => {
         setPage(0); // Resetear a primera página cuando cambian los filtros
-    }, [search, estado, ordenAsc]);
+    }, [search, estado, ordenAsc, tipoOrden]);
 
     // Efecto para cargar clientes cuando cambia la página o los filtros
     useEffect(() => {
         cargarClientes();
-    }, [page, search, estado, ordenAsc]);
+    }, [page, search, estado, ordenAsc, tipoOrden]);
 
     const handleEliminar = async (id: number, idUsuario: number) => {
         if (!window.confirm("¿Seguro que desea eliminar este cliente?")) return;
@@ -134,6 +161,15 @@ const GrillaCliente = () => {
         }
     };
 
+    // NUEVO: Función para obtener el texto del botón de ordenamiento
+    const getOrdenTexto = () => {
+        if (tipoOrden === "nombre") {
+            return `Nombre: ${ordenAsc ? "A-Z" : "Z-A"}`;
+        } else {
+            return `Pedidos: ${ordenAsc ? "Menos" : "Más"}`;
+        }
+    };
+
     const columns = [
         {
             key: "imagen",
@@ -149,8 +185,6 @@ const GrillaCliente = () => {
                     "Sin imagen"
                 ),
         },
-
-
         {
             key: "id",
             label: "ID",
@@ -170,6 +204,17 @@ const GrillaCliente = () => {
             key: "telefono",
             label: "Teléfono",
             render: (_: any, row: Cliente) => row.telefono,
+        },
+        {
+            key: "pedidos",
+            label: "Pedidos",
+            render: (_: any, row: Cliente) => {
+                // Si estamos ordenando por pedidos, no necesitamos cargar individualmente
+                if (tipoOrden === "pedidos") {
+                    return pedidosPorCliente[row.id!] !== undefined ? pedidosPorCliente[row.id!] : "...";
+                }
+                return pedidosPorCliente[row.id!] !== undefined ? pedidosPorCliente[row.id!] : "Cargando...";
+            },
         },
         {
             key: "estado",
@@ -196,23 +241,39 @@ const GrillaCliente = () => {
         <div>
             <h2 className="m-3">Clientes</h2>
 
-            {/* Filtros */}
-            <div className="d-flex gap-3 mb-2 align-items-start">
+            {/* ACTUALIZADO: Filtros con nuevos controles de ordenamiento */}
+            <div className="d-flex gap-3 mb-2 align-items-start ">
                 <Form.Control
                     type="text"
                     placeholder="Buscar por nombre o email"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
+                    style={{ minWidth: "200px" }}
                 />
 
-                <Form.Select value={estado} onChange={(e) => setEstado(e.target.value)}>
+                <Form.Select value={estado} onChange={(e) => setEstado(e.target.value)} style={{ minWidth: "120px" }}>
                     <option value="todos">Todos</option>
                     <option value="activos">Activos</option>
                     <option value="inactivos">Inactivos</option>
                 </Form.Select>
 
-                <Button variant="outline-secondary" onClick={() => setOrdenAsc(!ordenAsc)}>
-                    Orden: {ordenAsc ? "A-Z" : "Z-A"}
+                {/* NUEVO: Selector de tipo de ordenamiento */}
+                <Form.Select
+                    value={tipoOrden}
+                    onChange={(e) => setTipoOrden(e.target.value as "nombre" | "pedidos")}
+                    style={{ minWidth: "150px" }}
+                >
+                    <option value="nombre">Ordenar por Nombre</option>
+                    <option value="pedidos">Ordenar por Pedidos</option>
+                </Form.Select>
+
+                {/* ACTUALIZADO: Botón de ordenamiento con texto dinámico */}
+                <Button
+                    variant="outline-secondary"
+                    onClick={() => setOrdenAsc(!ordenAsc)}
+                    style={{ minWidth: "150px" }}
+                >
+                    {getOrdenTexto()}
                 </Button>
             </div>
 
@@ -234,6 +295,10 @@ const GrillaCliente = () => {
                             {(search || estado !== "todos") && (
                                 <span> (con filtros aplicados)</span>
                             )}
+                            {/* NUEVO: Indicador del tipo de ordenamiento actual */}
+                            <span className="ms-2 badge bg-secondary">
+                                Ordenado por: {tipoOrden === "nombre" ? "Nombre" : "Cantidad de Pedidos"}
+                            </span>
                         </div>
                         <div className="d-flex align-items-center gap-2">
                             <Button

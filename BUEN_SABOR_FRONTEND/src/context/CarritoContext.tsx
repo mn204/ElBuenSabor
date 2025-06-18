@@ -1,4 +1,4 @@
-import { createContext, useCallback, useEffect, useState } from "react";
+import { createContext, useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import Articulo from "../models/Articulo";
 import Pedido from "../models/Pedido";
@@ -6,9 +6,9 @@ import PedidoDetalle from "../models/DetallePedido";
 import PedidoService from "../services/PedidoService";
 import Estado from "../models/enums/Estado";
 import type Domicilio from "../models/Domicilio";
-import ArticuloInsumo from "../models/ArticuloInsumo";
-import type ArticuloManufacturado from "../models/ArticuloManufacturado";
 import Promocion from "../models/Promocion";
+import ArticuloManufacturadoService from "../services/ArticuloManufacturadoService";
+import TipoEnvio from "../models/enums/TipoEnvio";
 
 interface CarritoContextProps {
   pedido: Pedido;
@@ -56,40 +56,42 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
   }
   // 2. MODIFICAR LA FUNCIÓN agregarAlCarrito EXISTENTE
   const agregarAlCarrito = (articulo: Articulo, cantidad: number) => {
-    setPedido((prevPedido) => {
-      let detallesExistente;
-      if(articulo.id){
-        console.log(articulo)
-        detallesExistente = prevPedido.detalles.find(
-          (d) => d.articulo.id === articulo.id
-        );
-      }
+  if (!articulo.id) {
+    console.warn("El artículo no tiene ID");
+    return;
+  }
 
-      let nuevosdetalles: PedidoDetalle[];
-      if (detallesExistente) {
-        nuevosdetalles = prevPedido.detalles.map((d) => {
-          if (d.articulo.id === articulo.id && !d.promocion) {
-            const nuevaCantidad = d.cantidad + cantidad;
-            return {
-              ...d,
-              cantidad: nuevaCantidad,
-              subTotal: articulo.precioVenta * nuevaCantidad,
-            };
-          }
-          return d;
-        });
-      } else {
-        const nuevoDetalles = new PedidoDetalle();
-        nuevoDetalles.articulo = articulo;
-        nuevoDetalles.cantidad = cantidad;
-        nuevoDetalles.subTotal = articulo.precioVenta * cantidad;
-        nuevosdetalles = [...prevPedido.detalles, nuevoDetalles];
-      }
+  setPedido((prevPedido) => {
+    const detallesExistente = prevPedido.detalles.find(
+      (d) => d.articulo && d.articulo.id === articulo.id
+    );
 
-      const nuevoTotal = nuevosdetalles.reduce((acc, d) => acc + d.subTotal, 0);
-      return { ...prevPedido, detalles: nuevosdetalles, total: nuevoTotal };
-    });
-  };
+    let nuevosdetalles: PedidoDetalle[];
+    if (detallesExistente) {
+      nuevosdetalles = prevPedido.detalles.map((d) => {
+        if (d.articulo && d.articulo.id === articulo.id && !d.promocion) {
+          const nuevaCantidad = d.cantidad + cantidad;
+          return {
+            ...d,
+            cantidad: nuevaCantidad,
+            subTotal: articulo.precioVenta * nuevaCantidad,
+          };
+        }
+        return d;
+      });
+    } else {
+      const nuevoDetalles = new PedidoDetalle();
+      nuevoDetalles.articulo = articulo;
+      nuevoDetalles.cantidad = cantidad;
+      nuevoDetalles.subTotal = articulo.precioVenta * cantidad;
+      nuevosdetalles = [...prevPedido.detalles, nuevoDetalles];
+    }
+
+    const nuevoTotal = nuevosdetalles.reduce((acc, d) => acc + d.subTotal, 0);
+    return { ...prevPedido, detalles: nuevosdetalles, total: nuevoTotal };
+  });
+};
+
 
   const agregarPromocionAlCarrito = (promocion: Promocion) => {
     setPedido((prevPedido) => {
@@ -170,13 +172,13 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
       const nuevosdetalles = prevPedido.detalles
         .map((d) => {
           // Solo afectar artículos SIN promoción
-          if (d.articulo.id === idArticulo && !d.promocion) {
+          if (d.articulo!.id === idArticulo && !d.promocion) {
             const nuevaCantidad = d.cantidad - 1;
             if (nuevaCantidad <= 0) return null;
             return {
               ...d,
               cantidad: nuevaCantidad,
-              subTotal: nuevaCantidad * d.articulo.precioVenta,
+              subTotal: nuevaCantidad * d.articulo!.precioVenta,
             };
           } else if (d.promocion?.id === idArticulo) {
             const nuevaCantidad = d.cantidad - 1;
@@ -202,7 +204,7 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
     setPedido((prevPedido) => {
       // Solo quitar artículos SIN promoción
       const nuevosdetalles = prevPedido.detalles.filter(
-        (d) => !(d.articulo.id === idArticulo && !d.promocion)
+        (d) => !(d.articulo!.id === idArticulo && !d.promocion)
       );
       const nuevoTotal = nuevosdetalles.reduce((acc, d) => acc + d.subTotal, 0);
       return { ...prevPedido, detalles: nuevosdetalles, total: nuevoTotal };
@@ -246,34 +248,63 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
 
     try {
       // Función para calcular el tiempo total de preparación
-      const calcularTiempoPreparacion = (pedido: Pedido): number => {
+      const calcularTiempoPreparacion = async (pedido: Pedido): Promise<number> => {
         let tiempoTotalMinutos = 0;
+        if(pedido.tipoEnvio == TipoEnvio.DELIVERY){
+          tiempoTotalMinutos += 15
+        }
+        console.log(pedido.tipoEnvio)
+        if (pedido.detalles) {
+          for (const det of pedido.detalles) {
+            if (det.articulo) {
+              try {
+                const prod = await ArticuloManufacturadoService.getById(det.articulo.id);
+                tiempoTotalMinutos += prod.tiempoEstimadoMinutos ?? 0;
+              } catch (error) {
+                console.error("Error al obtener artículo manufacturado:", error);
+              }
+            }
+            if (det.promocion) {
+              for (const deta of det.promocion.detalles) {
+                try {
+                  const prod = await ArticuloManufacturadoService.getById(deta.articulo!.id);
+                  tiempoTotalMinutos += prod.tiempoEstimadoMinutos ?? 0;
+                } catch (error) {
+                  console.error("Error al obtener artículo manufacturado:", error);
+                }
+              }
+            }
+          }
+        }
 
         return tiempoTotalMinutos;
       };
 
+
       // Función para obtener la hora de finalización
-      const obtenerHoraFinalizacion = (pedido: Pedido): string => {
-        const tiempoPreparacionMinutos = calcularTiempoPreparacion(pedido);
+      const obtenerHoraFinalizacion = async (pedido: Pedido): Promise<string> => {
+        const tiempoPreparacionMinutos = await calcularTiempoPreparacion(pedido);
 
         // Obtener la hora actual en Argentina
         const ahora = new Date();
-        const horaArgentina = new Date(ahora.toLocaleString("en-US", {
-          timeZone: "America/Argentina/Buenos_Aires"
-        }));
+        const horaArgentina = new Date(
+          ahora.toLocaleString("en-US", {
+            timeZone: "America/Argentina/Buenos_Aires",
+          })
+        );
 
         // Sumar los minutos de preparación
         horaArgentina.setMinutes(horaArgentina.getMinutes() + tiempoPreparacionMinutos);
 
         // Retornar en formato HH:mm:ss
-        return horaArgentina.toTimeString().split(' ')[0];
+        return horaArgentina.toTimeString().split(" ")[0];
       };
 
       // En tu código principal, reemplaza:
       // pedido.horaEstimadaFinalizacion = obtenerHoraArgentina();
 
       // Por:
-      pedido.horaEstimadaFinalizacion = obtenerHoraFinalizacion(pedido);
+      pedido.horaEstimadaFinalizacion = await obtenerHoraFinalizacion(pedido);
       pedido.fechaPedido = obtenerFechaArgentina();
       pedido.estado = Estado.PENDIENTE;
       const exito = await PedidoService.create(pedido);

@@ -46,33 +46,6 @@ function Buscador({ onBuscar, valorInicial = "", setValor }: BuscadorProps) {
         } catch (error) {
           console.error('Error al buscar productos:', error);
         }
-        try {
-          const productosResponse = await fetch(
-            `http://localhost:8080/api/articulo/no-para-elaborar/denominacion?denominacion=${encodeURIComponent(query)}`
-          );
-          if (productosResponse.ok) {
-            const productosData = await productosResponse.json();
-            console.log(allResults)
-            allResults = [...allResults, ...productosData];
-          }
-        } catch (error) {
-          console.error('Error al buscar productos:', error);
-        }
-
-        // 2. Obtener todos los artículos con stock > 0
-        try {
-          const articulosResponse = await fetch(
-            `http://localhost:8080/api/articulo/stock/0`
-          );
-          if (articulosResponse.ok) {
-            const articulosData = await articulosResponse.json();
-            // Combinar los productos encontrados con todos los artículos
-            allResults = [...allResults, ...articulosData];
-          }
-        } catch (error) {
-          console.error('Error al buscar artículos:', error);
-        }
-
         // Establecer todos los resultados combinados
         setResults(allResults);
 

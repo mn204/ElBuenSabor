@@ -24,4 +24,6 @@ public interface SucursalInsumoRepository extends MasterRepository<SucursalInsum
 
     List<SucursalInsumo> findByArticuloInsumoIdAndEliminadoTrue(Long articuloInsumoId);
 
+    List<SucursalInsumo> findBySucursalId(Long sucursalId);
+
 }

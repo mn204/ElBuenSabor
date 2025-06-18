@@ -47,4 +47,6 @@ public interface PedidoService extends MasterService<Pedido, Long> {
 
     boolean verificarStockPedido(Pedido pedido);
     Pedido findFirstByClienteIdOrderByIdDesc(Long clienteId);
+
+    Long countPedidosByClienteId(Long clienteId);
 }

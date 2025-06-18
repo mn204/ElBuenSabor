@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import Articulo from "../../models/Articulo";
 import { useCarrito } from "../../hooks/useCarrito";
 import ArticuloInsumoService from "../../services/ArticuloInsumoService";
+import { useSucursalUsuario } from "../../context/SucursalContext";
 
 const API_URL = "http://localhost:8080/api/productos";
 
@@ -17,6 +18,7 @@ const VistaArticulo: React.FC = () => {
   const [agregandoCarrito, setAgregandoCarrito] = useState(false);
   const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
   const carritoCtx = useCarrito();
+  const { esSucursalAbierta, sucursalActualUsuario } = useSucursalUsuario();
 
   useEffect(() => {
     if (!id) return;
@@ -150,7 +152,7 @@ const VistaArticulo: React.FC = () => {
 
       {/* Breadcrumb */}
       <button
-        onClick={()=>navigate(-1)}
+        onClick={() => navigate(-1)}
         className="promocion-detalle__back-button mb-5"
       >
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -304,56 +306,58 @@ const VistaArticulo: React.FC = () => {
             </div>
 
             {/* Botones de acción */}
-            <div className="mt-auto">
-              <div className="d-grid gap-2 d-md-flex">
-                <button
-                  className="btn btn-success btn-lg flex-fill d-flex align-items-center justify-content-center gap-2"
-                  onClick={handleAgregarAlCarrito}
-                  disabled={agregandoCarrito}
-                >
-                  {agregandoCarrito ? (
-                    <>
-                      <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                      Agregando...
-                    </>
-                  ) : (
-                    <>
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <circle cx="9" cy="21" r="1"></circle>
-                        <circle cx="20" cy="21" r="1"></circle>
-                        <path d="m1 1 4 4 5.8 8.8a2 2 0 0 0 1.7 1.2h9.9a2 2 0 0 0 1.7-1.2L19 8H7"></path>
-                      </svg>
-                      Agregar al carrito
-                    </>
-                  )}
-                </button>
-                <button
-                  className="btn btn-outline-primary btn-lg d-flex align-items-center justify-content-center gap-2"
-                  onClick={() => navigate('/carrito')}
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M3 3h2l.4 2M7 13h10l4-8H5.4m1.6 8L6 5H3m4 8a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm10 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"></path>
-                  </svg>
-                  Ver carrito
-                </button>
-              </div>
+            {esSucursalAbierta(sucursalActualUsuario!) &&
+              <div className="mt-auto">
+                <div className="d-grid gap-2 d-md-flex">
+                  <button
+                    className="btn btn-success btn-lg flex-fill d-flex align-items-center justify-content-center gap-2"
+                    onClick={handleAgregarAlCarrito}
+                    disabled={agregandoCarrito}
+                  >
+                    {agregandoCarrito ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        Agregando...
+                      </>
+                    ) : (
+                      <>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <circle cx="9" cy="21" r="1"></circle>
+                          <circle cx="20" cy="21" r="1"></circle>
+                          <path d="m1 1 4 4 5.8 8.8a2 2 0 0 0 1.7 1.2h9.9a2 2 0 0 0 1.7-1.2L19 8H7"></path>
+                        </svg>
+                        Agregar al carrito
+                      </>
+                    )}
+                  </button>
+                  <button
+                    className="btn btn-outline-primary btn-lg d-flex align-items-center justify-content-center gap-2"
+                    onClick={() => navigate('/carrito')}
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M3 3h2l.4 2M7 13h10l4-8H5.4m1.6 8L6 5H3m4 8a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm10 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"></path>
+                    </svg>
+                    Ver carrito
+                  </button>
+                </div>
 
-              {/* Información de envío */}
-              <div className="mt-4 p-3 bg-light rounded-3">
-                <div className="d-flex align-items-start gap-3">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-primary mt-1">
-                    <rect x="1" y="3" width="15" height="13"></rect>
-                    <path d="m16 8 4-4-4-4"></path>
-                  </svg>
-                  <div>
-                    <h6 className="mb-1">Información de entrega</h6>
-                    <p className="text-muted mb-0 small">
-                      Realizamos entregas en el día. Consulta los horarios disponibles durante el proceso de compra.
-                    </p>
+                {/* Información de envío */}
+                <div className="mt-4 p-3 bg-light rounded-3">
+                  <div className="d-flex align-items-start gap-3">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-primary mt-1">
+                      <rect x="1" y="3" width="15" height="13"></rect>
+                      <path d="m16 8 4-4-4-4"></path>
+                    </svg>
+                    <div>
+                      <h6 className="mb-1">Información de entrega</h6>
+                      <p className="text-muted mb-0 small">
+                        Realizamos entregas en el día. Consulta los horarios disponibles durante el proceso de compra.
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            }
           </div>
         </div>
       </div>

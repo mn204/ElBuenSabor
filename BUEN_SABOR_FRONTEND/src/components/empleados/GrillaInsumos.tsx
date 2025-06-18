@@ -389,7 +389,7 @@ function GrillaInsumos() {
       </div>
 
       {/* Modal detalle */}
-      <Modal show={showModalDetalle} onHide={() => setShowModalDetalle(false)} centered size="md">
+      <Modal show={showModalDetalle} onHide={() => setShowModalDetalle(false)} centered size="lg">
         <Modal.Header closeButton className="bg-primary text-white">
           <Modal.Title>🧾 Detalle del Insumo</Modal.Title>
         </Modal.Header>

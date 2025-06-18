@@ -194,19 +194,22 @@ function FormArticuloManufacturado() {
   };
 
   const modalProps = {
-    show: showModal,
-    onHide: () => {
-      setShowModal(false);
-      setInsumoSeleccionado(null);
-      setCantidadInsumo(1);
-    },
-    articulosInsumo: articulosInsumo,
-    insumoSeleccionado: insumoSeleccionado,
-    setInsumoSeleccionado: setInsumoSeleccionado,
-    cantidadInsumo: cantidadInsumo,
-    setCantidadInsumo: setCantidadInsumo,
-    onAgregar: AgregarInsumo
-  };
+  show: showModal,
+  onHide: () => {
+    setShowModal(false);
+    setInsumoSeleccionado(null);
+    setCantidadInsumo(1);
+  },
+  articulosInsumo: articulosInsumo.filter(
+    insumo => !detalles.some(det => det.articuloInsumo?.id === insumo.id)
+  ),
+  insumoSeleccionado: insumoSeleccionado,
+  setInsumoSeleccionado: setInsumoSeleccionado,
+  cantidadInsumo: cantidadInsumo,
+  setCantidadInsumo: setCantidadInsumo,
+  onAgregar: AgregarInsumo
+};
+
 
   const tableProps = {
     detalles: detalles,

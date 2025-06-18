@@ -78,11 +78,21 @@ public class ClienteController extends MasterControllerImpl<Cliente, ClienteDTO,
     public ResponseEntity<Page<ClienteDTO>> obtenerClientesFiltrados(
             @RequestParam(required = false) String busqueda, // Busca en nombre, apellido y email
             @RequestParam(required = false) String email,    // Parámetro adicional para email específico
-            @RequestParam(required = false) String ordenar,  // "asc" o "desc"
+            @RequestParam(required = false) String ordenar,  // "asc", "desc" para nombre
+            @RequestParam(required = false) String ordenarPorPedidos, // "asc", "desc", "mas_pedidos", "menos_pedidos"
             @RequestParam(required = false) Boolean eliminado,
             Pageable pageable
     ) {
-        // Si se especifica ordenamiento, creamos un Sort personalizado
+        // Si se especifica ordenamiento por pedidos, usar el nuevo método
+        if (ordenarPorPedidos != null && !ordenarPorPedidos.isBlank()) {
+            Page<Cliente> clientes = clienteService.buscarClientesFiltradosConOrdenPedidos(
+                    busqueda, email, eliminado, ordenarPorPedidos, pageable
+            );
+            Page<ClienteDTO> result = clientes.map(clienteMapper::toDTO);
+            return ResponseEntity.ok(result);
+        }
+
+        // Ordenamiento tradicional por nombre
         Sort sort = Sort.unsorted();
         if (ordenar != null) {
             if ("desc".equalsIgnoreCase(ordenar) || "z-a".equalsIgnoreCase(ordenar)) {

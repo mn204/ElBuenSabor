@@ -20,9 +20,9 @@ class PromocionService {
             const res = await fetch(`${API_URL}/${id}`, {
                 method: "DELETE"
             });
-            if (!res.ok) throw new Error("Error al eliminar artículo insumo");
+            if (!res.ok) throw new Error("Error al eliminar la promocion");
         } catch (error) {
-            console.error(error);
+            console.log(error);
             throw error;
         }
     }

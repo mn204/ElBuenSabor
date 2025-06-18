@@ -72,7 +72,15 @@ export const SucursalProviderUsuario: React.FC<SucursalProviderProps> = ({ child
                 // Para administradores: cargar todas las sucursales y establecer por defecto la sucursal 1
                 await cargarSucursales();
                 const sucursalesData = await obtenerSucursales();
-
+                const storedSucursal = localStorage.getItem('sucursalActualUsuario');
+                if (storedSucursal) {
+                    const sucursalGuardada: Sucursal = JSON.parse(storedSucursal);
+                    const existe = sucursalesData.find(s => s.id === sucursalGuardada.id);
+                    if (existe) {
+                        setSucursalActual(sucursalGuardada);
+                        return;
+                    }
+                }
                 // Buscar sucursal con id 1 o la primera disponible
                 const sucursalPorDefecto = sucursalesData.find(s => s.id === 1) || sucursalesData[0];
                 if (sucursalPorDefecto) {
@@ -110,6 +118,7 @@ export const SucursalProviderUsuario: React.FC<SucursalProviderProps> = ({ child
 
     const cambiarSucursalUsuario = (sucursal: Sucursal) => {
         setSucursalActual(sucursal);
+        localStorage.setItem('sucursalActualUsuario', JSON.stringify(sucursal));
         // Verificar horario de la nueva sucursal
         if (!esSucursalAbierta(sucursal)) {
             setMostrarModalCerrada(true);

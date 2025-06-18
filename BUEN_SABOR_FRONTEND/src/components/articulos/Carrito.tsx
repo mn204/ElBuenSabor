@@ -233,7 +233,7 @@ export function Carrito() {
             </div>
             <h4 className="text-muted mb-3">Tu carrito está vacío</h4>
             <p className="text-muted">Agrega algunos productos para comenzar</p>
-            <Button onClick={()=>navigate("/busqueda?q=")}>
+            <Button onClick={()=>navigate("/")}>
               Ver Productos
             </Button>
           </div>

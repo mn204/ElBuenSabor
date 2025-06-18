@@ -33,6 +33,11 @@ public class SucursalInsumoServiceImpl extends MasterServiceImpl<SucursalInsumo,
             return sucursalInsumoRepository.findAllWithLowStockBySucursal(idSucursal);
         }
     }
+
+    @Override
+    public List<SucursalInsumo> findBySucursalId(Long idSucursal) {
+        return sucursalInsumoRepository.findBySucursalId(idSucursal);
+    }
     @Transactional
     public SucursalInsumo agregarStock(SucursalInsumo sucursalInsumo) {
         // Validaciones opcionales

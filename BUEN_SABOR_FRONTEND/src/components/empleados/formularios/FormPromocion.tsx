@@ -15,7 +15,7 @@ import ModalAgregarArticulo from "../../articulos/ModalAgregarArticulo.tsx";
 import ArticuloInsumoService from "../../../services/ArticuloInsumoService.ts";
 import { useSucursal } from "../../../context/SucursalContextEmpleado.tsx";
 import type Sucursal from "../../../models/Sucursal.ts";
-import DetalleInsumosTable from "../../articulos/DetalleInsumosTable.tsx";
+import SucursalService, { obtenerSucursales } from "../../../services/SucursalService.ts";
 import { Link } from "react-router-dom";
 import DetalleArticulosTable from "../DetalleArticulosTable.tsx";
 
@@ -24,6 +24,8 @@ function FormPromocion() {
     const [showModal, setShowModal] = useState(false);
     const [articulos, setArticulos] = useState<Articulo[]>([]);
     const [porcentajeGanancia, setPorcentajeGanancia] = useState<number>(0)
+    const [todasLasSucursales, setTodasLasSucursales] = useState<Sucursal[]>([]);
+    const [sucursalesSeleccionadas, setSucursalesSeleccionadas] = useState<number[]>([]);
 
     // Estados principales
     const [articuloSeleccionado, setArticuloSeleccionado] = useState<Articulo | null>(null);
@@ -44,12 +46,44 @@ function FormPromocion() {
     const [searchParams] = useSearchParams();
     const idFromUrl = searchParams.get("id");
 
+    useEffect(() => {
+        const cargarSucursales = async () => {
+            try {
+                const sucursales = await obtenerSucursales();
+                setTodasLasSucursales(sucursales);
+                // Si estamos editando, cargar las sucursales ya seleccionadas
+                if (idFromUrl) {
+                    // Este código se ejecutará después de que se cargue la promoción
+                } else {
+                    // Para nueva promoción, seleccionar la sucursal actual por defecto
+                    setSucursalesSeleccionadas([sucursalActual?.id || 0]);
+                }
+            } catch (error) {
+                console.error("Error al cargar sucursales:", error);
+            }
+        };
+
+        if (sucursalActual) {
+            cargarSucursales();
+        }
+    }, [sucursalActual]);
 
     useEffect(() => {
         if (showModal) {
             cargarArticulos();
         }
     }, [showModal]);
+
+    // Utilidades
+    const totalArticulos = detalles!.reduce((acc, det) => {
+        const precio = det.articulo?.precioVenta ?? 0;
+        return acc + precio * det.cantidad;
+    }, 0);
+
+    const totalConGanancia = totalArticulos + (totalArticulos * (porcentajeGanancia / 100));
+    useEffect(() => {
+        setPrecio(totalConGanancia)
+    }, [totalConGanancia]);
 
     const cargarArticulos = () => {
         ArticuloInsumoService.getAllNoParaElaborar().then(setArticulos);
@@ -66,14 +100,8 @@ function FormPromocion() {
         setTipo(TipoPromocion.PROMOCION)
         setDetalles([])
         setImagenes([])
+        setSucursalesSeleccionadas([sucursalActual?.id || 0]) // Resetear a sucursal actual
     }
-    // Utilidades
-    const totalArticulos = detalles!.reduce((acc, det) => {
-        const precio = det.articulo?.precioVenta ?? 0;
-        return acc + precio * det.cantidad;
-    }, 0);
-
-    const totalConGanancia = totalArticulos + (totalArticulos * (porcentajeGanancia / 100));
 
 
     // Handlers
@@ -147,6 +175,10 @@ function FormPromocion() {
                     setActiva(promocion.activa);
                     setDetalles(promocion.detalles || []);
                     setImagenesExistentes(promocion.imagenes || []);
+
+                    // Cargar las sucursales seleccionadas
+                    const sucursalesIds = promocion.sucursales?.map(s => s.id) || [];
+                    setSucursalesSeleccionadas(sucursalesIds);
                 } catch (error) {
                     console.error("Error al cargar la promoción:", error);
                 }
@@ -156,6 +188,21 @@ function FormPromocion() {
         }
     }, [idFromUrl]);
 
+    const handleSucursalChange = (sucursalId: number, checked: boolean) => {
+        if (checked) {
+            setSucursalesSeleccionadas(prev => [...prev, sucursalId]);
+        } else {
+            setSucursalesSeleccionadas(prev => prev.filter(id => id !== sucursalId));
+        }
+    };
+
+    const handleSelectAllSucursales = (selectAll: boolean) => {
+        if (selectAll) {
+            setSucursalesSeleccionadas(todasLasSucursales.map(s => s.id));
+        } else {
+            setSucursalesSeleccionadas([]);
+        }
+    };
     // Factoriza la creación del objeto manufacturado
     const buildPromocion = async (): Promise<Promocion | null> => {
         const promocion = new Promocion();
@@ -168,8 +215,10 @@ function FormPromocion() {
         promocion.precioPromocional = totalConGanancia;
         promocion.tipoPromocion = tipo;
         promocion.activa = activa;
-        setSucursales([...sucursales!, sucursalActual!])
-        promocion.sucursales = [sucursalActual!];
+        const sucursalesParaPromocion = todasLasSucursales.filter(s =>
+            sucursalesSeleccionadas.includes(s.id)
+        );
+        promocion.sucursales = sucursalesParaPromocion;
         console.log(sucursalActual)
         promocion.detalles = detalles.map(det => ({
             id: det.id ?? undefined,
@@ -247,7 +296,9 @@ function FormPromocion() {
             setArticuloSeleccionado(null);
             setCantidadInsumo(1);
         },
-        articulos: articulos,
+        articulos: articulos.filter(
+            insumo => !detalles.some(det => det.articulo?.id === insumo.id)
+        ),
         articuloSeleccionado: articuloSeleccionado,
         setArticuloSeleccionado: setArticuloSeleccionado,
         cantidadInsumo: cantidadInsumo,
@@ -373,7 +424,41 @@ function FormPromocion() {
                                 <option value="HAPPYHOUR">HAPPY HOUR</option>
                             </select>
                         </div>
-
+                        {/* SUCURSALES */}
+                        <div className="d-flex flex-column">
+                            <label>Sucursales donde aplicará la promoción:</label>
+                            <div className="border p-3 rounded text-start" style={{ overflowY: 'auto' }}>
+                                    <div className="text-start">
+                                        <label className="form-check-label fw-bold" htmlFor="selectAllSucursales">
+                                            Seleccionar todas
+                                        </label>
+                                        <input
+                                            className="form-check"
+                                            type="checkbox"
+                                            id="selectAllSucursales"
+                                            checked={sucursalesSeleccionadas.length === todasLasSucursales.length && todasLasSucursales.length > 0}
+                                            onChange={(e) => handleSelectAllSucursales(e.target.checked)}
+                                        />
+                                    </div>
+                                {todasLasSucursales.map(sucursal => (
+                                    <div key={sucursal.id} className="">
+                                        <label className="form-check-label" htmlFor={`sucursal-${sucursal.id}`}>
+                                            {sucursal.nombre}
+                                        </label>
+                                        <input
+                                            className="form-check"
+                                            type="checkbox"
+                                            id={`sucursal-${sucursal.id}`}
+                                            checked={sucursalesSeleccionadas.includes(sucursal.id)}
+                                            onChange={(e) => handleSucursalChange(sucursal.id, e.target.checked)}
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                            {sucursalesSeleccionadas.length === 0 && (
+                                <small className="text-danger mt-1">Debe seleccionar al menos una sucursal</small>
+                            )}
+                        </div>
                         {/* Imágenes */}
                         <div className="d-flex flex-column">
                             <label>Imágenes:</label>
@@ -499,7 +584,7 @@ function FormPromocion() {
                         </div>
                         <hr />
                         <div className="d-flex justify-content-between align-items-center mb-3">
-                            <span className="fs-5 fw-bold">Precio:</span>
+                            <span className="fs-5 fw-bold">Precio: {totalConGanancia.toFixed(2)}</span>
                             <div className="d-flex align-items-center justify-content-between gap-3 mb-3">
                                 <span className="fs-6">% Ganancia:</span>
                                 <input
@@ -522,7 +607,8 @@ function FormPromocion() {
                                 !denominacion ||
                                 !descripcion ||
                                 detalles.length === 0 ||
-                                !precio
+                                !precio ||
+                                sucursalesSeleccionadas.length === 0  // Agregar esta validación
                             }
                         >
                             {idFromUrl ? "Actualizar Promoción" : "Guardar Promoción"}
@@ -532,9 +618,9 @@ function FormPromocion() {
             </div >
             <ModalAgregarArticulo {...modalProps} />
         </div >
-    
+
     );
-    
+
 }
 
 export default FormPromocion;

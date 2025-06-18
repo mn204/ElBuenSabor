@@ -633,6 +633,11 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
         return pedidoRepository.findFirstByClienteIdOrderByIdDesc(clienteId);
     }
 
+    @Override
+    public Long countPedidosByClienteId(Long clienteId){
+        return pedidoRepository.countPedidosByClienteId(clienteId);
+    };
+
     // Generacion de Excel para los pedidos.
     @Override
     public byte[] exportarPedidosAExcel(List<Pedido> pedidos) {

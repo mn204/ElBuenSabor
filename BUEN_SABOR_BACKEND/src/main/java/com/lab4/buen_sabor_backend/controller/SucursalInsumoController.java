@@ -46,6 +46,13 @@ public class SucursalInsumoController extends MasterControllerImpl<SucursalInsum
         return ResponseEntity.ok(sucursalInsumosDTO);
     }
 
+    @GetMapping("/sucursal/{idSucursal}")
+    public ResponseEntity<List<SucursalInsumoDTO>> findBySucursalId(@PathVariable Long idSucursal) {
+        List<SucursalInsumo> sucursalInsumos = sucursalInsumoService.findBySucursalId(idSucursal);
+        List<SucursalInsumoDTO> sucursalInsumosDTO = sucursalInsumoMapper.toDTOsList(sucursalInsumos);
+        return ResponseEntity.ok(sucursalInsumosDTO);
+    }
+
     @PutMapping("/agregarStock")
     public void agregarStock(@RequestBody SucursalInsumo surcursalInsumo) {
         sucursalInsumoService.agregarStock(surcursalInsumo);
