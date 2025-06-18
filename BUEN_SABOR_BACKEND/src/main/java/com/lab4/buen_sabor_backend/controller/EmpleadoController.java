@@ -4,6 +4,8 @@ import com.lab4.buen_sabor_backend.dto.EmpleadoDTO;
 import com.lab4.buen_sabor_backend.mapper.EmpleadoMapper;
 import com.lab4.buen_sabor_backend.model.Cliente;
 import com.lab4.buen_sabor_backend.model.Empleado;
+import com.lab4.buen_sabor_backend.model.enums.Rol;
+import com.lab4.buen_sabor_backend.repository.EmpleadoRepository;
 import com.lab4.buen_sabor_backend.service.EmpleadoService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +17,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/empleado")
 @CrossOrigin(origins = "*")
@@ -24,7 +28,6 @@ public class EmpleadoController extends MasterControllerImpl<Empleado, EmpleadoD
 
     private final EmpleadoService empleadoService;
     private final EmpleadoMapper empleadoMapper;
-
     @Autowired
     public EmpleadoController(EmpleadoService empleadoService, EmpleadoMapper empleadoMapper) {
         super(empleadoService);
@@ -48,6 +51,15 @@ public class EmpleadoController extends MasterControllerImpl<Empleado, EmpleadoD
         return empleadoService.findByUsuarioId(usuarioId)
                 .map(empleado -> ResponseEntity.ok(empleadoMapper.toDTO(empleado)))
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/sucursal/{sucursalId}/rol/{rol}")
+    public ResponseEntity<List<EmpleadoDTO>> getBySucursalAndRol(@PathVariable Long sucursalId, @PathVariable Rol rol) {
+        List<Empleado> empleados = empleadoService.findBySucursalIdAndRol(sucursalId, rol);
+        List<EmpleadoDTO> empleadosDTO = empleados.stream()
+                .map(empleadoMapper::toDTO)
+                .toList();
+        return ResponseEntity.ok(empleadosDTO);
     }
 
     @GetMapping("/filtrados")

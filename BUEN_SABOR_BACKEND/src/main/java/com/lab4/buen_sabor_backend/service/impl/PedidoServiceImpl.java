@@ -4,6 +4,7 @@ import com.lab4.buen_sabor_backend.dto.PedidoDTO;
 import com.lab4.buen_sabor_backend.exceptions.EntityNotFoundException;
 import com.lab4.buen_sabor_backend.model.*;
 import com.lab4.buen_sabor_backend.model.enums.Rol;
+import com.lab4.buen_sabor_backend.repository.ClienteRepository;
 import com.lab4.buen_sabor_backend.repository.EmpleadoRepository;
 import com.lab4.buen_sabor_backend.service.*;
 import com.lab4.buen_sabor_backend.service.impl.specification.PedidoSpecification;
@@ -42,11 +43,12 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
     private final ArticuloService articuloService;
     private final SucursalInsumoService sucursalInsumoService;
     private final ArticuloManufacturadoService articuloManufacturadoService;
+    private final ClienteRepository clienteRepository;
 
     @Autowired
     public PedidoServiceImpl(PedidoRepository pedidoRepository, PdfService pdfService, ArticuloInsumoService articuloInsumoService,
                              SucursalInsumoService sucursalInsumoService, ArticuloManufacturadoService articuloManufacturadoService,
-                             EmpleadoRepository empleadoRepository, ExcelService excelService, EmailService emailService, PromocionService promocionService, DetallePedidoService detallePedidoService, ArticuloService articuloService) {
+                             EmpleadoRepository empleadoRepository, ExcelService excelService, EmailService emailService, PromocionService promocionService, DetallePedidoService detallePedidoService, ArticuloService articuloService, ClienteRepository clienteRepository) {
         super(pedidoRepository);
         this.pedidoRepository = pedidoRepository;
         this.articuloInsumoService = articuloInsumoService;
@@ -59,6 +61,7 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
         this.promocionService = promocionService;
         this.detallePedidoService = detallePedidoService;
         this.articuloService = articuloService;
+        this.clienteRepository = clienteRepository;
     }
 
     @Override
@@ -317,21 +320,50 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
         Pedido pedido = pedidoRepository.findByIdAndSucursalId(pedidoRequest.getId(), pedidoRequest.getSucursal().getId())
                 .orElseThrow(() -> new RuntimeException("Pedido no encontrado para esa sucursal."));
 
-        Empleado empleado = empleadoRepository.findById(pedidoRequest.getEmpleado().getId())
-                .orElseThrow(() -> new RuntimeException("Empleado no encontrado."));
-
-        Rol rol = empleado.getUsuario().getRol();
         Estado estadoActual = pedido.getEstado();
         Estado nuevoEstado = pedidoRequest.getEstado();
+        Rol rol;
 
-        if (!puedeCambiarEstado(rol, estadoActual, nuevoEstado)) {
-            throw new RuntimeException("Cambio de estado no permitido para el rol " + rol);
+        // Determinar si fue un empleado o cliente quien hizo la solicitud
+        Empleado empleado = null;
+        if (pedidoRequest.getEmpleado() != null) {
+            empleado = empleadoRepository.findById(pedidoRequest.getEmpleado().getId())
+                    .orElseThrow(() -> new RuntimeException("Empleado no encontrado."));
+        } else if (pedidoRequest.getCliente() != null) {
+            Cliente cliente = clienteRepository.findById(pedidoRequest.getCliente().getId())
+                    .orElseThrow(() -> new RuntimeException("Cliente no encontrado."));
+            rol = cliente.getUsuario().getRol();
+        } else {
+            throw new RuntimeException("Debe enviarse un empleado o cliente para cambiar el estado.");
         }
 
+        // Lógica adicional: si se cambia de LISTO a EN_DELIVERY
+        if (estadoActual == Estado.LISTO && nuevoEstado == Estado.EN_DELIVERY) {
+
+            if (empleado == null || empleado.getId() == null) {
+                throw new RuntimeException("Debe asignar un empleado de tipo DELIVERY al pasar a EN_DELIVERY.");
+            }
+
+            Empleado empleadoDelivery = empleadoRepository.findById(empleado.getId())
+                    .orElseThrow(() -> new RuntimeException("Empleado DELIVERY no encontrado."));
+
+            if (empleadoDelivery.getUsuario().getRol() != Rol.DELIVERY) {
+                throw new RuntimeException("El empleado asignado no tiene rol DELIVERY.");
+            }
+
+            if (!empleadoDelivery.getSucursal().getId().equals(pedido.getSucursal().getId())) {
+                throw new RuntimeException("El empleado DELIVERY no pertenece a la misma sucursal que el pedido.");
+            }
+
+            // Asignar delivery al pedido
+            pedido.setEmpleado(empleadoDelivery);
+        }
+
+        // Actualizar estado
         pedido.setEstado(nuevoEstado);
         pedidoRepository.save(pedido);
 
-        // Lógica de envío de email
+        // Envío de emails
         try {
             if (nuevoEstado == Estado.CANCELADO) {
                 emailService.enviarNotaCredito(pedido);
@@ -339,7 +371,6 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
                 emailService.enviarFactura(pedido);
             }
         } catch (Exception e) {
-            // Registrar el error y continuar
             System.err.println("Error al enviar el email: " + e.getMessage());
         }
     }
@@ -354,6 +385,8 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
             default -> false;
         };
     }
+
+
 
     @Override
     public void verificarYDescontarStockPedido(Pedido pedido) throws RuntimeException {

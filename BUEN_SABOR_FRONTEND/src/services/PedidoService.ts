@@ -1,3 +1,5 @@
+import type Empleado from "../models/Empleado";
+import type Rol from "../models/enums/Rol";
 import Pedido from "../models/Pedido";
 
 const API_URL = "http://localhost:8080/api/pedidos";
@@ -250,40 +252,48 @@ class PedidoService {
         }
     }
 
+    obtenerEmpleadosPorSucursalYRol = async (sucursalId: number, rol: Rol): Promise<Empleado[]> => {
+        const response = await fetch(`http://localhost:8080/api/empleado/sucursal/${sucursalId}/rol/${rol}`);
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error('Error al obtener empleados: ' + errorText);
+        }
+        return await response.json();
+    }
 
     async agregarCincoMinutos(pedido: Pedido): Promise<void> {
-    if (!pedido.horaEstimadaFinalizacion) {
-        throw new Error("El pedido no tiene una hora estimada.");
+        if (!pedido.horaEstimadaFinalizacion) {
+            throw new Error("El pedido no tiene una hora estimada.");
+        }
+
+        // Convertimos la hora a un objeto Date
+        const fecha = new Date(`1970-01-01T${pedido.horaEstimadaFinalizacion}`);
+
+        // Sumamos 5 minutos
+        fecha.setMinutes(fecha.getMinutes() + 5);
+
+        // Convertimos de nuevo a string en formato HH:mm:ss
+        const nuevaHora = fecha.toTimeString().split(" ")[0]; // HH:mm:ss
+
+        // Creamos el nuevo objeto pedido con la hora modificada
+        const pedidoActualizado = {
+            ...pedido,
+            horaEstimadaFinalizacion: nuevaHora
+        };
+
+        const response = await fetch(`${API_URL}/${pedido.id}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(pedidoActualizado),
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error("Error al actualizar el pedido: " + errorText);
+        }
     }
-
-    // Convertimos la hora a un objeto Date
-    const fecha = new Date(`1970-01-01T${pedido.horaEstimadaFinalizacion}`);
-
-    // Sumamos 5 minutos
-    fecha.setMinutes(fecha.getMinutes() + 5);
-
-    // Convertimos de nuevo a string en formato HH:mm:ss
-    const nuevaHora = fecha.toTimeString().split(" ")[0]; // HH:mm:ss
-
-    // Creamos el nuevo objeto pedido con la hora modificada
-    const pedidoActualizado = {
-        ...pedido,
-        horaEstimadaFinalizacion: nuevaHora
-    };
-
-    const response = await fetch(`${API_URL}/${pedido.id}`, {
-        method: "PUT",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify(pedidoActualizado),
-    });
-
-    if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error("Error al actualizar el pedido: " + errorText);
-    }
-}
 
     async marcarComoPagado(id: number): Promise<Pedido> {
         const response = await fetch(`${API_URL}/${id}/pagar`, {

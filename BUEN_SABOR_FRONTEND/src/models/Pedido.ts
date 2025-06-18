@@ -19,9 +19,9 @@ export default class Pedido {
     formaPago!: FormaPago;
     fechaPedido: string = "";
     sucursal!: Sucursal;
-    cliente!: Cliente;
+    cliente?: Cliente;
     domicilio!: Domicilio;
-    empleado!: Empleado;
+    empleado?: Empleado;
     factura?: Factura;
     detalles: DetallePedido[] = [];
     eliminado!: boolean;

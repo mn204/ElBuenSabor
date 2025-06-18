@@ -1,6 +1,7 @@
 package com.lab4.buen_sabor_backend.service.impl;
 
 import com.lab4.buen_sabor_backend.model.Empleado;
+import com.lab4.buen_sabor_backend.model.enums.Rol;
 import com.lab4.buen_sabor_backend.repository.EmpleadoRepository;
 import com.lab4.buen_sabor_backend.service.EmpleadoService;
 import com.lab4.buen_sabor_backend.service.impl.specification.EmpleadoSpecification;
@@ -10,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -44,6 +46,11 @@ public class EmpleadoServiceImpl extends MasterServiceImpl<Empleado, Long> imple
                 .and(EmpleadoSpecification.eliminadoEquals(eliminado));
 
         return empleadoRepository.findAll(spec, pageable);
+    }
+
+    @Override
+    public List<Empleado> findBySucursalIdAndRol(Long sucursalId, Rol rol) {
+        return empleadoRepository.findBySucursalIdAndRol(sucursalId, rol);
     }
 
 }

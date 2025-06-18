@@ -14,6 +14,9 @@ import { useAuth } from "../../context/AuthContext";
 import { useSucursal } from "../../context/SucursalContextEmpleado.tsx";
 import { obtenerSucursales } from "../../services/SucursalService.ts";
 import type Sucursal from "../../models/Sucursal.ts";
+import SelectDeliveryModal from './pedidos/ModalDeliverySeleccion.tsx';
+import Empleado from '../../models/Empleado.ts';
+import Rol from '../../models/enums/Rol.ts';
 interface Props {
     cliente?: Cliente;
 }
@@ -44,6 +47,10 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
     const [showDetalleModal, setShowDetalleModal] = useState(false);
     const [estadoSeleccionado, setEstadoSeleccionado] = useState<Record<number, Estado>>({});
     const [sucursales, setSucursales] = useState<Sucursal[]>([]);
+    const [showDeliveryModal, setShowDeliveryModal] = useState(false);
+    const [empleadosDelivery, setEmpleadosDelivery] = useState<Empleado[]>([]);
+    const [pedidoEnProceso, setPedidoEnProceso] = useState<Pedido | null>(null);
+
 
     // Estados para exportación a Excel (solo admin)
     const [pedidosSeleccionados, setPedidosSeleccionados] = useState<Map<number, Pedido>>(new Map());
@@ -136,48 +143,112 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
     };
 
     const handleCambiarEstado = async (pedidoId: number, nuevoEstado: Estado) => {
+        const pedido = pedidos.find(p => p.id === pedidoId);
+        if (!pedido) return;
+
+        // Verificar si el cambio es a EN_DELIVERY
+        if (nuevoEstado === Estado.EN_DELIVERY) {
+            // Para ADMIN: puede cambiar desde cualquier estado
+            // Para CAJERO: solo puede cambiar desde LISTO
+            if (usuario?.rol === 'ADMINISTRADOR' ||
+                (usuario?.rol === 'CAJERO' && pedido.estado === Estado.LISTO)) {
+                try {
+                    if (!pedido.sucursal?.id) {
+                        throw new Error('El pedido no tiene una sucursal válida asignada');
+                    }
+
+                    const deliverys = await pedidoService.obtenerEmpleadosPorSucursalYRol(
+                        pedido.sucursal.id,
+                        Rol.DELIVERY
+                    );
+
+                    if (deliverys.length === 0) {
+                        throw new Error('No hay empleados delivery disponibles en esta sucursal');
+                    }
+
+                    setEmpleadosDelivery(deliverys);
+                    setPedidoEnProceso(pedido);
+                    setShowDeliveryModal(true);
+                } catch (error: any) {
+                    console.error('Error al cargar empleados delivery:', error);
+                    alert(error.message || 'Error al cargar lista de deliverys disponibles');
+                }
+                return;
+            } else {
+                alert('No tienes permisos para cambiar a estado EN_DELIVERY desde este estado');
+                return;
+            }
+        }
+
+        // Para otros cambios de estado que no sean a EN_DELIVERY
         try {
-            // Activar loading para este pedido específico
-            setLoadingEstados(prev => ({ ...prev, [pedidoId]: true }));
-
-            const pedido = pedidos.find(p => p.id === pedidoId);
-            if (!pedido) {
-                alert("Pedido no encontrado");
-                return;
-            }
-
-            if (!empleado) {
-                alert("No se pudo obtener información del empleado");
-                return;
-            }
+            setLoadingEstados(prev => ({
+                ...prev,
+                [pedidoId]: true
+            }));
 
             const pedidoActualizado = {
                 ...pedido,
-                estado: nuevoEstado,
-                empleado: empleado
+                estado: nuevoEstado
             };
 
             await pedidoService.cambiarEstadoPedido(pedidoActualizado);
 
-            // Actualizar el estado local
+            // Actualizar estado local
             setPedidos(prev => prev.map(p =>
-                p.id === pedidoId ? { ...p, estado: nuevoEstado, empleado: empleado } : p
+                p.id === pedidoId ? { ...p, estado: nuevoEstado } : p
             ));
 
-            // Limpiar la selección de estado
-            setEstadoSeleccionado(prev => {
-                const newState = { ...prev };
-                delete newState[pedidoId];
-                return newState;
-            });
         } catch (error) {
-            console.error("Error al cambiar estado:", error);
-            alert("Error al cambiar el estado del pedido");
+            console.error('Error al cambiar estado:', error);
+            alert('Error al cambiar el estado del pedido');
         } finally {
-            // Desactivar loading para este pedido
-            setLoadingEstados(prev => ({ ...prev, [pedidoId]: false }));
+            setLoadingEstados(prev => ({
+                ...prev,
+                [pedidoId]: false
+            }));
         }
     };
+
+    // Agregar función para procesar el cambio con delivery
+    const handleConfirmarDelivery = async (empleadoDelivery: Empleado) => {
+        if (!pedidoEnProceso) return;
+
+        try {
+            setLoadingEstados(prev => ({
+                ...prev,
+                [pedidoEnProceso.id!]: true
+            }));
+
+            const pedidoActualizado = {
+                ...pedidoEnProceso,
+                estado: Estado.EN_DELIVERY,
+                empleado: empleadoDelivery
+            };
+
+            await pedidoService.cambiarEstadoPedido(pedidoActualizado);
+
+            // Actualizar estado local
+            setPedidos(prev => prev.map(p =>
+                p.id === pedidoEnProceso.id
+                    ? { ...p, estado: Estado.EN_DELIVERY, empleado: empleadoDelivery }
+                    : p
+            ));
+
+            setShowDeliveryModal(false);
+            setPedidoEnProceso(null);
+
+        } catch (error) {
+            console.error('Error al asignar delivery:', error);
+            alert('Error al asignar el delivery al pedido');
+        } finally {
+            setLoadingEstados(prev => ({
+                ...prev,
+                [pedidoEnProceso.id!]: false
+            }));
+        }
+    };
+
 
     const handleMarcarPagado = async (pedidoId: number) => {
         try {
@@ -353,7 +424,7 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
             )
         }] : []),
         { key: "numero", label: "Número", render: (_: any, row: Pedido) => row.id },
-        { key: "cliente", label: "Cliente", render: (_: any, row: Pedido) => `${row.cliente.nombre} ${row.cliente.apellido}` },
+        { key: "cliente", label: "Cliente", render: (_: any, row: Pedido) => `${row.cliente?.nombre} ${row.cliente?.apellido}` },
         { key: "fecha", label: "Fecha", render: (_: any, row: Pedido) => formatFechaConOffset(row.fechaPedido) },
         { key: "total", label: "Total", render: (_: any, row: Pedido) => `$${row.total.toFixed(2)}` },
         { key: "tipoPago", label: "Medio de Pago", render: (_: any, row: Pedido) => row.formaPago },
@@ -566,6 +637,16 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
                     pedido={detallePedido}
                 />
             )}
+            <SelectDeliveryModal
+                show={showDeliveryModal}
+                onHide={() => {
+                    setShowDeliveryModal(false);
+                    setPedidoEnProceso(null);
+                }}
+                onConfirm={handleConfirmarDelivery}
+                pedido={pedidoEnProceso!}
+                empleadosDelivery={empleadosDelivery}
+            />
         </>
     );
 };
