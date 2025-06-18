@@ -4,13 +4,19 @@ import com.lab4.buen_sabor_backend.model.DetallePromocion;
 import com.lab4.buen_sabor_backend.model.ImagenPromocion;
 import com.lab4.buen_sabor_backend.model.Promocion;
 import com.lab4.buen_sabor_backend.model.Sucursal;
+import com.lab4.buen_sabor_backend.model.enums.TipoPromocion;
 import com.lab4.buen_sabor_backend.repository.PromocionRepository;
 
 import com.lab4.buen_sabor_backend.service.PromocionService;
+import com.lab4.buen_sabor_backend.service.impl.specification.PromocionSpecification;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -30,6 +36,8 @@ public class PromocionServiceImpl extends MasterServiceImpl<Promocion, Long> imp
     public List<Promocion> findPromocionsBySucursal(Sucursal sucursal) {
         return promocionRepository.findBySucursales(sucursal);
     }
+
+
     @Override
     @Transactional
     public Promocion save(Promocion entity) {
@@ -130,5 +138,19 @@ public class PromocionServiceImpl extends MasterServiceImpl<Promocion, Long> imp
     public boolean existsById(Long id) {
         return promocionRepository.existsById(id);
     }
+
+    @Override
+    public Page<Promocion> buscarPromocionesFiltradas(Long idSucursal, Boolean activa, TipoPromocion tipoPromocion,
+                                                      LocalDate fechaDesde, LocalDate fechaHasta, Pageable pageable) {
+
+        Specification<Promocion> spec = Specification.where(PromocionSpecification.conSucursal(idSucursal))
+                .and(PromocionSpecification.conActiva(activa))
+                .and(PromocionSpecification.conTipo(tipoPromocion))
+                .and(PromocionSpecification.desdeFecha(fechaDesde))
+                .and(PromocionSpecification.hastaFecha(fechaHasta));
+
+        return promocionRepository.findAll(spec, pageable);
+    }
+
 
 }

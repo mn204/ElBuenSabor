@@ -81,6 +81,45 @@ class PromocionService {
             throw error;
         }
     }
+
+    // ...existing code...
+
+    async getAllFiltradas(
+        idSucursal?: number | null,
+        activa?: boolean,
+        tipoPromocion?: string,
+        fechaDesde?: Date,
+        fechaHasta?: Date,
+        page: number = 0,
+        size: number = 10
+    ): Promise<any> {
+        try {
+            let url = `${API_URL}/filtradas?page=${page}&size=${size}`;
+
+            if (idSucursal !== undefined && idSucursal !== null) {
+                url += `&idSucursal=${idSucursal}`;
+            }
+            if (activa !== undefined) {
+                url += `&activa=${activa}`;
+            }
+            if (tipoPromocion) {
+                url += `&tipoPromocion=${tipoPromocion}`;
+            }
+            if (fechaDesde) {
+                url += `&fechaDesde=${fechaDesde.toISOString().split('T')[0]}`;
+            }
+            if (fechaHasta) {
+                url += `&fechaHasta=${fechaHasta.toISOString().split('T')[0]}`;
+            }
+
+            const res = await fetch(url);
+            if (!res.ok) throw new Error("Error al obtener promociones filtradas");
+            return await res.json();
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
 }
 
 export default new PromocionService();

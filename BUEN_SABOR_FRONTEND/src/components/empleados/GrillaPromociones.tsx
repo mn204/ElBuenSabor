@@ -11,6 +11,8 @@ import BotonAlta from "../layout/BotonAlta";
 import BotonEliminar from "../layout/BotonEliminar";
 import BotonModificar from "../layout/BotonModificar";
 import BotonVer from "../layout/BotonVer";
+import { useSucursal } from "../../context/SucursalContextEmpleado";
+
 
 export function GrillaPromocion() {
     const [promociones, setPromociones] = useState<Promocion[]>([]);
@@ -37,9 +39,13 @@ export function GrillaPromocion() {
     const [filtroPrecioMin, setFiltroPrecioMin] = useState("");
     const [filtroPrecioMax, setFiltroPrecioMax] = useState("");
 
+    const { sucursalActual, esModoTodasSucursales } = useSucursal();
+
+
     useEffect(() => {
         cargarPromociones();
-    }, []);
+    }, [sucursalActual, esModoTodasSucursales, page, size, filtroEstado, filtroTipoPromocion, filtroFechaDesde, filtroFechaHasta]);
+
 
     // Resetear página cuando cambien los filtros
     useEffect(() => {
@@ -61,16 +67,31 @@ export function GrillaPromocion() {
         setLoading(true);
         setError(null);
         try {
-            const data = await PromocionService.getAll();
-            setPromociones(data);
-            console.log(data)
+            const sucursalId = esModoTodasSucursales ? null : sucursalActual?.id;
+
+            const activa = filtroEstado === "activa" ? true :
+                filtroEstado === "inactiva" ? false :
+                    undefined;
+
+            const data = await PromocionService.getAllFiltradas(
+                sucursalId,
+                activa,
+                filtroTipoPromocion || undefined,
+                filtroFechaDesde,
+                filtroFechaHasta,
+                page,
+                size
+            );
+
+            setPromociones(data.content);
+            // Actualizar el total de páginas si el backend devuelve esa información
+            // setTotalPages(data.totalPages);
         } catch (err) {
             setError("Error al cargar las promociones.");
         } finally {
             setLoading(false);
         }
     };
-
     // Filtro local
     const promocionesFiltradas = promociones.filter(p => {
         const matchDenominacion = !filtroDenominacion ||
@@ -236,6 +257,7 @@ export function GrillaPromocion() {
     return (
         <div className="position-relative">
             <h2>Promociones</h2>
+            
             <div className="filtros-container bg-light p-4 rounded mb-4 shadow-sm">
                 <div className="row g-3 align-items-center">
                     <div className="col-md-3">
