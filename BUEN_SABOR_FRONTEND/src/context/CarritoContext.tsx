@@ -8,6 +8,7 @@ import Estado from "../models/enums/Estado";
 import type Domicilio from "../models/Domicilio";
 import Promocion from "../models/Promocion";
 import ArticuloManufacturadoService from "../services/ArticuloManufacturadoService";
+import TipoEnvio from "../models/enums/TipoEnvio";
 
 interface CarritoContextProps {
   pedido: Pedido;
@@ -249,7 +250,10 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
       // Función para calcular el tiempo total de preparación
       const calcularTiempoPreparacion = async (pedido: Pedido): Promise<number> => {
         let tiempoTotalMinutos = 0;
-
+        if(pedido.tipoEnvio == TipoEnvio.DELIVERY){
+          tiempoTotalMinutos += 15
+        }
+        console.log(pedido.tipoEnvio)
         if (pedido.detalles) {
           for (const det of pedido.detalles) {
             if (det.articulo) {
@@ -261,9 +265,9 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
               }
             }
             if (det.promocion) {
-              for (const det of pedido.detalles) {
+              for (const deta of det.promocion.detalles) {
                 try {
-                  const prod = await ArticuloManufacturadoService.getById(det.articulo!.id);
+                  const prod = await ArticuloManufacturadoService.getById(deta.articulo!.id);
                   tiempoTotalMinutos += prod.tiempoEstimadoMinutos ?? 0;
                 } catch (error) {
                   console.error("Error al obtener artículo manufacturado:", error);
