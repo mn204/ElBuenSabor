@@ -31,7 +31,7 @@ export function Carrito() {
   const [modalVisible, setModalVisible] = useState(false);
 
   if (!carritoCtx) return null;
-
+  
   const handleModalSubmit = (clienteActualizado: any) => {
     setCliente(clienteActualizado);
   };
@@ -729,7 +729,7 @@ export function Carrito() {
                         <button
                           className={`btn btn-lg ${!stockError ? 'btn-success' : 'btn-secondary'}`}
                           onClick={handlePagarConMP}
-                          disabled={stockError !== null || verificandoStock}
+                          disabled={stockError !== null || verificandoStock || (!domicilioSeleccionado && tipoEnvio == 'DELIVERY')}
                         >
                           {verificandoStock ? 'Verificando...' : 'Pagar con Mercado Pago'}
                         </button>

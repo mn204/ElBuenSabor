@@ -56,44 +56,48 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
   }
   // 2. MODIFICAR LA FUNCIÓN agregarAlCarrito EXISTENTE
   const agregarAlCarrito = (articulo: Articulo, cantidad: number) => {
-  if (!articulo.id) {
-    console.warn("El artículo no tiene ID");
-    return;
-  }
-
-  setPedido((prevPedido) => {
-    const detallesExistente = prevPedido.detalles.find(
-      (d) => d.articulo && d.articulo.id === articulo.id
-    );
-
-    let nuevosdetalles: PedidoDetalle[];
-    if (detallesExistente) {
-      nuevosdetalles = prevPedido.detalles.map((d) => {
-        if (d.articulo && d.articulo.id === articulo.id && !d.promocion) {
-          const nuevaCantidad = d.cantidad + cantidad;
-          return {
-            ...d,
-            cantidad: nuevaCantidad,
-            subTotal: articulo.precioVenta * nuevaCantidad,
-          };
-        }
-        return d;
-      });
-    } else {
-      const nuevoDetalles = new PedidoDetalle();
-      nuevoDetalles.articulo = articulo;
-      nuevoDetalles.cantidad = cantidad;
-      nuevoDetalles.subTotal = articulo.precioVenta * cantidad;
-      nuevosdetalles = [...prevPedido.detalles, nuevoDetalles];
+    if (!articulo.id) {
+      console.warn("El artículo no tiene ID");
+      return;
     }
 
-    const nuevoTotal = nuevosdetalles.reduce((acc, d) => acc + d.subTotal, 0);
-    return { ...prevPedido, detalles: nuevosdetalles, total: nuevoTotal };
-  });
-};
+    setPedido((prevPedido) => {
+      const detallesExistente = prevPedido.detalles.find(
+        (d) => d.articulo && d.articulo.id === articulo.id
+      );
+
+      let nuevosdetalles: PedidoDetalle[];
+      if (detallesExistente) {
+        nuevosdetalles = prevPedido.detalles.map((d) => {
+          if (d.articulo && d.articulo.id === articulo.id && !d.promocion) {
+            const nuevaCantidad = d.cantidad + cantidad;
+            return {
+              ...d,
+              cantidad: nuevaCantidad,
+              subTotal: articulo.precioVenta * nuevaCantidad,
+            };
+          }
+          return d;
+        });
+      } else {
+        const nuevoDetalles = new PedidoDetalle();
+        nuevoDetalles.articulo = articulo;
+        nuevoDetalles.cantidad = cantidad;
+        nuevoDetalles.subTotal = articulo.precioVenta * cantidad;
+        nuevosdetalles = [...prevPedido.detalles, nuevoDetalles];
+      }
+
+      const nuevoTotal = nuevosdetalles.reduce((acc, d) => acc + d.subTotal, 0);
+      return { ...prevPedido, detalles: nuevosdetalles, total: nuevoTotal };
+    });
+  };
 
 
   const agregarPromocionAlCarrito = (promocion: Promocion) => {
+    if (!promocion.id) {
+      console.warn("El artículo no tiene ID");
+      return;
+    }
     setPedido((prevPedido) => {
       // Lógica original para artículo
       const detallesExistente = prevPedido.detalles.find(
@@ -127,6 +131,10 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
   };
   // Función corregida para quitar promoción completa del carrito
   const quitarPromocionCompleta = (promocionId: number) => {
+    if (!promocionId) {
+      console.warn("El artículo no tiene ID");
+      return;
+    }
     setPedido((prevPedido) => {
       // Solo quitar artículos SIN promoción
       const nuevosdetalles = prevPedido.detalles.filter(
@@ -168,6 +176,10 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
     return fechaArgentina.toTimeString().split(' ')[0];
   };
   const restarDelCarrito = (idArticulo: number) => {
+    if (!idArticulo) {
+      console.warn("El artículo no tiene ID");
+      return;
+    }
     setPedido((prevPedido) => {
       const nuevosdetalles = prevPedido.detalles
         .map((d) => {
@@ -201,10 +213,14 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
     setIdPreference(undefined as any); // Forzar el tipo si es necesario
   };
   const quitarDelCarrito = (idArticulo: number) => {
+    if (!idArticulo) {
+      console.warn("El artículo no tiene ID");
+      return;
+    }
     setPedido((prevPedido) => {
       // Solo quitar artículos SIN promoción
       const nuevosdetalles = prevPedido.detalles.filter(
-        (d) => !(d.articulo!.id === idArticulo && !d.promocion)
+        (d) => !(d.articulo && d.articulo.id && d.articulo.id === idArticulo && !d.promocion)
       );
       const nuevoTotal = nuevosdetalles.reduce((acc, d) => acc + d.subTotal, 0);
       return { ...prevPedido, detalles: nuevosdetalles, total: nuevoTotal };
@@ -250,7 +266,7 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
       // Función para calcular el tiempo total de preparación
       const calcularTiempoPreparacion = async (pedido: Pedido): Promise<number> => {
         let tiempoTotalMinutos = 0;
-        if(pedido.tipoEnvio == TipoEnvio.DELIVERY){
+        if (pedido.tipoEnvio == TipoEnvio.DELIVERY) {
           tiempoTotalMinutos += 15
         }
         console.log(pedido.tipoEnvio)

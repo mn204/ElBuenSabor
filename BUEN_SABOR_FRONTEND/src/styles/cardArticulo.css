@@ -12,6 +12,20 @@
     position: relative;
 }
 
+.card-categoria{
+    display: flex;
+    flex-direction: column;
+    width: 200px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid #e1e5e9;
+    position: relative;
+}
+
 .card-articulo:hover {
     transform: translateY(-4px);
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);

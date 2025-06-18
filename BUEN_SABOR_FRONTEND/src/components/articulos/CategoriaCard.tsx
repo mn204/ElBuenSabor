@@ -23,7 +23,7 @@ const CategoriaCard: React.FC<Props> = ({ categoria }) => {
 
   return (
     <div
-      className="card-articulo"
+      className="card-categoria"
       onClick={handleCardClick}
       style={{ cursor: 'pointer' }}
     >

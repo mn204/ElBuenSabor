@@ -150,8 +150,22 @@ const PedidoDetalleModal: React.FC<Props> = ({ show, onHide, pedido, onEstadoCha
       }));
     }
 };
+  /*
+  * Al cambiar el precio de un insumo se debe actualizar el precio de los manufacturados y promociones
+  * cambiar descuento en promos
+  * cambiar exportacion de excel
+  * mantener los productos en el local storage aunque se cambie la sucursal y mostrar si se elimina
+  * mostrar pedidos descendente
+  */
+
   const puedeModificarEstado = (): boolean => {
     if (!usuario) return false;
+
+    // Verificar si el rol es CAJERO o ADMIN - si es así, NO puede modificar
+    if (usuario.rol === Rol.CAJERO || usuario.rol === Rol.ADMIN) {
+      return false;
+    }
+
     const estadosDisponibles = getEstadosDisponibles();
     return estadosDisponibles.length > 0;
   };
