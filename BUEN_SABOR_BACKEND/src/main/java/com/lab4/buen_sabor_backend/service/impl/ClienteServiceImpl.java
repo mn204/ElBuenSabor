@@ -74,4 +74,23 @@ public class ClienteServiceImpl extends MasterServiceImpl<Cliente, Long> impleme
         return clienteRepository.findAll(spec, pageable);
     }
 
+    // Nuevo método para búsqueda con ordenamiento por cantidad de pedidos
+    @Override
+    public Page<Cliente> buscarClientesFiltradosConOrdenPedidos(
+            String busqueda,
+            String email,
+            Boolean eliminado,
+            String ordenarPorPedidos,
+            Pageable pageable
+    ) {
+        // Determinar qué método usar según el ordenamiento
+        if ("desc".equalsIgnoreCase(ordenarPorPedidos) || "mas_pedidos".equalsIgnoreCase(ordenarPorPedidos)) {
+            return clienteRepository.findClientesOrderByPedidosDesc(busqueda, email, eliminado, pageable);
+        } else if ("asc".equalsIgnoreCase(ordenarPorPedidos) || "menos_pedidos".equalsIgnoreCase(ordenarPorPedidos)) {
+            return clienteRepository.findClientesOrderByPedidosAsc(busqueda, email, eliminado, pageable);
+        } else {
+            // Si no se especifica un ordenamiento válido, usar el método tradicional
+            return buscarClientesFiltrados(busqueda, email, eliminado, pageable);
+        }
+    }
 }

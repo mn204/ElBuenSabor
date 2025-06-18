@@ -20,5 +20,12 @@ public interface ClienteService extends MasterService<Cliente, Long>{
             Boolean eliminado,
             Pageable pageable
     );
-
+    // Nuevo método para ordenamiento por cantidad de pedidos
+    Page<Cliente> buscarClientesFiltradosConOrdenPedidos(
+            String busqueda,
+            String email,
+            Boolean eliminado,
+            String ordenarPorPedidos,
+            Pageable pageable
+    );
 }

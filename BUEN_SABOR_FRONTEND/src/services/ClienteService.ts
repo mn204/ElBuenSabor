@@ -30,7 +30,8 @@ export const getClientesFiltrados = async (
     filtros: {
         busqueda?: string; // Busca en nombre, apellido y email
         email?: string;    // Parámetro adicional para email específico
-        ordenar?: string;
+        ordenar?: string;  // "asc", "desc" para ordenar por nombre
+        ordenarPorPedidos?: string; // "asc", "desc", "mas_pedidos", "menos_pedidos"
         eliminado?: boolean;
     },
     page: number = 0,
@@ -47,6 +48,10 @@ export const getClientesFiltrados = async (
     if (filtros.ordenar) {
         params.append("ordenar", filtros.ordenar);
     }
+    // NUEVO: Parámetro para ordenar por cantidad de pedidos
+    if (filtros.ordenarPorPedidos) {
+        params.append("ordenarPorPedidos", filtros.ordenarPorPedidos);
+    }
     // Solo agregar eliminado si está definido (no es undefined)
     if (filtros.eliminado !== undefined) {
         params.append("eliminado", filtros.eliminado.toString());
@@ -61,6 +66,7 @@ export const getClientesFiltrados = async (
     }
     return await response.json();
 };
+
 
 // Obtener solo clientes que no están eliminados
 export const obtenerClientesNoEliminados = async (): Promise<Cliente[]> => {
