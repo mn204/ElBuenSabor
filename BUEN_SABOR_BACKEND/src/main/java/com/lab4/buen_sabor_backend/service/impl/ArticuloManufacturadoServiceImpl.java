@@ -1,9 +1,9 @@
 package com.lab4.buen_sabor_backend.service.impl;
 
-import com.lab4.buen_sabor_backend.exceptions.EntityNotFoundException;
 import com.lab4.buen_sabor_backend.model.*;
 import com.lab4.buen_sabor_backend.repository.ArticuloManufacturadoRepository;
 import com.lab4.buen_sabor_backend.service.ArticuloManufacturadoService;
+import com.lab4.buen_sabor_backend.service.PromocionService;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,11 +20,13 @@ public class ArticuloManufacturadoServiceImpl extends MasterServiceImpl<Articulo
 
     private static final Logger logger = LoggerFactory.getLogger(ArticuloManufacturadoServiceImpl.class);
     private final ArticuloManufacturadoRepository articuloManufacturadoRepository;
+    private final PromocionService promocionService;
 
     @Autowired
-    public ArticuloManufacturadoServiceImpl(ArticuloManufacturadoRepository articuloManufacturadoRepository) {
+    public ArticuloManufacturadoServiceImpl(ArticuloManufacturadoRepository articuloManufacturadoRepository, PromocionService promocionService) {
         super(articuloManufacturadoRepository);
         this.articuloManufacturadoRepository = articuloManufacturadoRepository;
+        this.promocionService = promocionService;
     }
 
     @Override
@@ -68,7 +70,46 @@ public class ArticuloManufacturadoServiceImpl extends MasterServiceImpl<Articulo
             System.out.println(detalle.getArticuloInsumo().getDenominacion());
             detalle.setArticuloManufacturado(entity);
         }
+        for(ImagenArticulo imagen : entity.getImagenes()) {
+            imagen.setArticulo(entity);
+        }
+        logger.info("Actualizando ArticuloManufacturado con ID: {}", id);
+        return super.update(id, entity);
+    }
 
+    @Override
+    @Transactional
+    public ArticuloManufacturado updateSpecial(Long id, ArticuloManufacturado entity, double ganancia) {
+        // Validaciones antes de actualizar
+        validarDatosBasicos(entity);
+        validarIngredientes(entity);
+        System.out.println(entity.getDetalles());
+        System.out.println(entity);
+        // Verificar duplicados excluyendo el ID actual
+        if (existeByDenominacionExcluyendoId(entity.getDenominacion(), id)) {
+            throw new IllegalArgumentException("Ya existe un producto con la denominación: " + entity.getDenominacion());
+        }
+
+        double total=0;
+        for(DetalleArticuloManufacturado detalle : entity.getDetalles()) {
+            System.out.println(detalle.getArticuloInsumo().getDenominacion());
+            total += detalle.getCantidad()*detalle.getArticuloInsumo().getPrecioVenta();
+            detalle.setArticuloManufacturado(entity);
+        }
+        entity.setPrecioVenta(total + (total*(ganancia/100)));
+
+        List<Promocion> promociones = promocionService.findByDetalles_Articulo_Id(entity.getId());
+        double precioPromo = 0;
+        for (Promocion promocion : promociones){
+            for(DetallePromocion det : promocion.getDetalles()){
+                if(det.getArticulo().getId().equals(id)){
+                    det.setArticulo(entity);
+                }
+                precioPromo += det.getArticulo().getPrecioVenta();
+            }
+            promocion.setPrecioPromocional(precioPromo);
+            promocionService.update(promocion.getId(), promocion);
+        }
         for(ImagenArticulo imagen : entity.getImagenes()) {
             imagen.setArticulo(entity);
         }
@@ -86,6 +127,12 @@ public class ArticuloManufacturadoServiceImpl extends MasterServiceImpl<Articulo
     public List<ArticuloManufacturado> findByCategoria(Long categoriaId) {
         logger.info("Buscando productos por categoría ID: {}", categoriaId);
         return articuloManufacturadoRepository.findByCategoriaIdAndEliminadoFalse(categoriaId);
+    }
+
+    @Override
+    public List<ArticuloManufacturado> findByDetalleArticuloId(Long id) {
+        logger.info("Buscando productos por categoría ID: {}", id);
+        return articuloManufacturadoRepository.findByDetalles_ArticuloInsumo_Id(id);
     }
 
     @Override

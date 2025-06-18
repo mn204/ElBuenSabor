@@ -23,7 +23,7 @@ function FormPromocion() {
     const { sucursalActual } = useSucursal();
     const [showModal, setShowModal] = useState(false);
     const [articulos, setArticulos] = useState<Articulo[]>([]);
-    const [porcentajeGanancia, setPorcentajeGanancia] = useState<number>(0)
+    const [porcentajeDescuento, setPorcentajeDescuento] = useState<number>(0);
 
     // Estados principales
     const [articuloSeleccionado, setArticuloSeleccionado] = useState<Articulo | null>(null);
@@ -44,7 +44,6 @@ function FormPromocion() {
     const [searchParams] = useSearchParams();
     const idFromUrl = searchParams.get("id");
 
-
     useEffect(() => {
         if (showModal) {
             cargarArticulos();
@@ -55,6 +54,7 @@ function FormPromocion() {
         ArticuloInsumoService.getAllNoParaElaborar().then(setArticulos);
         ArticuloManufacturadoService.getAll().then((art) => setArticulos(prev => [...prev, ...art]));
     }
+
     const limpiarFormulario = () => {
         setArticuloSeleccionado(null)
         setCantidadInsumo(0)
@@ -66,19 +66,22 @@ function FormPromocion() {
         setTipo(TipoPromocion.PROMOCION)
         setDetalles([])
         setImagenes([])
+        setPorcentajeDescuento(0)
     }
-    // Utilidades
-    const totalArticulos = detalles!.reduce((acc, det) => {
+
+    // Calcular el precio total de los artículos sin descuento
+    const totalArticulos = detalles.reduce((acc, det) => {
         const precio = det.articulo?.precioVenta ?? 0;
         return acc + precio * det.cantidad;
     }, 0);
 
+    // Calcular el precio con descuento aplicado
+    const precioConDescuento = totalArticulos * (1 - porcentajeDescuento / 100);
 
-
-    const totalConGanancia = totalArticulos - (totalArticulos * (porcentajeGanancia / 100));
-    useEffect(()=>{
-        setPrecio(totalConGanancia)
-    },[totalConGanancia])
+    // Actualizar el precio cuando cambie el descuento o los artículos
+    useEffect(() => {
+        setPrecio(precioConDescuento);
+    }, [precioConDescuento]);
 
     // Handlers
     const handleImagenesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -134,12 +137,13 @@ function FormPromocion() {
             });
         }
     };
+
     useEffect(() => {
         if (idFromUrl) {
             const fetchPromocion = async () => {
                 try {
                     const promocion = await PromocionService.getById(Number(idFromUrl));
-                    console.log(promocion)
+                    console.log(promocion);
                     setDenominacion(promocion.denominacion);
                     setDescripcion(promocion.descripcionDescuento);
                     setFechaDesde(new Date(promocion.fechaDesde));
@@ -151,6 +155,16 @@ function FormPromocion() {
                     setActiva(promocion.activa);
                     setDetalles(promocion.detalles || []);
                     setImagenesExistentes(promocion.imagenes || []);
+
+                    // Calcular el porcentaje de descuento correctamente
+                    const totalArticulosPromocion = promocion.detalles.reduce((acc, det) => {
+                        return acc + (det.articulo.precioVenta * det.cantidad);
+                    }, 0);
+
+                    if (totalArticulosPromocion > 0) {
+                        const descuentoCalculado = ((totalArticulosPromocion - promocion.precioPromocional) / totalArticulosPromocion) * 100;
+                        setPorcentajeDescuento(Math.round(descuentoCalculado * 100) / 100); // Redondear a 2 decimales
+                    }
                 } catch (error) {
                     console.error("Error al cargar la promoción:", error);
                 }
@@ -160,7 +174,7 @@ function FormPromocion() {
         }
     }, [idFromUrl]);
 
-    // Factoriza la creación del objeto manufacturado
+    // Factoriza la creación del objeto promoción
     const buildPromocion = async (): Promise<Promocion | null> => {
         const promocion = new Promocion();
         promocion.denominacion = denominacion;
@@ -169,7 +183,7 @@ function FormPromocion() {
         promocion.fechaHasta = fechaHasta;
         promocion.horaDesde = horaDesde;
         promocion.horaHasta = horaHasta;
-        promocion.precioPromocional = totalConGanancia;
+        promocion.precioPromocional = precio; // Usar el precio calculado con descuento
         promocion.tipoPromocion = tipo;
         promocion.activa = activa;
         setSucursales([...sucursales!, sucursalActual!])
@@ -203,7 +217,6 @@ function FormPromocion() {
         return promocion;
     };
 
-
     const guardarOModificar = async () => {
         try {
             const promocion = await buildPromocion();
@@ -223,6 +236,7 @@ function FormPromocion() {
             alert("Error al guardar o actualizar la promocion");
         }
     };
+
     const EliminarDetalle = (index: number) => {
         setDetalles(prev => prev.filter((_, i) => i !== index));
     };
@@ -234,6 +248,7 @@ function FormPromocion() {
             )
         );
     };
+
     const eliminarImagenExistente = (idx: number) => {
         setImagenesExistentes(prev =>
             prev.map((img, i) => (i === idx ? { ...img, eliminado: true } : img))
@@ -242,6 +257,22 @@ function FormPromocion() {
 
     const eliminarImagenNueva = (idx: number) => {
         setImagenes(prev => prev.filter((_, i) => i !== idx));
+    };
+
+    // Manejar cambios manuales en el precio
+    const handlePrecioChange = (nuevoPrecio: number) => {
+        setPrecio(nuevoPrecio);
+        // Recalcular el porcentaje de descuento basado en el nuevo precio
+        if (totalArticulos > 0) {
+            const nuevoDescuento = ((totalArticulos - nuevoPrecio) / totalArticulos) * 100;
+            setPorcentajeDescuento(Math.max(0, Math.round(nuevoDescuento * 100) / 100));
+        }
+    };
+
+    // Manejar cambios en el porcentaje de descuento
+    const handleDescuentoChange = (nuevoDescuento: number) => {
+        setPorcentajeDescuento(Math.max(0, Math.min(100, nuevoDescuento)));
+        // El precio se actualizará automáticamente por el useEffect
     };
 
     const modalProps = {
@@ -265,6 +296,7 @@ function FormPromocion() {
         onCantidadChange: CambiarCantidadDetalle,
         totalInsumos: totalArticulos
     };
+
     return (
         <div className="formArticuloManufacturado">
             <div className="d-flex align-items-center mb-4 position-relative">
@@ -483,7 +515,7 @@ function FormPromocion() {
             </div>
 
             {/* Resumen y botón guardar */}
-            < div className="row justify-content-center mt-4" >
+            <div className="row justify-content-center mt-4">
                 <div className="col-md-6">
                     <div className="card p-4">
                         <h5 className="text-center mb-3">Resumen de Promoción</h5>
@@ -501,22 +533,34 @@ function FormPromocion() {
                                 {fechaDesde.toLocaleDateString()} - {fechaHasta.toLocaleDateString()}
                             </strong>
                         </div>
-                        <hr />
-                        <div className="d-flex justify-content-between align-items-center mb-3">
-                            <span className="fs-5 fw-bold">Precio: {precio} </span>
-                            <div className="d-flex align-items-center justify-content-between gap-3 mb-3">
-                                <span className="fs-6">% Descuento:</span>
-                                <input
-                                    type="number"
-                                    min={0}
-                                    value={porcentajeGanancia}
-                                    onChange={e => setPorcentajeGanancia(Number(e.target.value))}
-                                    className="form-control form-control-sm"
-                                    style={{ maxWidth: '100px' }}
-                                />
-                            </div>
+                        {/* Control de descuento */}
+                        <div className="d-flex align-items-center justify-content-between gap-3 mb-3">
+                            <span className="fs-6">% Descuento:</span>
+                            <input
+                                type="number"
+                                min={0}
+                                max={100}
+                                step={0.01}
+                                value={porcentajeDescuento}
+                                onChange={e => handleDescuentoChange(Number(e.target.value))}
+                                className="form-control form-control-sm"
+                                style={{ maxWidth: '100px' }}
+                            />
                         </div>
 
+                        {/* Control de precio final */}
+                        <div className="d-flex align-items-center justify-content-between gap-3 mb-3">
+                            <span className="fs-5 fw-bold">Precio Final:</span>
+                            <input
+                                type="number"
+                                min={0}
+                                step={0.01}
+                                value={precio}
+                                onChange={e => handlePrecioChange(Number(e.target.value))}
+                                className="form-control form-control-sm fw-bold"
+                                style={{ maxWidth: '120px', fontSize: '1.1rem' }}
+                            />
+                        </div>
                         <Button
                             variant={idFromUrl ? "warning" : "success"}
                             className="w-100"
@@ -526,19 +570,18 @@ function FormPromocion() {
                                 !denominacion ||
                                 !descripcion ||
                                 detalles.length === 0 ||
-                                !precio
+                                !precio ||
+                                precio <= 0
                             }
                         >
                             {idFromUrl ? "Actualizar Promoción" : "Guardar Promoción"}
                         </Button>
                     </div>
                 </div>
-            </div >
+            </div>
             <ModalAgregarArticulo {...modalProps} />
-        </div >
-    
+        </div>
     );
-    
 }
 
 export default FormPromocion;
