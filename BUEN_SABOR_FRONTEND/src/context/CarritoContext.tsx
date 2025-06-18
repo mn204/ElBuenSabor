@@ -182,28 +182,28 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
     }
     setPedido((prevPedido) => {
       const nuevosdetalles = prevPedido.detalles
-        .map((d) => {
-          // Solo afectar artículos SIN promoción
-          if (d.articulo!.id === idArticulo && !d.promocion) {
-            const nuevaCantidad = d.cantidad - 1;
-            if (nuevaCantidad <= 0) return null;
-            return {
-              ...d,
-              cantidad: nuevaCantidad,
-              subTotal: nuevaCantidad * d.articulo!.precioVenta,
-            };
-          } else if (d.promocion?.id === idArticulo) {
-            const nuevaCantidad = d.cantidad - 1;
-            if (nuevaCantidad <= 0) return null;
-            return {
-              ...d,
-              cantidad: nuevaCantidad,
-              subTotal: nuevaCantidad * d.promocion.precioPromocional,
-            };
-          }
-          return d;
-        })
-        .filter((d): d is PedidoDetalle => d !== null);
+          .map((d) => {
+            // Solo afectar artículos SIN promoción
+            if (d.articulo && d.articulo.id === idArticulo && !d.promocion) {
+              const nuevaCantidad = d.cantidad - 1;
+              if (nuevaCantidad <= 0) return null;
+              return {
+                ...d,
+                cantidad: nuevaCantidad,
+                subTotal: nuevaCantidad * d.articulo.precioVenta,
+              };
+            } else if (d.promocion?.id === idArticulo) {
+              const nuevaCantidad = d.cantidad - 1;
+              if (nuevaCantidad <= 0) return null;
+              return {
+                ...d,
+                cantidad: nuevaCantidad,
+                subTotal: nuevaCantidad * d.promocion.precioPromocional,
+              };
+            }
+            return d;
+          })
+          .filter((d): d is PedidoDetalle => d !== null);
 
       const nuevoTotal = nuevosdetalles.reduce((acc, d) => acc + d.subTotal, 0);
       return { ...prevPedido, detalles: nuevosdetalles, total: nuevoTotal };
