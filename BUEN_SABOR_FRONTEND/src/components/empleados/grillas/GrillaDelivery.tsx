@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { Button, Form, Spinner, Card } from "react-bootstrap";
-import Pedido from "../../models/Pedido";
-import Estado from "../../models/enums/Estado";
-import pedidoService from "../../services/PedidoService";
-import { ReusableTable } from "../Tabla";
+import Pedido from "../../../models/Pedido.ts";
+import Estado from "../../../models/enums/Estado.ts";
+import pedidoService from "../../../services/PedidoService.ts";
+import { ReusableTable } from "../../Tabla";
 import { ChevronLeft, ChevronRight } from "react-bootstrap-icons";
-import { formatFechaConOffset } from "../../funciones/formatFecha.ts";
-import { useAuth } from "../../context/AuthContext";
-import { useSucursal } from "../../context/SucursalContextEmpleado.tsx";
-import { obtenerSucursales } from "../../services/SucursalService.ts";
-import type Sucursal from "../../models/Sucursal.ts";
-import DeliveryModal from "./pedidos/DeliveryModal.tsx";
+import { formatFechaConOffset } from "../../../funciones/formatFecha.ts";
+import { useAuth } from "../../../context/AuthContext.tsx";
+import { useSucursal } from "../../../context/SucursalContextEmpleado.tsx";
+import { obtenerSucursales } from "../../../services/SucursalService.ts";
+import type Sucursal from "../../../models/Sucursal.ts";
+import DeliveryModal from "../pedidos/DeliveryModal.tsx";
 
 const GrillaDelivery: React.FC = () => {
     const { sucursalActual, esModoTodasSucursales, sucursalIdSeleccionada } = useSucursal();

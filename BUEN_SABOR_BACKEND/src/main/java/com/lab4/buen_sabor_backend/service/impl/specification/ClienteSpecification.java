@@ -1,6 +1,7 @@
 package com.lab4.buen_sabor_backend.service.impl.specification;
 
 import com.lab4.buen_sabor_backend.model.Cliente;
+import jakarta.persistence.criteria.JoinType;
 import org.springframework.data.jpa.domain.Specification;
 
 public class ClienteSpecification {
@@ -12,15 +13,10 @@ public class ClienteSpecification {
             String searchTerm = "%" + busqueda.toLowerCase() + "%";
 
             return cb.or(
-                    // Buscar en nombre
                     cb.like(cb.lower(root.get("nombre")), searchTerm),
-                    // Buscar en apellido
                     cb.like(cb.lower(root.get("apellido")), searchTerm),
-                    // Buscar en nombre completo (nombre + apellido)
                     cb.like(cb.lower(cb.concat(cb.concat(root.get("nombre"), " "), root.get("apellido"))), searchTerm),
-                    // Buscar en apellido + nombre
                     cb.like(cb.lower(cb.concat(cb.concat(root.get("apellido"), " "), root.get("nombre"))), searchTerm),
-                    // Buscar en email
                     cb.like(cb.lower(root.get("usuario").get("email")), searchTerm)
             );
         };
@@ -35,13 +31,12 @@ public class ClienteSpecification {
 
     public static Specification<Cliente> eliminadoEquals(Boolean eliminado) {
         return (root, query, cb) -> {
-            // Si eliminado es null, no aplicamos ningún filtro (devuelve todos)
             if (eliminado == null) return null;
             return cb.equal(root.get("eliminado"), eliminado);
         };
     }
 
-    // Métodos adicionales que podrían ser útiles para clientes
+    // Métodos adicionales que podrían ser útiles
     public static Specification<Cliente> apellidoContains(String apellido) {
         return (root, query, cb) -> {
             if (apellido == null || apellido.isBlank()) return null;
