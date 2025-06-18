@@ -247,7 +247,9 @@ function FormPromocion() {
             setArticuloSeleccionado(null);
             setCantidadInsumo(1);
         },
-        articulos: articulos,
+        articulos: articulos.filter(
+            insumo => !detalles.some(det => det.articulo?.id === insumo.id)
+        ),
         articuloSeleccionado: articuloSeleccionado,
         setArticuloSeleccionado: setArticuloSeleccionado,
         cantidadInsumo: cantidadInsumo,
@@ -532,9 +534,9 @@ function FormPromocion() {
             </div >
             <ModalAgregarArticulo {...modalProps} />
         </div >
-    
+
     );
-    
+
 }
 
 export default FormPromocion;
