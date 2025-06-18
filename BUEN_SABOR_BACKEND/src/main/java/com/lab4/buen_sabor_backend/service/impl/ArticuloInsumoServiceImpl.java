@@ -1,13 +1,11 @@
 package com.lab4.buen_sabor_backend.service.impl;
 
-import com.lab4.buen_sabor_backend.model.ArticuloInsumo;
-import com.lab4.buen_sabor_backend.model.Categoria;
-import com.lab4.buen_sabor_backend.model.ImagenArticulo;
-import com.lab4.buen_sabor_backend.model.SucursalInsumo;
+import com.lab4.buen_sabor_backend.model.*;
 import com.lab4.buen_sabor_backend.repository.ArticuloInsumoRepository;
 import com.lab4.buen_sabor_backend.repository.DetalleArticuloManufacturadoRepository;
 import com.lab4.buen_sabor_backend.repository.SucursalInsumoRepository;
 import com.lab4.buen_sabor_backend.service.ArticuloInsumoService;
+import com.lab4.buen_sabor_backend.service.ArticuloManufacturadoService;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,13 +24,15 @@ public class ArticuloInsumoServiceImpl extends MasterServiceImpl<ArticuloInsumo,
     private final ArticuloInsumoRepository articuloInsumoRepository;
     private final DetalleArticuloManufacturadoRepository detalleArticuloManufacturadoRepository;
     private final SucursalInsumoRepository sucursalInsumoRepository;
+    private final ArticuloManufacturadoService articuloManufacturadoService;
 
     @Autowired
-    public ArticuloInsumoServiceImpl(ArticuloInsumoRepository articuloInsumoRepository, DetalleArticuloManufacturadoRepository detalleArticuloManufacturadoRepository, SucursalInsumoRepository sucursalInsumoRepository) {
+    public ArticuloInsumoServiceImpl(ArticuloInsumoRepository articuloInsumoRepository, DetalleArticuloManufacturadoRepository detalleArticuloManufacturadoRepository, SucursalInsumoRepository sucursalInsumoRepository, ArticuloManufacturadoService articuloManufacturadoService) {
         super(articuloInsumoRepository);
         this.articuloInsumoRepository = articuloInsumoRepository;
         this.detalleArticuloManufacturadoRepository = detalleArticuloManufacturadoRepository;
         this.sucursalInsumoRepository = sucursalInsumoRepository;
+        this.articuloManufacturadoService = articuloManufacturadoService;
     }
 
     @Override
@@ -175,6 +175,27 @@ public class ArticuloInsumoServiceImpl extends MasterServiceImpl<ArticuloInsumo,
 
         for(ImagenArticulo imagen: entity.getImagenes()) {
             imagen.setArticulo(entity);
+        }
+        List<ArticuloManufacturado> manufacturados = articuloManufacturadoService.findByDetalleArticuloId(id);
+
+        for (ArticuloManufacturado manufacturado : manufacturados) {
+            double total = 0;
+
+            for (DetalleArticuloManufacturado det : manufacturado.getDetalles()) {
+                total += det.getCantidad() * det.getArticuloInsumo().getPrecioVenta();
+
+                if (det.getArticuloInsumo().getId().equals(id)) {
+                    det.setArticuloInsumo(entity); // Actualiza el insumo si es el editado
+                }
+            }
+
+            // Evita división por cero
+            if (total > 0) {
+                double ganancia = ((manufacturado.getPrecioVenta() - total) * 100) / total;
+                articuloManufacturadoService.updateSpecial(manufacturado.getId(), manufacturado, ganancia);
+            } else {
+                logger.warn("El costo total del manufacturado {} es cero, no se puede calcular la ganancia", manufacturado.getId());
+            }
         }
 
         logger.info("Actualizando ArticuloInsumo id: {} con nueva denominación: {}", id, entity.getDenominacion());

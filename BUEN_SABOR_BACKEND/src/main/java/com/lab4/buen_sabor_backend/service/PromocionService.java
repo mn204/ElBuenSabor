@@ -13,6 +13,8 @@ public interface PromocionService extends MasterService<Promocion, Long> {
     boolean existsById(Long id);
     List<Promocion> findPromocionsBySucursal(Sucursal sucursal);
 
+    List<Promocion> findByDetalles_Articulo_Id(Long id);
+
     Page<Promocion> buscarPromocionesFiltradas(Long idSucursal, Boolean activa, TipoPromocion tipoPromocion,
                                                LocalDate fechaDesde, LocalDate fechaHasta, Pageable pageable);
 

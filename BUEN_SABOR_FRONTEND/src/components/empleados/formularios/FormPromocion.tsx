@@ -15,7 +15,7 @@ import ModalAgregarArticulo from "../../articulos/ModalAgregarArticulo.tsx";
 import ArticuloInsumoService from "../../../services/ArticuloInsumoService.ts";
 import { useSucursal } from "../../../context/SucursalContextEmpleado.tsx";
 import type Sucursal from "../../../models/Sucursal.ts";
-import SucursalService, { obtenerSucursales } from "../../../services/SucursalService.ts";
+import DetalleInsumosTable from "../../articulos/DetalleInsumosTable.tsx";
 import { Link } from "react-router-dom";
 import DetalleArticulosTable from "../DetalleArticulosTable.tsx";
 
@@ -23,9 +23,7 @@ function FormPromocion() {
     const { sucursalActual } = useSucursal();
     const [showModal, setShowModal] = useState(false);
     const [articulos, setArticulos] = useState<Articulo[]>([]);
-    const [porcentajeGanancia, setPorcentajeGanancia] = useState<number>(0)
-    const [todasLasSucursales, setTodasLasSucursales] = useState<Sucursal[]>([]);
-    const [sucursalesSeleccionadas, setSucursalesSeleccionadas] = useState<number[]>([]);
+    const [porcentajeDescuento, setPorcentajeDescuento] = useState<number>(0);
 
     // Estados principales
     const [articuloSeleccionado, setArticuloSeleccionado] = useState<Articulo | null>(null);
@@ -47,48 +45,16 @@ function FormPromocion() {
     const idFromUrl = searchParams.get("id");
 
     useEffect(() => {
-        const cargarSucursales = async () => {
-            try {
-                const sucursales = await obtenerSucursales();
-                setTodasLasSucursales(sucursales);
-                // Si estamos editando, cargar las sucursales ya seleccionadas
-                if (idFromUrl) {
-                    // Este código se ejecutará después de que se cargue la promoción
-                } else {
-                    // Para nueva promoción, seleccionar la sucursal actual por defecto
-                    setSucursalesSeleccionadas([sucursalActual?.id || 0]);
-                }
-            } catch (error) {
-                console.error("Error al cargar sucursales:", error);
-            }
-        };
-
-        if (sucursalActual) {
-            cargarSucursales();
-        }
-    }, [sucursalActual]);
-
-    useEffect(() => {
         if (showModal) {
             cargarArticulos();
         }
     }, [showModal]);
 
-    // Utilidades
-    const totalArticulos = detalles!.reduce((acc, det) => {
-        const precio = det.articulo?.precioVenta ?? 0;
-        return acc + precio * det.cantidad;
-    }, 0);
-
-    const totalConGanancia = totalArticulos + (totalArticulos * (porcentajeGanancia / 100));
-    useEffect(() => {
-        setPrecio(totalConGanancia)
-    }, [totalConGanancia]);
-
     const cargarArticulos = () => {
         ArticuloInsumoService.getAllNoParaElaborar().then(setArticulos);
         ArticuloManufacturadoService.getAll().then((art) => setArticulos(prev => [...prev, ...art]));
     }
+
     const limpiarFormulario = () => {
         setArticuloSeleccionado(null)
         setCantidadInsumo(0)
@@ -100,9 +66,22 @@ function FormPromocion() {
         setTipo(TipoPromocion.PROMOCION)
         setDetalles([])
         setImagenes([])
-        setSucursalesSeleccionadas([sucursalActual?.id || 0]) // Resetear a sucursal actual
+        setPorcentajeDescuento(0)
     }
 
+    // Calcular el precio total de los artículos sin descuento
+    const totalArticulos = detalles.reduce((acc, det) => {
+        const precio = det.articulo?.precioVenta ?? 0;
+        return acc + precio * det.cantidad;
+    }, 0);
+
+    // Calcular el precio con descuento aplicado
+    const precioConDescuento = totalArticulos * (1 - porcentajeDescuento / 100);
+
+    // Actualizar el precio cuando cambie el descuento o los artículos
+    useEffect(() => {
+        setPrecio(precioConDescuento);
+    }, [precioConDescuento]);
 
     // Handlers
     const handleImagenesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -158,12 +137,13 @@ function FormPromocion() {
             });
         }
     };
+
     useEffect(() => {
         if (idFromUrl) {
             const fetchPromocion = async () => {
                 try {
                     const promocion = await PromocionService.getById(Number(idFromUrl));
-                    console.log(promocion)
+                    console.log(promocion);
                     setDenominacion(promocion.denominacion);
                     setDescripcion(promocion.descripcionDescuento);
                     setFechaDesde(new Date(promocion.fechaDesde));
@@ -176,9 +156,15 @@ function FormPromocion() {
                     setDetalles(promocion.detalles || []);
                     setImagenesExistentes(promocion.imagenes || []);
 
-                    // Cargar las sucursales seleccionadas
-                    const sucursalesIds = promocion.sucursales?.map(s => s.id) || [];
-                    setSucursalesSeleccionadas(sucursalesIds);
+                    // Calcular el porcentaje de descuento correctamente
+                    const totalArticulosPromocion = promocion.detalles.reduce((acc, det) => {
+                        return acc + (det.articulo.precioVenta * det.cantidad);
+                    }, 0);
+
+                    if (totalArticulosPromocion > 0) {
+                        const descuentoCalculado = ((totalArticulosPromocion - promocion.precioPromocional) / totalArticulosPromocion) * 100;
+                        setPorcentajeDescuento(Math.round(descuentoCalculado * 100) / 100); // Redondear a 2 decimales
+                    }
                 } catch (error) {
                     console.error("Error al cargar la promoción:", error);
                 }
@@ -188,22 +174,7 @@ function FormPromocion() {
         }
     }, [idFromUrl]);
 
-    const handleSucursalChange = (sucursalId: number, checked: boolean) => {
-        if (checked) {
-            setSucursalesSeleccionadas(prev => [...prev, sucursalId]);
-        } else {
-            setSucursalesSeleccionadas(prev => prev.filter(id => id !== sucursalId));
-        }
-    };
-
-    const handleSelectAllSucursales = (selectAll: boolean) => {
-        if (selectAll) {
-            setSucursalesSeleccionadas(todasLasSucursales.map(s => s.id));
-        } else {
-            setSucursalesSeleccionadas([]);
-        }
-    };
-    // Factoriza la creación del objeto manufacturado
+    // Factoriza la creación del objeto promoción
     const buildPromocion = async (): Promise<Promocion | null> => {
         const promocion = new Promocion();
         promocion.denominacion = denominacion;
@@ -212,13 +183,11 @@ function FormPromocion() {
         promocion.fechaHasta = fechaHasta;
         promocion.horaDesde = horaDesde;
         promocion.horaHasta = horaHasta;
-        promocion.precioPromocional = totalConGanancia;
+        promocion.precioPromocional = precio; // Usar el precio calculado con descuento
         promocion.tipoPromocion = tipo;
         promocion.activa = activa;
-        const sucursalesParaPromocion = todasLasSucursales.filter(s =>
-            sucursalesSeleccionadas.includes(s.id)
-        );
-        promocion.sucursales = sucursalesParaPromocion;
+        setSucursales([...sucursales!, sucursalActual!])
+        promocion.sucursales = [sucursalActual!];
         console.log(sucursalActual)
         promocion.detalles = detalles.map(det => ({
             id: det.id ?? undefined,
@@ -248,7 +217,6 @@ function FormPromocion() {
         return promocion;
     };
 
-
     const guardarOModificar = async () => {
         try {
             const promocion = await buildPromocion();
@@ -268,6 +236,7 @@ function FormPromocion() {
             alert("Error al guardar o actualizar la promocion");
         }
     };
+
     const EliminarDetalle = (index: number) => {
         setDetalles(prev => prev.filter((_, i) => i !== index));
     };
@@ -279,6 +248,7 @@ function FormPromocion() {
             )
         );
     };
+
     const eliminarImagenExistente = (idx: number) => {
         setImagenesExistentes(prev =>
             prev.map((img, i) => (i === idx ? { ...img, eliminado: true } : img))
@@ -289,6 +259,22 @@ function FormPromocion() {
         setImagenes(prev => prev.filter((_, i) => i !== idx));
     };
 
+    // Manejar cambios manuales en el precio
+    const handlePrecioChange = (nuevoPrecio: number) => {
+        setPrecio(nuevoPrecio);
+        // Recalcular el porcentaje de descuento basado en el nuevo precio
+        if (totalArticulos > 0) {
+            const nuevoDescuento = ((totalArticulos - nuevoPrecio) / totalArticulos) * 100;
+            setPorcentajeDescuento(Math.max(0, Math.round(nuevoDescuento * 100) / 100));
+        }
+    };
+
+    // Manejar cambios en el porcentaje de descuento
+    const handleDescuentoChange = (nuevoDescuento: number) => {
+        setPorcentajeDescuento(Math.max(0, Math.min(100, nuevoDescuento)));
+        // El precio se actualizará automáticamente por el useEffect
+    };
+
     const modalProps = {
         show: showModal,
         onHide: () => {
@@ -296,9 +282,7 @@ function FormPromocion() {
             setArticuloSeleccionado(null);
             setCantidadInsumo(1);
         },
-        articulos: articulos.filter(
-            insumo => !detalles.some(det => det.articulo?.id === insumo.id)
-        ),
+        articulos: articulos,
         articuloSeleccionado: articuloSeleccionado,
         setArticuloSeleccionado: setArticuloSeleccionado,
         cantidadInsumo: cantidadInsumo,
@@ -312,6 +296,7 @@ function FormPromocion() {
         onCantidadChange: CambiarCantidadDetalle,
         totalInsumos: totalArticulos
     };
+
     return (
         <div className="formArticuloManufacturado">
             <div className="d-flex align-items-center mb-4 position-relative">
@@ -424,41 +409,7 @@ function FormPromocion() {
                                 <option value="HAPPYHOUR">HAPPY HOUR</option>
                             </select>
                         </div>
-                        {/* SUCURSALES */}
-                        <div className="d-flex flex-column">
-                            <label>Sucursales donde aplicará la promoción:</label>
-                            <div className="border p-3 rounded text-start" style={{ overflowY: 'auto' }}>
-                                    <div className="text-start">
-                                        <label className="form-check-label fw-bold" htmlFor="selectAllSucursales">
-                                            Seleccionar todas
-                                        </label>
-                                        <input
-                                            className="form-check"
-                                            type="checkbox"
-                                            id="selectAllSucursales"
-                                            checked={sucursalesSeleccionadas.length === todasLasSucursales.length && todasLasSucursales.length > 0}
-                                            onChange={(e) => handleSelectAllSucursales(e.target.checked)}
-                                        />
-                                    </div>
-                                {todasLasSucursales.map(sucursal => (
-                                    <div key={sucursal.id} className="">
-                                        <label className="form-check-label" htmlFor={`sucursal-${sucursal.id}`}>
-                                            {sucursal.nombre}
-                                        </label>
-                                        <input
-                                            className="form-check"
-                                            type="checkbox"
-                                            id={`sucursal-${sucursal.id}`}
-                                            checked={sucursalesSeleccionadas.includes(sucursal.id)}
-                                            onChange={(e) => handleSucursalChange(sucursal.id, e.target.checked)}
-                                        />
-                                    </div>
-                                ))}
-                            </div>
-                            {sucursalesSeleccionadas.length === 0 && (
-                                <small className="text-danger mt-1">Debe seleccionar al menos una sucursal</small>
-                            )}
-                        </div>
+
                         {/* Imágenes */}
                         <div className="d-flex flex-column">
                             <label>Imágenes:</label>
@@ -564,7 +515,7 @@ function FormPromocion() {
             </div>
 
             {/* Resumen y botón guardar */}
-            < div className="row justify-content-center mt-4" >
+            <div className="row justify-content-center mt-4">
                 <div className="col-md-6">
                     <div className="card p-4">
                         <h5 className="text-center mb-3">Resumen de Promoción</h5>
@@ -582,22 +533,34 @@ function FormPromocion() {
                                 {fechaDesde.toLocaleDateString()} - {fechaHasta.toLocaleDateString()}
                             </strong>
                         </div>
-                        <hr />
-                        <div className="d-flex justify-content-between align-items-center mb-3">
-                            <span className="fs-5 fw-bold">Precio: {totalConGanancia.toFixed(2)}</span>
-                            <div className="d-flex align-items-center justify-content-between gap-3 mb-3">
-                                <span className="fs-6">% Ganancia:</span>
-                                <input
-                                    type="number"
-                                    min={0}
-                                    value={porcentajeGanancia}
-                                    onChange={e => setPorcentajeGanancia(Number(e.target.value))}
-                                    className="form-control form-control-sm"
-                                    style={{ maxWidth: '100px' }}
-                                />
-                            </div>
+                        {/* Control de descuento */}
+                        <div className="d-flex align-items-center justify-content-between gap-3 mb-3">
+                            <span className="fs-6">% Descuento:</span>
+                            <input
+                                type="number"
+                                min={0}
+                                max={100}
+                                step={0.01}
+                                value={porcentajeDescuento}
+                                onChange={e => handleDescuentoChange(Number(e.target.value))}
+                                className="form-control form-control-sm"
+                                style={{ maxWidth: '100px' }}
+                            />
                         </div>
 
+                        {/* Control de precio final */}
+                        <div className="d-flex align-items-center justify-content-between gap-3 mb-3">
+                            <span className="fs-5 fw-bold">Precio Final:</span>
+                            <input
+                                type="number"
+                                min={0}
+                                step={0.01}
+                                value={precio}
+                                onChange={e => handlePrecioChange(Number(e.target.value))}
+                                className="form-control form-control-sm fw-bold"
+                                style={{ maxWidth: '120px', fontSize: '1.1rem' }}
+                            />
+                        </div>
                         <Button
                             variant={idFromUrl ? "warning" : "success"}
                             className="w-100"
@@ -608,19 +571,17 @@ function FormPromocion() {
                                 !descripcion ||
                                 detalles.length === 0 ||
                                 !precio ||
-                                sucursalesSeleccionadas.length === 0  // Agregar esta validación
+                                precio <= 0
                             }
                         >
                             {idFromUrl ? "Actualizar Promoción" : "Guardar Promoción"}
                         </Button>
                     </div>
                 </div>
-            </div >
+            </div>
             <ModalAgregarArticulo {...modalProps} />
-        </div >
-
+        </div>
     );
-
 }
 
 export default FormPromocion;
