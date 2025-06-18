@@ -19,8 +19,21 @@ public interface PromocionRepository extends MasterRepository<Promocion, Long> {
     */
     boolean existsById(Long id);
 
-    List<Promocion> findBySucursalesAndEliminadoFalse(Sucursal sucursal);
-
+    @Query("""
+        SELECT DISTINCT p FROM Promocion p
+        JOIN p.sucursales s
+        WHERE s = :sucursal
+        AND p.eliminado = false
+        AND p.activa = true
+        AND NOT EXISTS (
+            SELECT 1 FROM DetallePromocion pd
+            JOIN pd.articulo a
+            WHERE pd.promocion = p
+            AND a.eliminado = true
+        )
+        """)
+    List<Promocion> findPromocionesActivasPorSucursalConArticulosNoEliminados(@Param("sucursal") Sucursal sucursal);
     boolean existsByDenominacion(String denominacion);
+
     boolean existsByDenominacionAndIdNot(String denominacion, Long id);
 }
