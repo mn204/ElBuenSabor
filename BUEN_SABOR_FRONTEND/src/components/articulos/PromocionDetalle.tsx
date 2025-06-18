@@ -4,6 +4,7 @@ import Promocion from "../../models/Promocion";
 import { useCarrito } from "../../hooks/useCarrito";
 import "../../styles/promocionDetalle.css"; // Archivo CSS para estilos
 import PromocionService from "../../services/PromocionService";
+import { useSucursalUsuario } from "../../context/SucursalContext";
 
 const PromocionDetalle: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -15,6 +16,7 @@ const PromocionDetalle: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [isLoadingPromocion, setIsLoadingPromocion] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const { esSucursalAbierta, sucursalActualUsuario } = useSucursalUsuario();
 
     useEffect(() => {
         const fetchPromocion = async () => {
@@ -76,11 +78,11 @@ const PromocionDetalle: React.FC = () => {
 
     const isPromocionActiva = () => {
         if (!promocion) return false;
-        
+
         const now = new Date();
         const desde = new Date(promocion.fechaDesde);
         const hasta = new Date(promocion.fechaHasta);
-        
+
         return promocion.activa && now >= desde && now <= hasta;
     };
 
@@ -128,7 +130,7 @@ const PromocionDetalle: React.FC = () => {
         <div className="promocion-detalle">
             {/* Header con botón de volver */}
             <div className="promocion-detalle__header">
-                <button 
+                <button
                     onClick={handleBackClick}
                     className="promocion-detalle__back-button"
                 >
@@ -147,9 +149,9 @@ const PromocionDetalle: React.FC = () => {
                             imageError.includes(selectedImageIndex) ? (
                                 <div className="promocion-detalle__image-placeholder">
                                     <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                                        <circle cx="8.5" cy="8.5" r="1.5"/>
-                                        <polyline points="21,15 16,10 5,21"/>
+                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                                        <circle cx="8.5" cy="8.5" r="1.5" />
+                                        <polyline points="21,15 16,10 5,21" />
                                     </svg>
                                     <span>Imagen no disponible</span>
                                 </div>
@@ -164,9 +166,9 @@ const PromocionDetalle: React.FC = () => {
                         ) : (
                             <div className="promocion-detalle__image-placeholder">
                                 <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                                    <circle cx="8.5" cy="8.5" r="1.5"/>
-                                    <polyline points="21,15 16,10 5,21"/>
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                                    <circle cx="8.5" cy="8.5" r="1.5" />
+                                    <polyline points="21,15 16,10 5,21" />
                                 </svg>
                                 <span>Sin imágenes</span>
                             </div>
@@ -179,15 +181,14 @@ const PromocionDetalle: React.FC = () => {
                             {promocion.imagenes.map((imagen, index) => (
                                 <div
                                     key={index}
-                                    className={`promocion-detalle__thumbnail ${
-                                        selectedImageIndex === index ? 'active' : ''
-                                    }`}
+                                    className={`promocion-detalle__thumbnail ${selectedImageIndex === index ? 'active' : ''
+                                        }`}
                                     onClick={() => setSelectedImageIndex(index)}
                                 >
                                     {imageError.includes(index) ? (
                                         <div className="promocion-detalle__thumbnail-placeholder">
                                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
                                             </svg>
                                         </div>
                                     ) : (
@@ -206,9 +207,8 @@ const PromocionDetalle: React.FC = () => {
                 {/* Información de la promoción */}
                 <div className="promocion-detalle__info-section">
                     <div className="promocion-detalle__status">
-                        <span className={`promocion-detalle__status-badge ${
-                            isPromocionActiva() ? 'active' : 'inactive'
-                        }`}>
+                        <span className={`promocion-detalle__status-badge ${isPromocionActiva() ? 'active' : 'inactive'
+                            }`}>
                             {isPromocionActiva() ? 'Promoción Activa' : 'Promoción Inactiva'}
                         </span>
                     </div>
@@ -258,17 +258,17 @@ const PromocionDetalle: React.FC = () => {
                                 {promocion.detalles
                                     .filter(detalle => !detalle.eliminado)
                                     .map((detalle, index) => (
-                                    <div key={detalle.id || index} className="promocion-detalle__article">
-                                        <div className="promocion-detalle__article-info">
-                                            <span className="promocion-detalle__article-name">
-                                                {detalle.articulo?.denominacion || 'Artículo sin nombre'}
-                                            </span>
-                                            <span className="promocion-detalle__article-quantity">
-                                                Cantidad: {detalle.cantidad}
-                                            </span>
+                                        <div key={detalle.id || index} className="promocion-detalle__article">
+                                            <div className="promocion-detalle__article-info">
+                                                <span className="promocion-detalle__article-name">
+                                                    {detalle.articulo?.denominacion || 'Artículo sin nombre'}
+                                                </span>
+                                                <span className="promocion-detalle__article-quantity">
+                                                    Cantidad: {detalle.cantidad}
+                                                </span>
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    ))}
                             </div>
                         </div>
                     )}
@@ -288,34 +288,35 @@ const PromocionDetalle: React.FC = () => {
                     )}
 
                     {/* Botón de agregar al carrito */}
-                    <div className="promocion-detalle__actions">
-                        <button
-                            onClick={handleAgregarAlCarrito}
-                            disabled={isLoading || !isPromocionActiva()}
-                            className={`promocion-detalle__add-button ${
-                                isLoading ? 'loading' : ''
-                            } ${!isPromocionActiva() ? 'disabled' : ''}`}
-                        >
-                            {isLoading ? (
-                                <>
-                                    <span className="spinner"></span>
-                                    Agregando...
-                                </>
-                            ) : (
-                                <>
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                        <circle cx="9" cy="21" r="1"/>
-                                        <circle cx="20" cy="21" r="1"/>
-                                        <path d="m1 1 4 4 14 1-1 12H6"/>
-                                    </svg>
-                                    {isPromocionActiva() ? 'Agregar al carrito' : 'Promoción no disponible'}
-                                </>
-                            )}
-                        </button>
-                    </div>
+                    {esSucursalAbierta(sucursalActualUsuario!) &&
+                        < div className="promocion-detalle__actions">
+                            <button
+                                onClick={handleAgregarAlCarrito}
+                                disabled={isLoading || !isPromocionActiva()}
+                                className={`promocion-detalle__add-button ${isLoading ? 'loading' : ''
+                                    } ${!isPromocionActiva() ? 'disabled' : ''}`}
+                            >
+                                {isLoading ? (
+                                    <>
+                                        <span className="spinner"></span>
+                                        Agregando...
+                                    </>
+                                ) : (
+                                    <>
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                            <circle cx="9" cy="21" r="1" />
+                                            <circle cx="20" cy="21" r="1" />
+                                            <path d="m1 1 4 4 14 1-1 12H6" />
+                                        </svg>
+                                        {isPromocionActiva() ? 'Agregar al carrito' : 'Promoción no disponible'}
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    }
                 </div>
             </div>
-        </div>
+        </div >
     );
 };
 
