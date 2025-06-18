@@ -56,8 +56,8 @@ const DeliveryModal: React.FC<Props> = ({ show, onHide, pedido }) => {
                 <Modal.Body>
                     <Row className="mb-3">
                         <Col md={6}>
-                            <strong>Fecha Pedido:</strong> {formatFechaConOffset( pedido.fechaPedido)}<br />
-                            <strong>Hora Estimada:</strong> {pedido.horaEstimadaFinalizacion}<br />
+                            <strong>Fecha Pedido:</strong>{new Date( pedido.fechaPedido).toLocaleDateString()}<br />
+                            <strong>Hora Estimada Llegada:</strong> {pedido.horaEstimadaFinalizacion}<br />
                             <strong>Cliente:</strong> {cliente.nombre} {cliente.apellido}<br />
                             <strong>Teléfono:</strong> {cliente.telefono}<br />
                             <strong>Delivery:</strong> {delivery?.nombre} {delivery?.apellido}<br />

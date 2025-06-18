@@ -252,7 +252,7 @@ const GrillaCocina: React.FC = () => {
         },
         {
             key: "horaEstimada",
-            label: "Hora Estimada",
+            label: "Hora Estimada Finalizacion",
             render: (_: any, row: Pedido) => calcularHoraEstimada(row)
         },
         // Columna de sucursal solo visible para admin cuando está en modo "todas las sucursales"
