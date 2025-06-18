@@ -9,5 +9,5 @@ import java.util.List;
 public interface ArticuloRepository extends MasterRepository<Articulo, Long> {
     boolean existsById(Long id);
     List<Articulo> findByDenominacionContainingIgnoreCaseAndEliminadoFalse(String denominacion);
-    List<Articulo> findArticuloByCategoriaId(Long categoriaId);
+    List<Articulo> findArticuloByCategoriaIdAndEliminadoFalse(Long categoriaId);
 }

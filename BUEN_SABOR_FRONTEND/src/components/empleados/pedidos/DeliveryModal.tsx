@@ -3,8 +3,7 @@ import { Modal, Button, Row, Col, Table } from "react-bootstrap";
 import Pedido from "../../../models/Pedido.ts";
 import pedidoService from "../../../services/PedidoService.ts";
 import Estado from "../../../models/enums/Estado.ts";
-import {formatFechaConOffset} from "../../../funciones/formatFecha.ts";
-
+import dayjs from "dayjs";
 interface Props {
     show: boolean;
     onHide: () => void;
@@ -56,7 +55,7 @@ const DeliveryModal: React.FC<Props> = ({ show, onHide, pedido }) => {
                 <Modal.Body>
                     <Row className="mb-3">
                         <Col md={6}>
-                            <strong>Fecha Pedido:</strong>{new Date( pedido.fechaPedido).toLocaleDateString()}<br />
+                            <strong>Fecha Pedido:</strong>{dayjs(pedido.fechaPedido).format("DD/MM/YYYY HH:mm")}<br />
                             <strong>Hora Estimada Llegada:</strong> {pedido.horaEstimadaFinalizacion}<br />
                             <strong>Cliente:</strong> {cliente.nombre} {cliente.apellido}<br />
                             <strong>Teléfono:</strong> {cliente.telefono}<br />

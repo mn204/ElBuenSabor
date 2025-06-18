@@ -38,6 +38,7 @@ console.log("ID sucursal:", sucursalId);
                 method: "GET"
             });
             if (!res.ok) throw new Error("Error al obtener artículos");
+            console.log(res)
             return await res.json();
         } catch (error) {
             console.error(error);
