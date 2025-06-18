@@ -241,7 +241,8 @@ const GrillaCocina: React.FC = () => {
                 const fecha = new Date(row.fechaPedido);
                 return fecha.toLocaleTimeString('es-AR', {
                     hour: '2-digit',
-                    minute: '2-digit'
+                    minute: '2-digit',
+                    hour12: false
                 });
             }
         },

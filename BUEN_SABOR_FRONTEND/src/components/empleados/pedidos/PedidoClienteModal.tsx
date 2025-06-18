@@ -9,8 +9,7 @@ import pedidoService from "../../../services/PedidoService";
 import { ReusableTable } from "../../Tabla";
 import { ChevronLeft, ChevronRight } from "react-bootstrap-icons";
 import Cliente from "../../../models/Cliente";
-import {formatFechaConOffset} from "../../../funciones/formatFecha.ts";
-
+import dayjs from 'dayjs';
 interface Props {
     show: boolean;
     onHide: () => void;
@@ -86,7 +85,7 @@ const PedidoClienteModal: React.FC<Props> = ({ show, onHide, cliente }) => {
 
     const columns = [
         { key: "numero", label: "Número", render: (_: any, row: Pedido) => row.id },
-        { key: "fecha", label: "Fecha", render: (_: any, row: Pedido) => new Date(row.fechaPedido).toLocaleDateString() },
+        { key: "fecha", label: "Fecha", render: (_: any, row: Pedido) => dayjs(row.fechaPedido).format("DD/MM/YYYY HH:mm") },
         { key: "total", label: "Total", render: (_: any, row: Pedido) => `$${row.total.toFixed(2)}` },
         { key: "estado", label: "Estado", render: (_: any, row: Pedido) => row.estado },
         { key: "sucursal", label: "Sucursal", render: (_: any, row: Pedido) => row.sucursal.nombre },

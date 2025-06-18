@@ -22,6 +22,8 @@ const CocinaModal = ({ show, onHide, pedido, onMarcarListo }: Props) => {
     const horaPedido = new Date(pedido.fechaPedido).toLocaleTimeString('es-AR', {
         hour: '2-digit',
         minute: '2-digit',
+        hour12: false,
+
     });
 
     const calcularHoraEstimada = (): string => {

@@ -17,6 +17,7 @@ import type Sucursal from "../../models/Sucursal.ts";
 import SelectDeliveryModal from './pedidos/ModalDeliverySeleccion.tsx';
 import Empleado from '../../models/Empleado.ts';
 import Rol from '../../models/enums/Rol.ts';
+import dayjs from 'dayjs';
 interface Props {
     cliente?: Cliente;
 }
@@ -425,7 +426,7 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
         }] : []),
         { key: "numero", label: "Número", render: (_: any, row: Pedido) => row.id },
         { key: "cliente", label: "Cliente", render: (_: any, row: Pedido) => `${row.cliente?.nombre} ${row.cliente?.apellido}` },
-        { key: "fecha", label: "Fecha", render: (_: any, row: Pedido) => formatFechaConOffset(row.fechaPedido) },
+        { key: "fecha", label: "Fecha", render: (_: any, row: Pedido) => dayjs(row.fechaPedido).format("DD/MM/YYYY HH:mm")},
         { key: "total", label: "Total", render: (_: any, row: Pedido) => `$${row.total.toFixed(2)}` },
         { key: "tipoPago", label: "Medio de Pago", render: (_: any, row: Pedido) => row.formaPago },
         { key: "pagado", label: "Pagado", render: (_: any, row: Pedido) => row.pagado ? "SI" : "NO" },
