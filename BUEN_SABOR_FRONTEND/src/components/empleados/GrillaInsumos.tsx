@@ -57,7 +57,13 @@ function GrillaInsumos() {
 
   useEffect(() => {
     cargarInsumos();
-    CategoriaService.getAll().then(setCategorias);
+    CategoriaService.getAll().then(data => {
+      // Filtrar solo categorías de insumos (id padre: 3) y bebidas hijas (id padre: 2)
+      const categoriasFiltradas = data.filter(categoria =>
+          categoria.categoriaPadre?.id === 3 || categoria.categoriaPadre?.id === 2
+      );
+      setCategorias(categoriasFiltradas);
+    });
   }, []);
 
   // Resetear página cuando cambien los filtros
