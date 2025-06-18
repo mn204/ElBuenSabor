@@ -109,13 +109,10 @@ const Cardarticulo: React.FC<Props> = ({
 
                 {/* Información de stock */}
                 <div className="card-articulo__stock-info">
-                    {stockLoading ? (
+                    {stockLoading && (
                         <span className="card-articulo__stock-loading">Consultando stock...</span>
-                    ) : (
-                        <span className={`card-articulo__stock ${isOutOfStock ? 'no-stock' : 'in-stock'}`}>
-                            {isOutOfStock ? 'Sin stock' : `Stock: ${stock}`}
-                        </span>
-                    )}
+                    )
+                    }
                 </div>
 
                 <button
