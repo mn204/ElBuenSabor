@@ -52,5 +52,8 @@ public interface PedidoRepository extends MasterRepository<Pedido, Long>, JpaSpe
             @Param("pagado") Boolean pagado,
             Pageable pageable
     );
+    Long countPedidosByClienteId(Long clienteId);
+
 }
+
 

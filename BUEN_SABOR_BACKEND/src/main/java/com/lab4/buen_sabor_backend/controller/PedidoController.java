@@ -68,6 +68,14 @@ public class PedidoController extends MasterControllerImpl<Pedido, PedidoDTO, Lo
         return ResponseEntity.ok(result);
     }
 
+    @GetMapping("/cliente/{clienteId}/count")
+    public ResponseEntity<Long> getCountPedidosDelCliente(@PathVariable("clienteId") Long clienteId){
+        Long count = pedidoService.countPedidosByClienteId(clienteId);
+        return ResponseEntity.ok(count);
+    }
+
+
+
     //GET de pedidos con filtros para una sucursal específica
     @GetMapping("/filtrados")
     public ResponseEntity<Page<PedidoDTO>> obtenerPedidosFiltrados(

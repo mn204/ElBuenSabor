@@ -13,7 +13,17 @@ class PedidoService {
             throw error;
         }
     }
-
+    async getPedidosClienteCount(clienteId: number): Promise<number> {
+        try {
+            const res = await fetch(`${API_URL}/cliente/${clienteId}/count`);
+            if (!res.ok) throw new Error("Error al obtener cantidad de pedidos del cliente");
+            const count = await res.json(); // el backend devuelve un número
+            return count;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
     async consultarStock(pedido: Pedido) {
         try {
             const response = await fetch('http://localhost:8080/api/pedidos/verificar-stock', {

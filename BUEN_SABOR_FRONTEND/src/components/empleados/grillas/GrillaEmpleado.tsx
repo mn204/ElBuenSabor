@@ -1,24 +1,24 @@
 import { useEffect, useState } from "react";
-import Empleado from "../../models/Empleado";
+import Empleado from "../../../models/Empleado.ts";
 import {
     eliminarEmpleado,
     darDeAltaEmpleado,
     obtenerEmpleadoPorId,
     getEmpleadosFiltrados // <-- Nuevo import
-} from "../../services/EmpleadoService";
-import { ReusableTable } from "../Tabla";
-import BotonVer from "../layout/BotonVer";
-import BotonEliminar from "../layout/BotonEliminar";
-import BotonAlta from "../layout/BotonAlta";
+} from "../../../services/EmpleadoService.ts";
+import { ReusableTable } from "../../Tabla";
+import BotonVer from "../../layout/BotonVer.tsx";
+import BotonEliminar from "../../layout/BotonEliminar.tsx";
+import BotonAlta from "../../layout/BotonAlta.tsx";
 import { Modal , Form, Button} from "react-bootstrap";
-import { darDeAltaUsuario, eliminarUsuario } from "../../services/UsuarioService.ts";
-import BotonModificar from "../layout/BotonModificar.tsx";
+import { darDeAltaUsuario, eliminarUsuario } from "../../../services/UsuarioService.ts";
+import BotonModificar from "../../layout/BotonModificar.tsx";
 import { useNavigate } from "react-router-dom";
-import Sucursal from "../../models/Sucursal";
-import { obtenerSucursales } from "../../services/SucursalService";
-import FormDatosEmpleado from "./FormDatosEmpleado";
+import Sucursal from "../../../models/Sucursal.ts";
+import { obtenerSucursales } from "../../../services/SucursalService.ts";
+import FormDatosEmpleado from "../FormDatosEmpleado.tsx";
 import { ChevronLeft, ChevronRight } from "react-bootstrap-icons";
-import Cliente from "../../models/Cliente.ts";
+import Cliente from "../../../models/Cliente.ts";
 
 const GrillaEmpleado = () => {
     const [empleados, setEmpleados] = useState<Empleado[]>([]);
