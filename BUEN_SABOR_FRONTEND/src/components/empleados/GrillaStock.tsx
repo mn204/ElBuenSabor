@@ -255,7 +255,7 @@ function GrillaStock() {
                 return (
                     <div className="text-center">
                         <div className={`fs-5 fw-bold ${status.className}`}>
-                            {row.stockActual}
+                            {row.stockActual.toFixed(2)}
                         </div>
                         <small className="text-muted">
                             {row.sucursalInsumo.articuloInsumo?.unidadMedida?.denominacion || "unidades"}
@@ -532,7 +532,7 @@ function GrillaStock() {
                                 <h5 className="text-primary border-bottom pb-2">Control de Stock</h5>
                                 <div className="mb-3">
                                     <strong>Stock Actual:</strong>
-                                    <div className="fs-3 fw-bold text-primary">{stockSeleccionado.stockActual}</div>
+                                    <div className="fs-3 fw-bold text-primary">{stockSeleccionado.stockActual.toFixed(2)}</div>
                                 </div>
                                 <div className="row mb-3">
                                     <div className="col-6">
@@ -575,7 +575,7 @@ function GrillaStock() {
                                                 width: `${Math.min(100, (stockSeleccionado.stockActual / stockSeleccionado.stockMaximo) * 100)}%`
                                             }}
                                         >
-                                            {stockSeleccionado.stockActual}/{stockSeleccionado.stockMaximo}
+                                            {stockSeleccionado.stockActual.toFixed(2)}/{stockSeleccionado.stockMaximo}
                                         </div>
                                     </div>
                                 </div>
@@ -624,7 +624,7 @@ function GrillaStock() {
                                 <div className="mt-2">
                                     <strong>Stock Actual:</strong>
                                     <span className="ms-2 badge bg-primary fs-6">
-                                        {stockParaAgregar.stockActual} {stockParaAgregar.sucursalInsumo.articuloInsumo?.unidadMedida?.denominacion || "unidades"}
+                                        {stockParaAgregar.stockActual.toFixed(2)} {stockParaAgregar.sucursalInsumo.articuloInsumo?.unidadMedida?.denominacion || "unidades"}
                                     </span>
                                 </div>
                             </div>
@@ -650,9 +650,9 @@ function GrillaStock() {
                                     <div className="alert alert-info">
                                         <strong>Resumen de la operación:</strong>
                                         <ul className="mb-0 mt-2">
-                                            <li>Stock anterior: <strong>{stockParaAgregar.stockActual}</strong></li>
+                                            <li>Stock anterior: <strong>{stockParaAgregar.stockActual.toFixed(2)}</strong></li>
                                             <li>Cantidad a agregar: <strong>{cantidadAgregar}</strong></li>
-                                            <li>Stock resultante: <strong>{stockParaAgregar.stockActual + cantidadAgregar}</strong></li>
+                                            <li>Stock resultante: <strong>{stockParaAgregar.stockActual.toFixed(2) + cantidadAgregar}</strong></li>
                                         </ul>
                                     </div>
                                 )}

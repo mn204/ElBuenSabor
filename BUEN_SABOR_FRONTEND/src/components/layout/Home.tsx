@@ -1,7 +1,5 @@
 import Imagen1 from '../../assets/images/Imagen1Home.png';
 import Imagen1Responsive from '../../assets/images/Image1Responsive.png';
-import Imagen2Responsive from '../../assets/images/Image2Responsive.png';
-import Imagen2 from '../../assets/images/Imagen2Home.png';
 import '../../styles/Home.css';
 import Slider from './SliderCategorias';
 import CardPromocion from '../articulos/CardPromocion';
@@ -19,7 +17,7 @@ function Home() {
         const fetchPromocion = async () => {
             console.log("sucursal: ", sucursalActualUsuario)
             try {
-                const response = await SucursalService.getAllBySucursalId(sucursalActualUsuario.id)
+                const response = await SucursalService.getAllBySucursalId(sucursalActualUsuario!.id!)
                     .then((promos) => setPromocion(promos));
             } catch (error) {
                 console.error("Error al buscar promoción:", error);
@@ -64,8 +62,6 @@ function Home() {
                 <div className="sin-promos">Aún no tenemos promociones</div>
             )}
 
-            <img className='imagenHome' src={Imagen2} alt="" />
-            <img className='imagenHomeResponsive' src={Imagen2Responsive} alt="" />
         </div>
     );
 }
