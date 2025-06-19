@@ -326,7 +326,7 @@ function Perfil() {
                                 <div className="position-relative mb-4">
                                     <div className="position-relative">
                                         <img
-                                            src={user?.photoURL || usuario?.photoUrl || LogoEmpresa}
+                                            src={ usuario?.photoUrl || LogoEmpresa}
                                             alt="Imagen de perfil"
                                             className="rounded-circle shadow-lg border border-4 border-white"
                                             style={{ 
@@ -336,7 +336,7 @@ function Perfil() {
                                                 boxShadow: '0 8px 25px rgba(0,0,0,0.15)'
                                             }}
                                         />
-                                        {esCliente && providerId === "password" && (
+                                        {esCliente  && (
                                             <Button
                                                 variant="primary"
                                                 size="sm"

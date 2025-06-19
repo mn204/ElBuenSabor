@@ -301,7 +301,6 @@ const GrillaDelivery: React.FC = () => {
                     </div>
                 ) : (
                     <>
-                        {/* Responsive: Cards en dispositivos móviles, tabla en desktop */}
                         <div className="d-block d-md-none">
                             {/* Cards para móvil */}
                             {pedidos.map((pedido) => (
@@ -309,13 +308,32 @@ const GrillaDelivery: React.FC = () => {
                                     <div><strong>Pedido #</strong> {pedido.id}</div>
                                     <div><strong>Cliente:</strong> {pedido.cliente.nombre} {pedido.cliente.apellido}</div>
                                     <div><strong>Hora estimada:</strong> {pedido.horaEstimadaFinalizacion || "No especificada"}</div>
-                                    <div className="mt-2 text-end">
+
+                                    {/* Mostrar delivery solo para admin */}
+                                    {isAdmin && pedido.empleado && (
+                                        <div><strong>Delivery:</strong> {pedido.empleado.nombre} {pedido.empleado.apellido}</div>
+                                    )}
+
+                                    {/* Mostrar sucursal solo para admin en modo todas las sucursales */}
+                                    {isAdmin && esModoTodasSucursales && (
+                                        <div><strong>Sucursal:</strong> {pedido.sucursal?.nombre || "No especificada"}</div>
+                                    )}
+
+                                    <div className="mt-2 d-flex gap-2 justify-content-end">
                                         <Button
                                             variant="primary"
                                             size="sm"
                                             onClick={() => handleVerDetalle(pedido.id!)}
                                         >
                                             Ver detalle
+                                        </Button>
+                                        <Button
+                                            variant="danger"
+                                            size="sm"
+                                            onClick={() => handleAgregar5Min(pedido)}
+                                            title="Agregar 5 minutos"
+                                        >
+                                            +5 min
                                         </Button>
                                     </div>
                                 </div>

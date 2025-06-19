@@ -150,15 +150,7 @@ function Navbar() {
                         {isAuthenticated ? (
                             <Dropdown>
                                 <Dropdown.Toggle variant="light" id="dropdown-user" className="userDropdown">
-                                    {usuario?.providerId === "google.com" ? (
-                                        <img
-                                            src={user?.photoURL || LogoEmpresa}
-                                            width="30"
-                                            height="30"
-                                            className="rounded-circle"
-                                            alt="Foto de perfil de Google"
-                                        />
-                                    ) : usuario?.photoUrl ? (
+                                    { usuario?.photoUrl ? (
                                         <img
                                             src={usuario.photoUrl}
                                             width="30"
