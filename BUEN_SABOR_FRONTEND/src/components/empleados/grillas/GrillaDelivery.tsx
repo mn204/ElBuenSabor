@@ -9,7 +9,7 @@ import { useAuth } from "../../../context/AuthContext.tsx";
 import { useSucursal } from "../../../context/SucursalContextEmpleado.tsx";
 import { obtenerSucursales } from "../../../services/SucursalService.ts";
 import type Sucursal from "../../../models/Sucursal.ts";
-import DeliveryModal from "../pedidos/DeliveryModal.tsx";
+import DeliveryModal from "../modales/DeliveryModal.tsx";
 import dayjs from "dayjs";
 
 const GrillaDelivery: React.FC = () => {

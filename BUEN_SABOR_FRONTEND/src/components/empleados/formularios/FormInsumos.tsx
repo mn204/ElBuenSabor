@@ -6,7 +6,7 @@ import articuloInsumoService from "../../../services/ArticuloInsumoService";
 import unidadMedidaService from "../../../services/UnidadMedidaService";
 import categoriaService from "../../../services/CategoriaService";
 import { Button } from "react-bootstrap";
-import ModalCategoriaArbol from "../../articulos/ModalCategoriaArbol";
+import ModalCategoriaArbol from "../modales/ModalCategoriaArbol.tsx";
 import { useSearchParams, Link } from "react-router-dom";
 import ImagenArticulo from "../../../models/ImagenArticulo";
 import { subirACloudinary } from "../../../funciones/funciones";

@@ -1,9 +1,9 @@
 import { useState, useMemo } from "react";
 import Modal from "react-bootstrap/Modal";
 import Button from "react-bootstrap/Button";
-import ArticuloInsumo from "../../models/ArticuloInsumo";
+import ArticuloInsumo from "../../../models/ArticuloInsumo.ts";
 import { Form, InputGroup } from "react-bootstrap";
-import FormInsumos from "../empleados/formularios/FormInsumos";
+import FormInsumos from "../formularios/FormInsumos.tsx";
 
 interface Props {
   show: boolean;

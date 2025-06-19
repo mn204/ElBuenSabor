@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
 import { Button, Form, Modal, Alert } from "react-bootstrap";
-import type Empleado from "../../models/Empleado.ts";
-import type Pais from "../../models/Pais.ts";
-import type Provincia from "../../models/Provincia.ts";
-import type Localidad from "../../models/Localidad.ts";
-import { obtenerUsuarioPorDni } from "../../services/UsuarioService";
-import { actualizarEmpleado } from "../../services/EmpleadoService.ts";
-import { obtenerPaises, obtenerProvincias, obtenerLocalidades } from "../../services/LocalizacionService";
-import {obtenerSucursales} from "../../services/SucursalService.ts"
-import  Rol  from "../../models/enums/Rol.ts";
+import type Empleado from "../../../models/Empleado.ts";
+import type Pais from "../../../models/Pais.ts";
+import type Provincia from "../../../models/Provincia.ts";
+import type Localidad from "../../../models/Localidad.ts";
+import { obtenerUsuarioPorDni } from "../../../services/UsuarioService.ts";
+import { actualizarEmpleado } from "../../../services/EmpleadoService.ts";
+import { obtenerPaises, obtenerProvincias, obtenerLocalidades } from "../../../services/LocalizacionService.ts";
+import {obtenerSucursales} from "../../../services/SucursalService.ts"
+import  Rol  from "../../../models/enums/Rol.ts";
 
 
 interface Props {

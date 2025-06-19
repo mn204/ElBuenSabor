@@ -13,7 +13,7 @@ import BotonAlta from "../../layout/BotonAlta.tsx";
 import googleLogo from "../../../assets/google_logo.png";
 import { Modal, Form, Button } from "react-bootstrap";
 import { darDeAltaUsuario, eliminarUsuario } from "../../../services/UsuarioService.ts";
-import PedidoClienteModal from "../pedidos/PedidoClienteModal.tsx";
+import PedidoClienteModal from "../modales/PedidoClienteModal.tsx";
 import { ChevronLeft, ChevronRight } from "react-bootstrap-icons";
 import pedidoService from "../../../services/PedidoService";
 

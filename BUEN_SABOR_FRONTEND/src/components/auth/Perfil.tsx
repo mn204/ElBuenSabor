@@ -11,7 +11,7 @@ import {
 import {Button, Col, Container, Form, Modal, Row, Card, Badge} from "react-bootstrap";
 import {useState} from "react";
 import FormDatosCliente from "../clientes/FormDatosCliente.tsx";
-import FormDatosEmpleado from "../empleados/FormDatosEmpleado.tsx";
+import FormDatosEmpleado from "../empleados/formularios/FormDatosEmpleado.tsx";
 
 function Perfil() {
 

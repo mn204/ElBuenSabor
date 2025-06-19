@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
-import ImagenArticuloService from "../../services/ImagenArticuloService";
-import ImagenArticulo from "../../models/ImagenArticulo";
+import ImagenArticuloService from "../../../services/ImagenArticuloService.ts";
+import ImagenArticulo from "../../../models/ImagenArticulo.ts";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
-import { ReusableTable } from "../Tabla";
-import BotonVer from "../layout/BotonVer";
-import BotonEliminar from "../layout/BotonEliminar";
-import BotonModificar from "../layout/BotonModificar";
-import BotonAlta from "../layout/BotonAlta";
+import { ReusableTable } from "../../Tabla";
+import BotonVer from "../../layout/BotonVer.tsx";
+import BotonEliminar from "../../layout/BotonEliminar.tsx";
+import BotonModificar from "../../layout/BotonModificar.tsx";
+import BotonAlta from "../../layout/BotonAlta.tsx";
 
 function GrillaImagenArticulo() {
   const [imagenes, setImagenes] = useState<ImagenArticulo[]>([]);

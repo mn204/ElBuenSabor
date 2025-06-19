@@ -16,7 +16,7 @@ import BotonModificar from "../../layout/BotonModificar.tsx";
 import { useNavigate } from "react-router-dom";
 import Sucursal from "../../../models/Sucursal.ts";
 import { obtenerSucursales } from "../../../services/SucursalService.ts";
-import FormDatosEmpleado from "../FormDatosEmpleado.tsx";
+import FormDatosEmpleado from "../formularios/FormDatosEmpleado.tsx";
 import { ChevronLeft, ChevronRight } from "react-bootstrap-icons";
 import Cliente from "../../../models/Cliente.ts";
 
