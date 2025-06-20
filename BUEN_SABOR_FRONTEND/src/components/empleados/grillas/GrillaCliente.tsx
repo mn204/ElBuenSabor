@@ -13,7 +13,7 @@ import BotonAlta from "../../layout/BotonAlta.tsx";
 import googleLogo from "../../../assets/google_logo.png";
 import { Modal, Form, Button } from "react-bootstrap";
 import { darDeAltaUsuario, eliminarUsuario } from "../../../services/UsuarioService.ts";
-import PedidoClienteModal from "../pedidos/PedidoClienteModal.tsx";
+import PedidoClienteModal from "../modales/PedidoClienteModal.tsx";
 import { ChevronLeft, ChevronRight } from "react-bootstrap-icons";
 import pedidoService from "../../../services/PedidoService";
 
@@ -334,16 +334,17 @@ const GrillaCliente = () => {
                     {clienteSeleccionado && (
                         <div className="container">
                             <div className="d-flex flex-column align-items-center mb-3">
+
+                                { clienteSeleccionado.usuario.photoUrl ? (
                                 <img
                                     src={
-                                        clienteSeleccionado.usuario.providerId === "google.com"
-                                            ? googleLogo
-                                            : clienteSeleccionado.usuario.photoUrl
+                                        clienteSeleccionado.usuario.photoUrl
                                     }
                                     alt="Foto de perfil"
                                     className="rounded-circle"
                                     style={{ width: 100, height: 100, objectFit: "cover" }}
                                 />
+                                ) : ("Sin imagen")}
                             </div>
 
                             <div className="mb-3">

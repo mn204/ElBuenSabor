@@ -1,14 +1,14 @@
 import { Table, Form, Button, Image } from "react-bootstrap";
-import DetallePromocion from "../../models/DetallePromocion";
+import DetalleArticuloManufacturado from "../../../models/DetalleArticuloManufacturado.ts";
 
 type Props = {
-  detalles: DetallePromocion[];
+  detalles: DetalleArticuloManufacturado[];
   onEliminar: (index: number) => void;
   onCantidadChange: (index: number, cantidad: number) => void;
   totalInsumos: number;
 };
 
-const DetalleArticulosTable = ({
+const DetalleInsumosTable = ({
   detalles,
   onEliminar,
   onCantidadChange,
@@ -19,7 +19,7 @@ const DetalleArticulosTable = ({
       <thead>
         <tr>
           <th className="text-center align-middle" style={{ width: "10%" }}>Imagen</th>
-          <th className="text-center align-middle" style={{ width: "32%" }}>Artículo</th>
+          <th className="text-center align-middle" style={{ width: "32%" }}>Articulo</th>
           <th className="text-center align-middle" style={{ width: "23%" }}>Cantidad</th>
           <th className="text-center align-middle" style={{ width: "20%" }}>Precio Venta</th>
           <th className="text-center align-middle" style={{ width: "15%" }}>Acciones</th>
@@ -29,9 +29,9 @@ const DetalleArticulosTable = ({
         {detalles.map((det, idx) => (
           <tr key={idx}>
             <td className="text-center align-middle">
-              {det.articulo?.imagenes?.[0]?.denominacion ? (
+              {det.articuloInsumo?.imagenes?.[0]?.denominacion ? (
                 <Image
-                  src={det.articulo.imagenes[0].denominacion}
+                  src={det.articuloInsumo.imagenes[0].denominacion}
                   rounded
                   style={{ width: 40, height: 40, objectFit: "cover" }}
                 />
@@ -55,7 +55,7 @@ const DetalleArticulosTable = ({
                 textOverflow: "ellipsis",
               }}
             >
-              {det.articulo?.denominacion}
+              {det.articuloInsumo?.denominacion}
             </td>
             <td className="text-center align-middle">
               <div className="d-flex align-items-center justify-content-center gap-2">
@@ -63,15 +63,9 @@ const DetalleArticulosTable = ({
                   type="number"
                   size="sm"
                   min={0}
-                  step={1}
+                  step={0.01}
                   value={det.cantidad}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    const parsed = parseInt(value, 10);
-                    if (!isNaN(parsed)) {
-                      onCantidadChange(idx, parsed);
-                    }
-                  }}
+                  onChange={(e) => onCantidadChange(idx, parseFloat(e.target.value))}
                   style={{
                     width: "55px",
                     textAlign: "right",
@@ -84,11 +78,11 @@ const DetalleArticulosTable = ({
                     backgroundColor: "#fafafa",
                   }}
                 />
-                <small>{det.articulo?.unidadMedida?.denominacion}</small>
+                <small>{det.articuloInsumo?.unidadMedida?.denominacion}</small>
               </div>
             </td>
             <td className="text-center align-middle">
-              ${(det.articulo?.precioVenta ?? 0).toFixed(2)}
+              ${ (det.articuloInsumo?.precioVenta ?? 0).toFixed(2) }
             </td>
             <td className="text-center align-middle">
               <Button
@@ -115,4 +109,4 @@ const DetalleArticulosTable = ({
   </div>
 );
 
-export default DetalleArticulosTable;
+export default DetalleInsumosTable;

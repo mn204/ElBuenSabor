@@ -1,6 +1,6 @@
 import Categoria from "../../../models/Categoria";
 import UnidadMedida from "../../../models/UnidadMedida";
-import ModalCategoriaArbol from "../../articulos/ModalCategoriaArbol";
+import ModalCategoriaArbol from "../modales/ModalCategoriaArbol.tsx";
 import type ImagenArticulo from "../../../models/ImagenArticulo";
 
 interface Props {

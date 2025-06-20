@@ -8,7 +8,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface ArticuloManufacturadoRepository extends MasterRepository<ArticuloManufacturado, Long> {
@@ -41,6 +40,7 @@ public interface ArticuloManufacturadoRepository extends MasterRepository<Articu
             "LEFT JOIN FETCH d.articuloInsumo " +
             "WHERE am.categoria.id = :categoriaId AND am.eliminado = false")
     List<ArticuloManufacturado> findByCategoriaWithIngredientes(@Param("categoriaId") Long categoriaId);
+    List<ArticuloManufacturado> findByDetalles_ArticuloInsumo_Id(Long id);
 
     // Verificar si existe por denominación (para evitar duplicados)
     boolean existsByDenominacionIgnoreCaseAndEliminadoFalse(String denominacion);

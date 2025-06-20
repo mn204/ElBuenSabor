@@ -1,19 +1,19 @@
 import { useState, useEffect } from "react";
-import InsumoService from "../../services/ArticuloInsumoService";
-import CategoriaService from "../../services/CategoriaService";
-import Insumo from "../../models/ArticuloInsumo";
-import Categoria from "../../models/Categoria";
+import InsumoService from "../../../services/ArticuloInsumoService.ts";
+import CategoriaService from "../../../services/CategoriaService.ts";
+import Insumo from "../../../models/ArticuloInsumo.ts";
+import Categoria from "../../../models/Categoria.ts";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
-import { ReusableTable } from "../Tabla";
-import BotonVer from "../layout/BotonVer";
-import BotonEliminar from "../layout/BotonEliminar";
-import BotonModificar from "../layout/BotonModificar";
-import BotonAlta from "../layout/BotonAlta";
+import { ReusableTable } from "../../Tabla";
+import BotonVer from "../../layout/BotonVer.tsx";
+import BotonEliminar from "../../layout/BotonEliminar.tsx";
+import BotonModificar from "../../layout/BotonModificar.tsx";
+import BotonAlta from "../../layout/BotonAlta.tsx";
 import { Link } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "react-bootstrap-icons";
-import ArticuloInsumoService from "../../services/ArticuloInsumoService";
-import type ArticuloInsumo from "../../models/ArticuloInsumo";
+import ArticuloInsumoService from "../../../services/ArticuloInsumoService.ts";
+import type ArticuloInsumo from "../../../models/ArticuloInsumo.ts";
 
 interface PageResponse {
   content: Insumo[];

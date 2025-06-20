@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
-import UnidadMedidaService from "../../services/UnidadMedidaService";
-import UnidadMedida from "../../models/UnidadMedida";
+import UnidadMedidaService from "../../../services/UnidadMedidaService.ts";
+import UnidadMedida from "../../../models/UnidadMedida.ts";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
-import { ReusableTable } from "../Tabla";
-import BotonVer from "../layout/BotonVer";
-import BotonEliminar from "../layout/BotonEliminar";
-import BotonModificar from "../layout/BotonModificar";
-import BotonAlta from "../layout/BotonAlta";
+import { ReusableTable } from "../../Tabla";
+import BotonVer from "../../layout/BotonVer.tsx";
+import BotonEliminar from "../../layout/BotonEliminar.tsx";
+import BotonModificar from "../../layout/BotonModificar.tsx";
+import BotonAlta from "../../layout/BotonAlta.tsx";
 
 function GrillaUnidadMedida() {
   const [unidades, setUnidades] = useState<UnidadMedida[]>([]);

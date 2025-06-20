@@ -41,7 +41,7 @@ class PedidoService {
             return stockDisponible;
         } catch (error) {
             alert(error)
-        }
+        }z
 
     }
 

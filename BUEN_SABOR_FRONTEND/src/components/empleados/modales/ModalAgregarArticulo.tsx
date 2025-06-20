@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { Form, InputGroup } from "react-bootstrap";
 import Modal from "react-bootstrap/Modal";
 import Button from "react-bootstrap/Button";
-import Articulo from "../../models/Articulo";
+import Articulo from "../../../models/Articulo.ts";
 
 interface Props {
   show: boolean;

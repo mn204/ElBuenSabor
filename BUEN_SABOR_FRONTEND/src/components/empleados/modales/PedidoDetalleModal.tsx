@@ -152,7 +152,6 @@ const PedidoDetalleModal: React.FC<Props> = ({ show, onHide, pedido, onEstadoCha
 };
   /*
   * Al cambiar el precio de un insumo se debe actualizar el precio de los manufacturados y promociones
-  * cambiar descuento en promos
   * cambiar exportacion de excel
   * mantener los productos en el local storage aunque se cambie la sucursal y mostrar si se elimina
   * mostrar pedidos descendente
@@ -233,16 +232,22 @@ const PedidoDetalleModal: React.FC<Props> = ({ show, onHide, pedido, onEstadoCha
           <p><strong>Sucursal:</strong> {pedido.sucursal.nombre}</p>
           <p><strong>Forma de pago:</strong> {pedido.formaPago}</p>
           <p><strong>Forma de entrega:</strong> {pedido.tipoEnvio}</p>
-          <p className="mb-0"><strong>Domicilio:</strong></p>
-          {pedido.domicilio &&
-            <p>
-              {pedido.domicilio.detalles && <>Referencia: {pedido.domicilio.detalles}. </>}
-              {pedido.domicilio.calle} {pedido.domicilio.numero}, CP {pedido.domicilio.codigoPostal}, {pedido.domicilio.localidad?.nombre}
-              {pedido.domicilio.piso && `, Piso ${pedido.domicilio.piso}`}
-              {pedido.domicilio.nroDepartamento && `, Depto ${pedido.domicilio.nroDepartamento}`}
-            </p>
-          }
 
+          {pedido.tipoEnvio === "DELIVERY" && pedido.domicilio && (
+              <>
+                <p>
+                  <strong>Delivery:</strong>{" "}
+                  {pedido.empleado ? `${pedido.empleado.nombre} ${pedido.empleado.apellido}` : "Sin asignar"}
+                </p>
+                <p className="mb-0"><strong>Domicilio:</strong></p>
+                <p>
+                  {pedido.domicilio.detalles && <>Referencia: {pedido.domicilio.detalles}. </>}
+                  {pedido.domicilio.calle} {pedido.domicilio.numero}, CP {pedido.domicilio.codigoPostal}, {pedido.domicilio.localidad?.nombre}
+                  {pedido.domicilio.piso && `, Piso ${pedido.domicilio.piso}`}
+                  {pedido.domicilio.nroDepartamento && `, Depto ${pedido.domicilio.nroDepartamento}`}
+                </p>
+              </>
+          )}
           <Table striped bordered>
             <thead>
               <tr>

@@ -47,7 +47,7 @@ public class MercadoPagoServiceImpl implements MercadoPagoService { // ⚠️ AQ
             System.out.println("Pedido ID: " + pedido.getId());
 
             PreferenceRequest preferenceRequest = PreferenceRequest.builder()
-                    .notificationUrl("https://8c3a-2803-9800-9849-7c6d-e12c-58b2-7496-f88f.ngrok-free.app/api/webhook")
+                    .notificationUrl("https://5ab5-2803-9800-9847-7bee-acf8-f71f-8bb-9a75.ngrok-free.app/api/webhook")
                     .externalReference(String.valueOf(pedido.getId()))
                     .items(items)
                     .backUrls(backURL)

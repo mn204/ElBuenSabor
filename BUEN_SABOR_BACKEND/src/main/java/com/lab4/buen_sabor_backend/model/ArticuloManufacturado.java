@@ -20,7 +20,7 @@ public class ArticuloManufacturado extends Articulo {
     private String preparacion;
 
     @OneToMany(mappedBy = "articuloManufacturado", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<DetalleArticuloManufacturado> detalles = new HashSet<>();
+    private List<DetalleArticuloManufacturado> detalles = new ArrayList<>();
 
 }
 

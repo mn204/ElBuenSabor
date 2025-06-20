@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Modal from "react-bootstrap/Modal";
 import Button from "react-bootstrap/Button";
-import Categoria from "../../models/Categoria";
+import Categoria from "../../../models/Categoria.ts";
 
 interface Props {
   show: boolean;

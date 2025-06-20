@@ -1,6 +1,7 @@
 package com.lab4.buen_sabor_backend.repository;
 
 import com.lab4.buen_sabor_backend.dto.PromocionDTO;
+import com.lab4.buen_sabor_backend.model.ArticuloManufacturado;
 import com.lab4.buen_sabor_backend.model.Promocion;
 import com.lab4.buen_sabor_backend.model.Sucursal;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -35,6 +36,7 @@ public interface PromocionRepository extends MasterRepository<Promocion, Long>, 
         """)
     List<Promocion> findPromocionesActivasPorSucursalConArticulosNoEliminados(@Param("sucursal") Sucursal sucursal);
     boolean existsByDenominacion(String denominacion);
+    List<Promocion> findByDetalles_Articulo_Id(Long id);
 
     boolean existsByDenominacionAndIdNot(String denominacion, Long id);
 }
