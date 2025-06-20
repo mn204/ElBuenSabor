@@ -1,7 +1,9 @@
 package com.lab4.buen_sabor_backend.service.impl;
 
 import com.lab4.buen_sabor_backend.model.*;
+import com.lab4.buen_sabor_backend.repository.ArticuloInsumoRepository;
 import com.lab4.buen_sabor_backend.repository.ArticuloManufacturadoRepository;
+import com.lab4.buen_sabor_backend.service.ArticuloInsumoService;
 import com.lab4.buen_sabor_backend.service.ArticuloManufacturadoService;
 import com.lab4.buen_sabor_backend.service.PromocionService;
 import jakarta.transaction.Transactional;
@@ -21,12 +23,14 @@ public class ArticuloManufacturadoServiceImpl extends MasterServiceImpl<Articulo
     private static final Logger logger = LoggerFactory.getLogger(ArticuloManufacturadoServiceImpl.class);
     private final ArticuloManufacturadoRepository articuloManufacturadoRepository;
     private final PromocionService promocionService;
+    private final ArticuloInsumoRepository articuloInsumoRepository;
 
     @Autowired
-    public ArticuloManufacturadoServiceImpl(ArticuloManufacturadoRepository articuloManufacturadoRepository, PromocionService promocionService) {
+    public ArticuloManufacturadoServiceImpl(ArticuloManufacturadoRepository articuloManufacturadoRepository, PromocionService promocionService, ArticuloInsumoRepository articuloInsumoRepository) {
         super(articuloManufacturadoRepository);
         this.articuloManufacturadoRepository = articuloManufacturadoRepository;
         this.promocionService = promocionService;
+        this.articuloInsumoRepository = articuloInsumoRepository;
     }
 
     @Override
@@ -52,7 +56,9 @@ public class ArticuloManufacturadoServiceImpl extends MasterServiceImpl<Articulo
         logger.info("Guardando ArticuloManufacturado: {}", entity.getDenominacion());
         return super.save(entity);
     }
-
+    public ArticuloInsumo conseguirInsumo(Long id){
+        return articuloInsumoRepository.getById(id);
+    }
     @Override
     @Transactional
     public ArticuloManufacturado update(Long id, ArticuloManufacturado entity) {
@@ -66,46 +72,22 @@ public class ArticuloManufacturadoServiceImpl extends MasterServiceImpl<Articulo
             throw new IllegalArgumentException("Ya existe un producto con la denominación: " + entity.getDenominacion());
         }
 
-        for(DetalleArticuloManufacturado detalle : entity.getDetalles()) {
-            System.out.println(detalle.getArticuloInsumo().getDenominacion());
-            detalle.setArticuloManufacturado(entity);
-        }
-        for(ImagenArticulo imagen : entity.getImagenes()) {
-            imagen.setArticulo(entity);
-        }
-        logger.info("Actualizando ArticuloManufacturado con ID: {}", id);
-        return super.update(id, entity);
-    }
-
-    @Override
-    @Transactional
-    public ArticuloManufacturado updateSpecial(Long id, ArticuloManufacturado entity, double ganancia) {
-        // Validaciones antes de actualizar
-        validarDatosBasicos(entity);
-        validarIngredientes(entity);
-        System.out.println(entity.getDetalles());
-        System.out.println(entity);
-        // Verificar duplicados excluyendo el ID actual
-        if (existeByDenominacionExcluyendoId(entity.getDenominacion(), id)) {
-            throw new IllegalArgumentException("Ya existe un producto con la denominación: " + entity.getDenominacion());
-        }
-
         double total=0;
         for(DetalleArticuloManufacturado detalle : entity.getDetalles()) {
-            System.out.println(detalle.getArticuloInsumo().getDenominacion());
-            total += detalle.getCantidad()*detalle.getArticuloInsumo().getPrecioVenta();
+            ArticuloInsumo insumo =conseguirInsumo(detalle.getArticuloInsumo().getId());
+            total += detalle.getCantidad()*insumo.getPrecioVenta();
             detalle.setArticuloManufacturado(entity);
         }
-        entity.setPrecioVenta(total + (total*(ganancia/100)));
+        entity.setPrecioVenta(total + (total*(entity.getGanancia()/100)));
 
         List<Promocion> promociones = promocionService.findByDetalles_Articulo_Id(entity.getId());
-        double precioPromo = 0;
         for (Promocion promocion : promociones){
+            double precioPromo = 0;
             for(DetallePromocion det : promocion.getDetalles()){
                 if(det.getArticulo().getId().equals(id)){
                     det.setArticulo(entity);
                 }
-                precioPromo += det.getArticulo().getPrecioVenta();
+                precioPromo += det.getArticulo().getPrecioVenta() * det.getCantidad();
             }
             promocion.setPrecioPromocional(precioPromo);
             promocionService.update(promocion.getId(), promocion);

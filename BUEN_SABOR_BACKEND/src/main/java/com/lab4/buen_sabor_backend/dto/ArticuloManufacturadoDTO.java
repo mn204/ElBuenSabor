@@ -9,6 +9,7 @@ import java.util.*;
 @AllArgsConstructor
 public class ArticuloManufacturadoDTO extends ArticuloDTO {
     private String descripcion;
+    private Double ganancia;
     private Integer tiempoEstimadoMinutos;
     private String preparacion;
     private List<DetalleArticuloManufacturadoDTO> detalles = new ArrayList<>();

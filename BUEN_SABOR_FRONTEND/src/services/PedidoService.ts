@@ -185,6 +185,8 @@ class PedidoService {
 
         params.append("page", page.toString());
         params.append("size", size.toString());
+        params.append("sort", "fechaPedido,DESC"); // <-- Agrega el ordenamiento aquí
+
 
         // FIX: Usar la misma base URL que los otros métodos
         const response = await fetch(`${API_URL}/cliente/${clienteId}?${params.toString()}`);

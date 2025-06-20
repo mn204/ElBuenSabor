@@ -24,12 +24,14 @@ public class Promocion extends Master {
     private LocalTime horaDesde;
     private LocalTime horaHasta;
     private String descripcionDescuento;
+    private Double descuento;
     private Double precioPromocional;
 
     @Enumerated(EnumType.STRING)
     private TipoPromocion tipoPromocion;
 
     private Boolean activa = false;
+
 
     @ManyToMany
     @JoinTable(
