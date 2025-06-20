@@ -1,2 +1,4 @@
 # Ignorar archivos de credenciales de Firebase en backend
 BUEN_SABOR_BACKEND/src/main/resources/firebase/firebase-service-account-buen-sabor.json
+
+.idea
