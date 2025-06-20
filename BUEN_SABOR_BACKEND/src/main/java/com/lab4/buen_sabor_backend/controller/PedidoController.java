@@ -176,4 +176,27 @@ public class PedidoController extends MasterControllerImpl<Pedido, PedidoDTO, Lo
 
         return new ResponseEntity<>(excel, headers, HttpStatus.OK);
     }
+
+    @GetMapping("/filtrados/excel")
+    public ResponseEntity<byte[]> exportarPedidosFiltradosExcel(
+            @RequestParam(required = false) Long idSucursal,
+            @RequestParam(required = false) Estado estado,
+            @RequestParam(required = false) String clienteNombre,
+            @RequestParam(required = false) Long idPedido,
+            @RequestParam(required = false) Long idEmpleado,
+            @RequestParam(required = false) Boolean pagado,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fechaDesde,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fechaHasta
+    ) {
+        byte[] excel = pedidoService.exportarPedidosFiltradosExcel(
+                idSucursal, estado, clienteNombre, idPedido, idEmpleado, fechaDesde, fechaHasta, pagado
+        );
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        headers.setContentDisposition(ContentDisposition.attachment().filename("pedidos_filtrados.xlsx").build());
+
+        return new ResponseEntity<>(excel, headers, HttpStatus.OK);
+    }
+
 }

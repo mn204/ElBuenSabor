@@ -644,4 +644,17 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
         return excelService.exportarPedidosAExcel(pedidos);
     }
 
+    @Override
+    public byte[] exportarPedidosFiltradosExcel(Long idSucursal, Estado estado, String clienteNombre,
+                                                Long idPedido, Long idEmpleado,
+                                                LocalDateTime fechaDesde, LocalDateTime fechaHasta,
+                                                Boolean pagado) {
+
+        List<Pedido> pedidosFiltrados = pedidoRepository.exportarPedidosFiltrados(
+                idSucursal, estado, clienteNombre, idPedido, idEmpleado, fechaDesde, fechaHasta, pagado
+        );
+
+        return excelService.exportarPedidosAExcel(pedidosFiltrados);
+    }
+
 }

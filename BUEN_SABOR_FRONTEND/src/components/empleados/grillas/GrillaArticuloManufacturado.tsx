@@ -1,17 +1,17 @@
 import { useState, useEffect } from "react";
-import ArticuloManufacturadoService from "../../services/ArticuloManufacturadoService";
-import ArticuloManufacturado from "../../models/ArticuloManufacturado";
-import CategoriaService from "../../services/CategoriaService";
-import Categoria from "../../models/Categoria";
+import ArticuloManufacturadoService from "../../../services/ArticuloManufacturadoService.ts";
+import ArticuloManufacturado from "../../../models/ArticuloManufacturado.ts";
+import CategoriaService from "../../../services/CategoriaService.ts";
+import Categoria from "../../../models/Categoria.ts";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import { ChevronLeft, ChevronRight } from "react-bootstrap-icons";
-import { ReusableTable } from "../Tabla";
-import "../../styles/GrillaArticuloManufactura.css";
-import BotonEliminar from "../layout/BotonEliminar";
-import BotonModificar from "../layout/BotonModificar";
-import BotonVer from "../layout/BotonVer";
-import BotonAlta from "../layout/BotonAlta";
+import { ReusableTable } from "../../Tabla";
+import "../../../styles/GrillaArticuloManufactura.css";
+import BotonEliminar from "../../layout/BotonEliminar.tsx";
+import BotonModificar from "../../layout/BotonModificar.tsx";
+import BotonVer from "../../layout/BotonVer.tsx";
+import BotonAlta from "../../layout/BotonAlta.tsx";
 import { Link } from "react-router-dom";
 
 function GrillaArticuloManufacturado() {

@@ -2,21 +2,20 @@ import React, { useEffect, useState } from "react";
 import { Button, Form, Row, Col, Spinner, Card } from "react-bootstrap";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import Pedido from "../../models/Pedido";
-import Estado from "../../models/enums/Estado";
-import PedidoDetalleModal from "./pedidos/PedidoDetalleModal";
-import pedidoService from "../../services/PedidoService";
-import { ReusableTable } from "../Tabla";
+import Pedido from "../../../models/Pedido.ts";
+import Estado from "../../../models/enums/Estado.ts";
+import PedidoDetalleModal from "../modales/PedidoDetalleModal.tsx";
+import pedidoService from "../../../services/PedidoService.ts";
+import { ReusableTable } from "../../Tabla";
 import { ChevronLeft, ChevronRight } from "react-bootstrap-icons";
-import Cliente from "../../models/Cliente";
-import { formatFechaConOffset } from "../../funciones/formatFecha.ts";
-import { useAuth } from "../../context/AuthContext";
-import { useSucursal } from "../../context/SucursalContextEmpleado.tsx";
-import { obtenerSucursales } from "../../services/SucursalService.ts";
-import type Sucursal from "../../models/Sucursal.ts";
-import SelectDeliveryModal from './pedidos/ModalDeliverySeleccion.tsx';
-import Empleado from '../../models/Empleado.ts';
-import Rol from '../../models/enums/Rol.ts';
+import Cliente from "../../../models/Cliente.ts";
+import { useAuth } from "../../../context/AuthContext.tsx";
+import { useSucursal } from "../../../context/SucursalContextEmpleado.tsx";
+import { obtenerSucursales } from "../../../services/SucursalService.ts";
+import type Sucursal from "../../../models/Sucursal.ts";
+import SelectDeliveryModal from '../modales/ModalDeliverySeleccion.tsx';
+import Empleado from '../../../models/Empleado.ts';
+import Rol from '../../../models/enums/Rol.ts';
 import dayjs from 'dayjs';
 interface Props {
     cliente?: Cliente;
@@ -70,7 +69,7 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
     const fetchPedidos = async () => {
         const sucursalId = usuario?.rol === 'ADMINISTRADOR' && filtros.sucursalId
             ? parseInt(filtros.sucursalId)
-            : sucursalIdSeleccionada; // Ahora puede ser null para "todas las sucursales"
+            : sucursalIdSeleccionada;
 
         try {
             setLoading(true);
@@ -82,11 +81,12 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
                 pagado: filtros.pagado === "" ? undefined : filtros.pagado === "true"
             };
 
+            // Agregamos el parámetro de orden descendente por fecha
             const result = await pedidoService.getPedidosFiltrados(
-                sucursalId, // Ahora puede ser null
+                sucursalId,
                 filtrosConvertidos,
                 page,
-                size
+                size,
             );
             setPedidos(result.content);
             setTotalPages(result.totalPages);
@@ -324,6 +324,7 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
         });
     };
 
+    /*
     const handleSeleccionarTodos = () => {
         const pedidosActualesSeleccionados = pedidos.filter(p => pedidosSeleccionados.has(p.id!));
 
@@ -343,38 +344,50 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
             });
         }
     };
+    */
 
     const handleExportarExcel = async () => {
-        if (pedidosSeleccionados.size === 0) {
-            alert("Selecciona al menos un pedido para exportar");
-            return;
-        }
-
         try {
-            const pedidosAExportar = Array.from(pedidosSeleccionados.values());
-            const blob = await pedidoService.exportarPedidos(pedidosAExportar);
+            setLoading(true);
+            // Exporta todos los pedidos filtrados (no solo los de la página actual)
+            const sucursalId = usuario?.rol === 'ADMINISTRADOR' && filtros.sucursalId
+                ? parseInt(filtros.sucursalId)
+                : sucursalIdSeleccionada;
+
+            const filtrosConvertidos = {
+                estado: filtros.estado || undefined,
+                clienteNombre: cliente ? `${cliente.nombre} ${cliente.apellido}` : (filtros.clienteNombre || undefined),
+                fechaDesde: filtros.desde ? filtros.desde.toISOString() : undefined,
+                fechaHasta: filtros.hasta ? filtros.hasta.toISOString() : undefined,
+                pagado: filtros.pagado === "" ? undefined : filtros.pagado === "true"
+            };
+
+            // Llama a un método que exporte todos los pedidos filtrados (sin paginación)
+            const blob = await pedidoService.exportarPedidosFiltrados(
+                sucursalId,
+                filtrosConvertidos,
+            );
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement("a");
             a.href = url;
             a.download = "pedidos.xlsx";
             a.click();
             window.URL.revokeObjectURL(url);
-            console.log("Exportando pedidos:", Array.from(pedidosSeleccionados));
-            alert(`Exportando ${pedidosSeleccionados.size} pedidos a Excel...`);
-
-            // Limpiar selección después de exportar
-            setPedidosSeleccionados(new Map());
-            setModoSeleccion(false);
+            alert("Exportando pedidos filtrados a Excel...");
         } catch (error) {
             console.error("Error al exportar Excel:", error);
             alert("Error al exportar a Excel");
+        } finally {
+            setLoading(false);
         }
     };
 
+    /*
     const handleCancelarSeleccion = () => {
         setPedidosSeleccionados(new Map());
         setModoSeleccion(false);
     };
+    */
     const getEstadosDisponibles = (estadoActual: Estado): Estado[] => {
         if (usuario?.rol === 'ADMINISTRADOR') {
             return Object.values(Estado);
@@ -426,7 +439,7 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
         }] : []),
         { key: "numero", label: "Número", render: (_: any, row: Pedido) => row.id },
         { key: "cliente", label: "Cliente", render: (_: any, row: Pedido) => `${row.cliente?.nombre} ${row.cliente?.apellido}` },
-        { key: "fecha", label: "Fecha", render: (_: any, row: Pedido) => dayjs(row.fechaPedido).format("DD/MM/YYYY HH:mm")},
+        { key: "fecha", label: "Fecha", render: (_: any, row: Pedido) => dayjs(row.fechaPedido).format("DD/MM/YYYY HH:mm") },
         { key: "total", label: "Total", render: (_: any, row: Pedido) => `$${row.total.toFixed(2)}` },
         { key: "tipoPago", label: "Medio de Pago", render: (_: any, row: Pedido) => row.formaPago },
         { key: "pagado", label: "Pagado", render: (_: any, row: Pedido) => row.pagado ? "SI" : "NO" },
@@ -492,56 +505,16 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
                         <Card.Title className="mb-0">
                             {cliente ? `Pedidos del Cliente #${cliente.id} - ${cliente.nombre} ${cliente.apellido}` : 'Gestión de Pedidos'}
                         </Card.Title>
-
-                        {/* Controles de exportación Excel solo para admin */}
+                        {/* Botón de exportar Excel solo para admin y sin selección */}
                         {usuario?.rol === 'ADMINISTRADOR' && !cliente && (
-                            <div className="d-flex gap-2 align-items-center">
-                                {modoSeleccion && (
-                                    <span className="badge bg-primary">
-                                        {pedidosSeleccionados.size} seleccionado...
-                                    </span>
-                                )}
-                                {modoSeleccion && (
-                                    <Button
-                                        variant="outline-primary"
-                                        size="sm"
-                                        onClick={handleSeleccionarTodos}
-                                    >
-                                        {pedidosSeleccionados.size === pedidos.length ?
-                                            "Deseleccionar página" :
-                                            "Seleccionar página"
-                                        }
-                                    </Button>
-                                )}
-
-                                {!modoSeleccion ? (
-                                    <Button
-                                        variant="success"
-                                        size="sm"
-                                        onClick={() => setModoSeleccion(true)}
-                                    >
-                                        📊 Exportar Excel
-                                    </Button>
-                                ) : (
-                                    <div className="d-flex gap-2">
-                                        <Button
-                                            variant="success"
-                                            size="sm"
-                                            onClick={handleExportarExcel}
-                                            disabled={pedidosSeleccionados.size === 0}
-                                        >
-                                            ✓ Exportar ({pedidosSeleccionados.size})
-                                        </Button>
-                                        <Button
-                                            variant="outline-secondary"
-                                            size="sm"
-                                            onClick={handleCancelarSeleccion}
-                                        >
-                                            ✕ Cancelar
-                                        </Button>
-                                    </div>
-                                )}
-                            </div>
+                            <Button
+                                variant="success"
+                                size="sm"
+                                onClick={handleExportarExcel}
+                                disabled={pedidos.length === 0}
+                            >
+                                📊 Exportar Excel
+                            </Button>
                         )}
                     </div>
                 </Card.Header>

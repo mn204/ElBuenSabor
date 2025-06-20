@@ -41,7 +41,7 @@ class PedidoService {
             return stockDisponible;
         } catch (error) {
             alert(error)
-        }
+        }z
 
     }
 
@@ -208,14 +208,14 @@ class PedidoService {
     }
 
     async getPedidosFiltrados(
-        idSucursal: number | null, // <-- Cambié a opcional
+        idSucursal: number | null,
         filtros: {
             estado?: string;
             clienteNombre?: string;
             idPedido?: number;
             idEmpleado?: number;
             pagado?: boolean;
-            fechaDesde?: string; // Formato ISO, ej: '2025-06-13T00:00:00'
+            fechaDesde?: string;
             fechaHasta?: string;
         },
         page: number = 0,
@@ -223,11 +223,9 @@ class PedidoService {
     ): Promise<{ content: Pedido[]; totalPages: number }> {
         const params = new URLSearchParams();
 
-        // Solo agregar idSucursal si no es null
         if (idSucursal !== null) {
             params.append("idSucursal", idSucursal.toString());
         }
-
         if (filtros.estado) params.append("estado", filtros.estado);
         if (filtros.clienteNombre) params.append("clienteNombre", filtros.clienteNombre);
         if (filtros.idPedido !== undefined) params.append("idPedido", filtros.idPedido.toString());
@@ -238,6 +236,7 @@ class PedidoService {
 
         params.append("page", page.toString());
         params.append("size", size.toString());
+        params.append("sort", "fechaPedido,DESC"); // <-- Agrega el ordenamiento aquí
 
         const response = await fetch(`${API_URL}/filtrados?${params.toString()}`);
         if (!response.ok) {
@@ -335,6 +334,38 @@ class PedidoService {
 
         const blob = await response.blob();
         return blob;
+    }
+
+    async exportarPedidosFiltrados(
+        idSucursal: number | null,
+        filtros: {
+            estado?: string;
+            clienteNombre?: string;
+            idPedido?: number;
+            idEmpleado?: number;
+            pagado?: boolean;
+            fechaDesde?: string;
+            fechaHasta?: string;
+        },
+    ): Promise<Blob> {
+        const params = new URLSearchParams();
+
+        if (idSucursal !== null) params.append("idSucursal", idSucursal.toString());
+        if (filtros.estado) params.append("estado", filtros.estado);
+        if (filtros.clienteNombre) params.append("clienteNombre", filtros.clienteNombre);
+        if (filtros.idPedido !== undefined) params.append("idPedido", filtros.idPedido.toString());
+        if (filtros.idEmpleado !== undefined) params.append("idEmpleado", filtros.idEmpleado.toString());
+        if (filtros.pagado !== undefined) params.append("pagado", filtros.pagado.toString());
+        if (filtros.fechaDesde) params.append("fechaDesde", filtros.fechaDesde);
+        if (filtros.fechaHasta) params.append("fechaHasta", filtros.fechaHasta);
+
+
+        // Sin paginación: trae todos los pedidos filtrados
+        const response = await fetch(`${API_URL}/filtrados/excel?${params.toString()}`);
+        if (!response.ok) {
+            throw new Error("Error al exportar pedidos filtrados");
+        }
+        return await response.blob();
     }
 }
 

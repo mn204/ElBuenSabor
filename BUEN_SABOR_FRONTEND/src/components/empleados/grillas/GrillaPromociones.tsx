@@ -4,14 +4,14 @@ import { Button, Form, Row, Col, Spinner, Card, Modal, Table } from "react-boots
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { ChevronLeft, ChevronRight } from "react-bootstrap-icons";
-import Promocion from "../../models/Promocion";
-import PromocionService from "../../services/PromocionService";
-import { ReusableTable } from "../Tabla";
-import BotonAlta from "../layout/BotonAlta";
-import BotonEliminar from "../layout/BotonEliminar";
-import BotonModificar from "../layout/BotonModificar";
-import BotonVer from "../layout/BotonVer";
-import { useSucursal } from "../../context/SucursalContextEmpleado";
+import Promocion from "../../../models/Promocion.ts";
+import PromocionService from "../../../services/PromocionService.ts";
+import { ReusableTable } from "../../Tabla";
+import BotonAlta from "../../layout/BotonAlta.tsx";
+import BotonEliminar from "../../layout/BotonEliminar.tsx";
+import BotonModificar from "../../layout/BotonModificar.tsx";
+import BotonVer from "../../layout/BotonVer.tsx";
+import { useSucursal } from "../../../context/SucursalContextEmpleado.tsx";
 
 
 export function GrillaPromocion() {

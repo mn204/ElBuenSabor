@@ -20,7 +20,7 @@ public interface PedidoService extends MasterService<Pedido, Long> {
                                         Estado estado,
                                         String nombreCliente,
                                         Long idPedido,
-                                        Long idEmpleado, // <-- NUEVO PARÁMETRO
+                                        Long idEmpleado,
                                         Boolean pagado,
                                         LocalDateTime fechaDesde,
                                         LocalDateTime fechaHasta,
@@ -49,4 +49,16 @@ public interface PedidoService extends MasterService<Pedido, Long> {
     Pedido findFirstByClienteIdOrderByIdDesc(Long clienteId);
 
     Long countPedidosByClienteId(Long clienteId);
+
+    byte[] exportarPedidosFiltradosExcel(
+            Long idSucursal,
+            Estado estado,
+            String clienteNombre,
+            Long idPedido,
+            Long idEmpleado,
+            LocalDateTime fechaDesde,
+            LocalDateTime fechaHasta,
+            Boolean pagado
+    );
+
 }

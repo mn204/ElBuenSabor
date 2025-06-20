@@ -11,12 +11,13 @@ import Promocion from "../../../models/Promocion.ts";
 import type ImagenPromocion from "../../../models/ImagenPromocion.ts";
 import { useSearchParams } from "react-router-dom";
 import PromocionService from "../../../services/PromocionService.ts";
-import ModalAgregarArticulo from "../../articulos/ModalAgregarArticulo.tsx";
+import ModalAgregarArticulo from "../modales/ModalAgregarArticulo.tsx";
 import ArticuloInsumoService from "../../../services/ArticuloInsumoService.ts";
 import { useSucursal } from "../../../context/SucursalContextEmpleado.tsx";
 import type Sucursal from "../../../models/Sucursal.ts";
+import DetalleInsumosTable from "../grillas/DetalleInsumosTable.tsx";
 import { Link } from "react-router-dom";
-import DetalleArticulosTable from "../DetalleArticulosTable.tsx";
+import DetalleArticulosTable from "../grillas/DetalleArticulosTable.tsx";
 
 function FormPromocion() {
     const { sucursalActual } = useSucursal();

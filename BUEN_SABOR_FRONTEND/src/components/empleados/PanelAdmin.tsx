@@ -13,24 +13,24 @@ import Categorias from '../../assets/svgAdmin/categorias.svg';
 import Stock from '../../assets/svgAdmin/stock.svg';
 import Estadisticas from '../../assets/svgAdmin/estadisticas.svg';
 import Usuario from '../../assets/svgAdmin/usuario-black.svg';
-import GrillaArticuloManufacturado from "../articulos/GrillaArticuloManufacturado.tsx";
+import GrillaArticuloManufacturado from "./grillas/GrillaArticuloManufacturado.tsx";
 import GrillaCliente from "./grillas/GrillaCliente.tsx";
 import GrillaEmpleado from "./grillas/GrillaEmpleado.tsx";
-import GrillaPedidos from './GrillaPedidos.tsx';
+import GrillaPedidos from './grillas/GrillaPedidos.tsx';
 import { useAuth } from "../../context/AuthContext.tsx"
 import { useSucursal } from "../../context/SucursalContextEmpleado.tsx";
 
 
 import {useLocation} from "react-router-dom";
 import {useNavigate} from "react-router-dom";
-import GrillaCategorias from './GrillaCategorias.tsx';
+import GrillaCategorias from './grillas/GrillaCategorias.tsx';
 import DashboardSection from './DashboardSection';
 import GrillaDelivery from "./grillas/GrillaDelivery.tsx";
 import {useEffect} from "react";
-import GrillaInsumos from './GrillaInsumos.tsx';
+import GrillaInsumos from './grillas/GrillaInsumos.tsx';
 import GrillaCocina from "./grillas/GrillaCocina.tsx";
-import GrillaStock from './GrillaStock.tsx';
-import { GrillaPromocion } from './GrillaPromociones.tsx';
+import GrillaStock from './grillas/GrillaStock.tsx';
+import { GrillaPromocion } from './grillas/GrillaPromociones.tsx';
 import DashboardEstadisticas from './estadisticas/DashBoardEstadisticas.tsx';
 
 function PanelAdmin() {

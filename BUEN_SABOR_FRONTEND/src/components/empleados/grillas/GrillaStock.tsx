@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
-import SucursalInsumoService from "../../services/SucursalInsumoService";
-import { obtenerSucursales } from "../../services/SucursalService";
-import type Sucursal from "../../models/Sucursal";
-import type SucursalInsumo from "../../models/SucursalInsumo";
+import SucursalInsumoService from "../../../services/SucursalInsumoService.ts";
+import { obtenerSucursales } from "../../../services/SucursalService.ts";
+import type Sucursal from "../../../models/Sucursal.ts";
+import type SucursalInsumo from "../../../models/SucursalInsumo.ts";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import Form from "react-bootstrap/Form";
-import { ReusableTable } from "../Tabla";
-import BotonVer from "../layout/BotonVer";
-import BotonModificar from "../layout/BotonModificar";
+import { ReusableTable } from "../../Tabla";
+import BotonVer from "../../layout/BotonVer.tsx";
+import BotonModificar from "../../layout/BotonModificar.tsx";
 import { ChevronLeft, ChevronRight } from "react-bootstrap-icons";
 import { Link } from "react-router-dom";
 

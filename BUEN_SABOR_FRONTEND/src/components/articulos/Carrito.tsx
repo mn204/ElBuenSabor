@@ -29,9 +29,10 @@ export function Carrito() {
   const [verificandoStock, setVerificandoStock] = useState(false);
   const { sucursalActualUsuario } = useSucursalUsuario();
   const [modalVisible, setModalVisible] = useState(false);
+  const [mensajeCambioSucursal, setMensajeCambioSucursal] = useState<string>("");
 
   if (!carritoCtx) return null;
-  
+
   const handleModalSubmit = (clienteActualizado: any) => {
     setCliente(clienteActualizado);
   };
@@ -44,29 +45,41 @@ export function Carrito() {
     }
   }, [formaPago]);
 
+  // Efecto mejorado para manejar cambio de sucursal con promociones
   useEffect(() => {
     if (!sucursalActualUsuario) return;
 
-    pedido.sucursal = sucursalActualUsuario;
+    const manejarCambioSucursal = async () => {
+      try {
+        // Obtener promociones disponibles en la nueva sucursal
+        const promosSucursal = await SucursalService.getAllBySucursalId(sucursalActualUsuario.id!);
 
-    const detallesConPromos = pedido.detalles.filter((det) => det.promocion);
+        // Usar la función cambiarSucursal del contexto
+        const resultado = await cambiarSucursal(sucursalActualUsuario.id!, promosSucursal);
 
-    if (detallesConPromos.length === 0) return;
+        // Mostrar mensaje si hay cambios
+        if (resultado.mensaje) {
+          setMensajeCambioSucursal(resultado.mensaje);
+          // Limpiar el mensaje después de 5 segundos
+          setTimeout(() => {
+            setMensajeCambioSucursal("");
+          }, 5000);
+        }
 
-    SucursalService.getAllBySucursalId(sucursalActualUsuario.id!)
-      .then((promosSucursal) => {
-        detallesConPromos.forEach((det) => {
-          const promoEnSucursal = promosSucursal.find(
-            (promo) => promo.id === det.promocion?.id
-          );
+        // Actualizar la sucursal en el pedido
+        pedido.sucursal = sucursalActualUsuario;
 
-          if (!promoEnSucursal) {
-            quitarPromocionCompleta(det.promocion!.id!);
-          }
-        });
-      });
+      } catch (error) {
+        console.error("Error al cambiar sucursal:", error);
+        setMensajeCambioSucursal("Error al cambiar de sucursal. Intente nuevamente.");
+        setTimeout(() => {
+          setMensajeCambioSucursal("");
+        }, 5000);
+      }
+    };
+
+    manejarCambioSucursal();
   }, [sucursalActualUsuario]);
-
 
   useEffect(() => {
     pedido.cliente = cliente!;
@@ -92,6 +105,7 @@ export function Carrito() {
     limpiarCarrito,
     guardarPedidoYObtener,
     agregarPromocionAlCarrito,
+    cambiarSucursal, // Agregar la función cambiarSucursal del contexto
   } = carritoCtx;
 
   const handleAgregar = () => {
@@ -913,6 +927,17 @@ export function Carrito() {
                   </Button>
                 </div>
               </div>
+              {mensajeCambioSucursal && (
+                  <div className="alert alert-info alert-dismissible fade show" role="alert">
+                    <strong>Cambio de sucursal:</strong> {mensajeCambioSucursal}
+                    <button
+                        type="button"
+                        className="btn-close"
+                        onClick={() => setMensajeCambioSucursal("")}
+                        aria-label="Close"
+                    ></button>
+                  </div>
+              )}
 
               <ModalDomicilio
                 show={modalVisible}

@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
-import CategoriaService from "../../services/CategoriaService";
-import Categoria from "../../models/Categoria";
+import CategoriaService from "../../../services/CategoriaService.ts";
+import Categoria from "../../../models/Categoria.ts";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
-import BotonVer from "../layout/BotonVer";
-import BotonEliminar from "../layout/BotonEliminar";
-import BotonModificar from "../layout/BotonModificar";
-import BotonAlta from "../layout/BotonAlta";
+import BotonVer from "../../layout/BotonVer.tsx";
+import BotonEliminar from "../../layout/BotonEliminar.tsx";
+import BotonModificar from "../../layout/BotonModificar.tsx";
+import BotonAlta from "../../layout/BotonAlta.tsx";
 import { Link } from "react-router-dom";
 
 function GrillaCategorias() {
