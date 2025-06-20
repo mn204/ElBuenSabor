@@ -6,7 +6,9 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.*;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -42,6 +44,6 @@ public class Promocion extends Master {
     private Set<ImagenPromocion> imagenes = new HashSet<>();
 
     @OneToMany(mappedBy = "promocion", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<DetallePromocion> detalles = new HashSet<>();
+    private List<DetallePromocion> detalles = new ArrayList<>();
 }
 

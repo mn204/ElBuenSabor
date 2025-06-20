@@ -15,7 +15,6 @@ import ModalAgregarArticulo from "../../articulos/ModalAgregarArticulo.tsx";
 import ArticuloInsumoService from "../../../services/ArticuloInsumoService.ts";
 import { useSucursal } from "../../../context/SucursalContextEmpleado.tsx";
 import type Sucursal from "../../../models/Sucursal.ts";
-import DetalleInsumosTable from "../../articulos/DetalleInsumosTable.tsx";
 import { Link } from "react-router-dom";
 import DetalleArticulosTable from "../DetalleArticulosTable.tsx";
 
@@ -160,9 +159,9 @@ function FormPromocion() {
                     const totalArticulosPromocion = promocion.detalles.reduce((acc, det) => {
                         return acc + (det.articulo.precioVenta * det.cantidad);
                     }, 0);
-
+                    console.log(promocion.precioPromocional)
                     if (totalArticulosPromocion > 0) {
-                        const descuentoCalculado = ((totalArticulosPromocion - promocion.precioPromocional) / totalArticulosPromocion) * 100;
+                        const descuentoCalculado = ((totalArticulosPromocion - promocion.precioPromocional) *100) / totalArticulosPromocion;
                         setPorcentajeDescuento(Math.round(descuentoCalculado * 100) / 100); // Redondear a 2 decimales
                     }
                 } catch (error) {
@@ -332,7 +331,7 @@ function FormPromocion() {
                             <textarea
                                 onChange={e => setDescripcion(e.target.value)}
                                 className="form-control"
-                                rows="3"
+                                rows={3}
                                 required
                                 value={descripcion}
                             />

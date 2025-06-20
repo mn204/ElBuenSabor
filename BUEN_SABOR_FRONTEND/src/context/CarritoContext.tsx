@@ -184,7 +184,7 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
       const nuevosdetalles = prevPedido.detalles
         .map((d) => {
           // Solo afectar artículos SIN promoción
-          if (d.articulo!.id === idArticulo && !d.promocion) {
+          if (d.articulo && d.articulo.id && d.articulo!.id === idArticulo && !d.promocion) {
             const nuevaCantidad = d.cantidad - 1;
             if (nuevaCantidad <= 0) return null;
             return {
