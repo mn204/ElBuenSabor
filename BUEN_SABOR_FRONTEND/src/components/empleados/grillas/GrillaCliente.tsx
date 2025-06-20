@@ -334,16 +334,17 @@ const GrillaCliente = () => {
                     {clienteSeleccionado && (
                         <div className="container">
                             <div className="d-flex flex-column align-items-center mb-3">
+
+                                { clienteSeleccionado.usuario.photoUrl ? (
                                 <img
                                     src={
-                                        clienteSeleccionado.usuario.providerId === "google.com"
-                                            ? googleLogo
-                                            : clienteSeleccionado.usuario.photoUrl
+                                        clienteSeleccionado.usuario.photoUrl
                                     }
                                     alt="Foto de perfil"
                                     className="rounded-circle"
                                     style={{ width: 100, height: 100, objectFit: "cover" }}
                                 />
+                                ) : ("Sin imagen")}
                             </div>
 
                             <div className="mb-3">
