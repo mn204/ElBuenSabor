@@ -15,6 +15,7 @@ import java.util.*;
 public class ArticuloManufacturado extends Articulo {
 
     private String descripcion;
+    private Double ganancia;
     private Integer tiempoEstimadoMinutos;
     private String preparacion;
 

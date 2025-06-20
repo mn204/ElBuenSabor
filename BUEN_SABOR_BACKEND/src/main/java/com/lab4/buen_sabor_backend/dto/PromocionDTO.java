@@ -18,6 +18,7 @@ public class PromocionDTO extends MasterDTO {
     private LocalTime horaDesde;
     private LocalTime horaHasta;
     private String descripcionDescuento;
+    private Double descuento;
     private Double precioPromocional;
     private TipoPromocion tipoPromocion;
     private Boolean activa;
