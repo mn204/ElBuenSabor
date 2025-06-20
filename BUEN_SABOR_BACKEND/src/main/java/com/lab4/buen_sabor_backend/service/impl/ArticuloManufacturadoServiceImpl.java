@@ -96,16 +96,16 @@ public class ArticuloManufacturadoServiceImpl extends MasterServiceImpl<Articulo
             total += detalle.getCantidad()*detalle.getArticuloInsumo().getPrecioVenta();
             detalle.setArticuloManufacturado(entity);
         }
-        entity.setPrecioVenta(total + (total*(ganancia/100)));
+        entity.setPrecioVenta(total + (total*(entity.getGanancia()/100)));
 
         List<Promocion> promociones = promocionService.findByDetalles_Articulo_Id(entity.getId());
-        double precioPromo = 0;
         for (Promocion promocion : promociones){
+            double precioPromo = 0;
             for(DetallePromocion det : promocion.getDetalles()){
                 if(det.getArticulo().getId().equals(id)){
                     det.setArticulo(entity);
                 }
-                precioPromo += det.getArticulo().getPrecioVenta();
+                precioPromo += det.getArticulo().getPrecioVenta() * det.getCantidad();
             }
             promocion.setPrecioPromocional(precioPromo);
             promocionService.update(promocion.getId(), promocion);
