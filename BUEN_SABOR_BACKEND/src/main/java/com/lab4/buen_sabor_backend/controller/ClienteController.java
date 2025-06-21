@@ -112,5 +112,20 @@ public class ClienteController extends MasterControllerImpl<Cliente, ClienteDTO,
         return ResponseEntity.ok(result);
     }
 
+    // Nuevos endpoints para eliminación y alta completa
+    @DeleteMapping("/eliminar/{id}")
+    public ResponseEntity<Void> eliminarCliente(@PathVariable Long id) {
+        clienteService.eliminarCliente(id);
+        logger.info("Cliente y usuario con id {} eliminados lógicamente.", id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/darAltaCliente/{id}")
+    public ResponseEntity<Void> darDeAltaCliente(@PathVariable Long id) {
+        clienteService.darDeAltaCliente(id);
+        logger.info("Cliente y usuario con id {} dados de alta lógicamente.", id);
+        return ResponseEntity.noContent().build();
+    }
+
 
 }

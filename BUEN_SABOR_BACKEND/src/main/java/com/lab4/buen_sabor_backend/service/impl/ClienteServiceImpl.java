@@ -3,10 +3,12 @@ package com.lab4.buen_sabor_backend.service.impl;
 import com.lab4.buen_sabor_backend.dto.ClienteDTO;
 import com.lab4.buen_sabor_backend.model.Cliente;
 import com.lab4.buen_sabor_backend.model.Domicilio;
+import com.lab4.buen_sabor_backend.model.Empleado;
 import com.lab4.buen_sabor_backend.repository.ClienteRepository;
 import com.lab4.buen_sabor_backend.repository.DomicilioRepository;
 import com.lab4.buen_sabor_backend.repository.MasterRepository;
 import com.lab4.buen_sabor_backend.service.ClienteService;
+import com.lab4.buen_sabor_backend.service.UsuarioService;
 import com.lab4.buen_sabor_backend.service.impl.specification.ClienteSpecification;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -21,12 +23,14 @@ import java.util.Optional;
 public class ClienteServiceImpl extends MasterServiceImpl<Cliente, Long> implements ClienteService {
     private final ClienteRepository clienteRepository;
     private final DomicilioRepository domicilioRepository;
+    private final UsuarioService usuarioService;
 
     @Autowired
-    public ClienteServiceImpl(ClienteRepository clienteRepository, DomicilioRepository domicilioRepository) {
+    public ClienteServiceImpl(ClienteRepository clienteRepository, DomicilioRepository domicilioRepository, UsuarioService usuarioService) {
         super(clienteRepository);
         this.clienteRepository = clienteRepository;
         this.domicilioRepository = domicilioRepository;
+        this.usuarioService = usuarioService;
     }
 
     @Override
@@ -93,4 +97,36 @@ public class ClienteServiceImpl extends MasterServiceImpl<Cliente, Long> impleme
             return buscarClientesFiltrados(busqueda, email, eliminado, pageable);
         }
     }
+
+    @Override
+    @Transactional
+    public void eliminarCliente(Long clienteId) {
+        // Buscar el empleado
+        Cliente cliente = this.getById(clienteId);
+
+        // Eliminar lógicamente el empleado
+        this.delete(clienteId);
+
+        // Eliminar lógicamente el usuario asociado
+        if (cliente.getUsuario() != null) {
+            usuarioService.delete(cliente.getUsuario().getId());
+        }
+    }
+
+    @Override
+    @Transactional
+    public void darDeAltaCliente(Long clienteId) {
+        // Buscar el empleado
+        Cliente cliente= this.getById(clienteId);
+
+        // Dar de alta lógicamente el empleado
+        this.changeEliminado(clienteId);
+
+        // Dar de alta lógicamente el usuario asociado
+        if (cliente.getUsuario() != null) {
+            usuarioService.changeEliminado(cliente.getUsuario().getId());
+        }
+    }
+
+
 }

@@ -28,4 +28,7 @@ public interface ClienteService extends MasterService<Cliente, Long>{
             String ordenarPorPedidos,
             Pageable pageable
     );
+
+    void eliminarCliente(Long clienteId);
+    void darDeAltaCliente(Long clienteId);
 }
