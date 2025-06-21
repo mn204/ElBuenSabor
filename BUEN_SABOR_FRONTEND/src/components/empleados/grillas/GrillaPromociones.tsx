@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Button, Form, Row, Col, Spinner, Card, Modal, Table } from "react-bootstrap";
+import { Button, Row, Col, Modal, Table } from "react-bootstrap";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { ChevronLeft, ChevronRight } from "react-bootstrap-icons";
@@ -77,8 +77,8 @@ export function GrillaPromocion() {
                 sucursalId,
                 activa,
                 filtroTipoPromocion || undefined,
-                filtroFechaDesde,
-                filtroFechaHasta,
+                filtroFechaDesde ?? undefined,
+                filtroFechaHasta ?? undefined,
                 page,
                 size
             );
@@ -107,8 +107,12 @@ export function GrillaPromocion() {
         const fechaDesdePromo = new Date(p.fechaDesde);
         const fechaHastaPromo = new Date(p.fechaHasta);
 
-        const matchFechaDesde = !filtroFechaDesde || fechaDesdePromo >= filtroFechaDesde;
-        const matchFechaHasta = !filtroFechaHasta || fechaHastaPromo <= filtroFechaHasta;
+        const matchFechaDesde = !filtroFechaDesde ||
+            fechaDesdePromo.toISOString().split("T")[0] >= filtroFechaDesde.toISOString().split("T")[0];
+
+        const matchFechaHasta =
+            !filtroFechaHasta ||
+            fechaHastaPromo.setHours(0, 0, 0, 0) <= filtroFechaHasta.setHours(23, 59, 59, 999);
 
         const matchPrecioMin = !filtroPrecioMin || p.precioPromocional >= Number(filtroPrecioMin);
         const matchPrecioMax = !filtroPrecioMax || p.precioPromocional <= Number(filtroPrecioMax);
@@ -257,7 +261,7 @@ export function GrillaPromocion() {
     return (
         <div className="position-relative">
             <h2>Promociones</h2>
-            
+
             <div className="filtros-container bg-light p-4 rounded mb-4 shadow-sm">
                 <div className="row g-3 align-items-center">
                     <div className="col-md-3">
@@ -308,6 +312,8 @@ export function GrillaPromocion() {
                             selected={filtroFechaHasta}
                             onChange={(date) => setFiltroFechaHasta(date)}
                             dateFormat="dd/MM/yyyy"
+                            minDate={filtroFechaDesde || undefined}
+
                         />
                     </div>
                     <div className="col-md-1 d-flex justify-content-center">

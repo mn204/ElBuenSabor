@@ -9,16 +9,15 @@ import DetallePromocion from "../../../models/DetallePromocion.ts";
 import type Articulo from "../../../models/Articulo.ts";
 import Promocion from "../../../models/Promocion.ts";
 import type ImagenPromocion from "../../../models/ImagenPromocion.ts";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import PromocionService from "../../../services/PromocionService.ts";
 import ModalAgregarArticulo from "../modales/ModalAgregarArticulo.tsx";
 import ArticuloInsumoService from "../../../services/ArticuloInsumoService.ts";
 import { useSucursal } from "../../../context/SucursalContextEmpleado.tsx";
 import type Sucursal from "../../../models/Sucursal.ts";
-import DetalleInsumosTable from "../grillas/DetalleInsumosTable.tsx";
-import { Link } from "react-router-dom";
 import DetalleArticulosTable from "../grillas/DetalleArticulosTable.tsx";
-import SucursalService, { obtenerSucursales } from "../../../services/SucursalService.ts";
+import { obtenerSucursales } from "../../../services/SucursalService.ts";
+
 function FormPromocion() {
     const { sucursalActual } = useSucursal();
     const [showModal, setShowModal] = useState(false);
@@ -39,10 +38,11 @@ function FormPromocion() {
     const [tipo, setTipo] = useState<TipoPromocion>(TipoPromocion.PROMOCION);
     const [detalles, setDetalles] = useState<DetallePromocion[]>([]);
     const [imagenes, setImagenes] = useState<File[]>([]);
-    const [sucursales, setSucursales] = useState<Sucursal[]>([]);
     const [imagenesExistentes, setImagenesExistentes] = useState<ImagenPromocion[]>([]);
     const [searchParams] = useSearchParams();
     const idFromUrl = searchParams.get("id");
+    const navigate = useNavigate();
+
     const [todasLasSucursales, setTodasLasSucursales] = useState<Sucursal[]>([]);
     const [sucursalesSeleccionadas, setSucursalesSeleccionadas] = useState<number[]>([]);
     useEffect(() => {
@@ -50,6 +50,10 @@ function FormPromocion() {
             cargarArticulos();
         }
     }, [showModal]);
+
+    const formatDate = (date: Date) => {
+        return date.toISOString().split("T")[0].split("-").reverse().join("/");
+    };
 
     const cargarArticulos = () => {
         ArticuloInsumoService.getAllNoParaElaborar().then(setArticulos);
@@ -60,21 +64,21 @@ function FormPromocion() {
             try {
                 const sucursales = await obtenerSucursales();
                 setTodasLasSucursales(sucursales);
-                // Si estamos editando, cargar las sucursales ya seleccionadas
                 if (idFromUrl) {
-                    // Este código se ejecutará después de que se cargue la promoción
+                    // Se maneja en fetchPromocion
                 } else {
-                    // Para nueva promoción, seleccionar la sucursal actual por defecto
-                    setSucursalesSeleccionadas([sucursalActual?.id || 0]);
+                    // Si no hay sucursal actual, seleccionar todas
+                    if (!sucursalActual) {
+                        setSucursalesSeleccionadas(sucursales.map(s => s.id!));
+                    } else {
+                        setSucursalesSeleccionadas(sucursalActual && sucursalActual.id !== undefined ? [sucursalActual.id] : []);
+                    }
                 }
             } catch (error) {
                 console.error("Error al cargar sucursales:", error);
             }
         };
-
-        if (sucursalActual) {
-            cargarSucursales();
-        }
+        cargarSucursales();
     }, [sucursalActual]);
     const limpiarFormulario = () => {
         setArticuloSeleccionado(null)
@@ -173,25 +177,16 @@ function FormPromocion() {
                     setHoraDesde(promocion.horaDesde);
                     setHoraHasta(promocion.horaHasta);
                     setPrecio(promocion.precioPromocional);
+                    setPorcentajeDescuento(promocion.descuento ?? 0);
                     setTipo(promocion.tipoPromocion);
                     setActiva(promocion.activa);
                     setDetalles(promocion.detalles || []);
                     setImagenesExistentes(promocion.imagenes || []);
                     const sucursalesIds = promocion.sucursales?.map(s => s.id) || [];
                     if (sucursalesIds.length === 0) {
-                        // Si no hay sucursales, seleccionar la sucursal actual por defecto
                         sucursalesIds.push(sucursalActual?.id || 0);
-                    }else if (sucursalesIds.length > 0){
-                        setSucursalesSeleccionadas(sucursalesIds);
-                    }
-                    // Calcular el porcentaje de descuento correctamente
-                    const totalArticulosPromocion = promocion.detalles.reduce((acc, det) => {
-                        return acc + (det.articulo.precioVenta * det.cantidad);
-                    }, 0);
-                    console.log(promocion.precioPromocional)
-                    if (totalArticulosPromocion > 0) {
-                        const descuentoCalculado = ((totalArticulosPromocion - promocion.precioPromocional) * 100) / totalArticulosPromocion;
-                        setPorcentajeDescuento(Math.round(descuentoCalculado * 100) / 100); // Redondear a 2 decimales
+                    } else if (sucursalesIds.length > 0) {
+                        setSucursalesSeleccionadas(sucursalesIds.filter((id): id is number => id !== undefined));
                     }
                 } catch (error) {
                     console.error("Error al cargar la promoción:", error);
@@ -225,7 +220,8 @@ function FormPromocion() {
         promocion.fechaHasta = fechaHasta;
         promocion.horaDesde = horaDesde;
         promocion.horaHasta = horaHasta;
-        promocion.precioPromocional = precio; // Usar el precio calculado con descuento
+        promocion.precioPromocional = precio;
+        promocion.descuento = porcentajeDescuento;
         promocion.tipoPromocion = tipo;
         promocion.activa = activa;
         const sucursalesParaPromocion = todasLasSucursales.filter(s =>
@@ -303,20 +299,9 @@ function FormPromocion() {
         setImagenes(prev => prev.filter((_, i) => i !== idx));
     };
 
-    // Manejar cambios manuales en el precio
-    const handlePrecioChange = (nuevoPrecio: number) => {
-        setPrecio(nuevoPrecio);
-        // Recalcular el porcentaje de descuento basado en el nuevo precio
-        if (totalArticulos > 0) {
-            const nuevoDescuento = ((totalArticulos - nuevoPrecio) / totalArticulos) * 100;
-            setPorcentajeDescuento(Math.max(0, Math.round(nuevoDescuento * 100) / 100));
-        }
-    };
-
     // Manejar cambios en el porcentaje de descuento
     const handleDescuentoChange = (nuevoDescuento: number) => {
         setPorcentajeDescuento(Math.max(0, Math.min(100, nuevoDescuento)));
-        // El precio se actualizará automáticamente por el useEffect
     };
 
     const modalProps = {
@@ -350,9 +335,16 @@ function FormPromocion() {
                 >
                     {idFromUrl ? "Editar Promoción" : "Nueva Promoción"}
                 </h2>
-                <Link to="/empleado/promociones" className="btn btn-outline-secondary ms-auto">
-                    Volver a Promociones
-                </Link>
+                <button
+                    onClick={() => navigate(-1)}
+                    className="promocion-detalle__back-button mt-5"
+                    style={{ marginLeft: "5em" }}
+                >
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <polyline points="15,18 9,12 15,6"></polyline>
+                    </svg>
+                    Volver
+                </button>
             </div>
 
             <div className="row">
@@ -405,6 +397,7 @@ function FormPromocion() {
                                         id="fechaHasta"
                                         className="form-control"
                                         value={fechaHasta.toISOString().split("T")[0]}
+                                        min={fechaDesde.toISOString().split("T")[0]}
                                         onChange={(e) => setFechaHasta(new Date(e.target.value))}
                                     />
                                 </div>
@@ -434,6 +427,7 @@ function FormPromocion() {
                                         id="horaHasta"
                                         className="form-control"
                                         value={horaHasta}
+                                        min={fechaDesde.toISOString().split("T")[0] === fechaHasta.toISOString().split("T")[0] ? horaDesde : undefined}
                                         onChange={e => setHoraHasta(e.target.value)}
                                     />
                                 </div>
@@ -496,7 +490,54 @@ function FormPromocion() {
                                     )}
                                 </div>
                             )}
-                            {/* SUCURSALES */}Add commentMore actions
+
+                            {/* Imágenes nuevas */}
+                            {imagenes.length > 0 && (
+                                <div className="preview-imagenes mt-2 d-flex gap-2 flex-wrap">
+                                    {imagenes.map((img, idx) => (
+                                        <div key={idx} style={{ position: "relative", display: "inline-block" }}>
+                                            <img
+                                                src={URL.createObjectURL(img)}
+                                                alt={`preview-${idx}`}
+                                                style={{ width: 60, height: 60, objectFit: "cover", borderRadius: 8 }}
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => eliminarImagenNueva(idx)}
+                                                style={{
+                                                    position: "absolute",
+                                                    top: -5,
+                                                    right: -5,
+                                                    background: "red",
+                                                    color: "white",
+                                                    border: "none",
+                                                    borderRadius: "50%",
+                                                    width: 20,
+                                                    height: 20,
+                                                    cursor: "pointer",
+                                                    fontSize: "12px",
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    justifyContent: "center"
+                                                }}
+                                            >
+                                                ×
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            <input
+                                type="file"
+                                multiple
+                                accept="image/*"
+                                onChange={handleImagenesChange}
+                                className="form-control mt-2"
+                            />
+
+
+                            {/* SUCURSALES */}
                             <div className="d-flex flex-column">
                                 <label>Sucursales donde aplicará la promoción:</label>
                                 <div className="border p-3 rounded text-start" style={{ overflowY: 'auto' }}>
@@ -523,6 +564,7 @@ function FormPromocion() {
                                                 id={`sucursal-${sucursal.id}`}
                                                 checked={sucursalesSeleccionadas.includes(sucursal.id!)}
                                                 onChange={(e) => handleSucursalChange(sucursal.id!, e.target.checked)}
+                                                disabled={false} // <-- Asegúrate de que nunca esté deshabilitado
                                             />
                                         </div>
                                     ))}
@@ -608,9 +650,14 @@ function FormPromocion() {
                         <div className="d-flex justify-content-between mb-3">
                             <span className="fs-6">Vigencia:</span>
                             <strong className="fs-6">
-                                {fechaDesde.toLocaleDateString()} - {fechaHasta.toLocaleDateString()}
+                                {formatDate(fechaDesde)} - {formatDate(fechaHasta)}
                             </strong>
                         </div>
+                        <div className="d-flex justify-content-between mb-3">
+                            <span className="fs-6">Precio sin descuento:</span>
+                            <strong className="fs-6">
+                                {totalArticulos > 0 ? ` $${totalArticulos.toFixed(2)}` : " $0.00"}
+                            </strong></div>
                         {/* Control de descuento */}
                         <div className="d-flex align-items-center justify-content-between gap-3 mb-3">
                             <span className="fs-6">% Descuento:</span>
@@ -618,7 +665,7 @@ function FormPromocion() {
                                 type="number"
                                 min={0}
                                 max={100}
-                                step={0.01}
+                                step={0.1}
                                 value={porcentajeDescuento}
                                 onChange={e => handleDescuentoChange(Number(e.target.value))}
                                 className="form-control form-control-sm"
@@ -633,10 +680,10 @@ function FormPromocion() {
                                 type="number"
                                 min={0}
                                 step={0.01}
-                                value={precio}
-                                onChange={e => handlePrecioChange(Number(e.target.value))}
+                                value={Number(precio.toFixed(2))}
+                                readOnly
                                 className="form-control form-control-sm fw-bold"
-                                style={{ maxWidth: '120px', fontSize: '1.1rem' }}
+                                style={{ maxWidth: '120px', fontSize: '1.1rem', backgroundColor: '#f8f9fa' }}
                             />
                         </div>
                         <Button
@@ -653,13 +700,13 @@ function FormPromocion() {
                                 precio <= 0
                             }
                         >
-                            {idFromUrl ? "Actualizar Promoción" : "Guardar Promoción"}
+                            {idFromUrl ? "Actualizar Promoción" : "Crear Promoción"}
                         </Button>
                     </div>
                 </div>
             </div>
             <ModalAgregarArticulo {...modalProps} />
-        </div>
+        </div >
     );
 }
 

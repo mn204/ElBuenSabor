@@ -60,7 +60,7 @@ function GrillaInsumos() {
     CategoriaService.getAll().then(data => {
       // Filtrar solo categorías de insumos (id padre: 3) y bebidas hijas (id padre: 2)
       const categoriasFiltradas = data.filter(categoria =>
-          categoria.categoriaPadre?.id === 3 || categoria.categoriaPadre?.id === 2
+        categoria.categoriaPadre?.id === 3 || categoria.categoriaPadre?.id === 2
       );
       setCategorias(categoriasFiltradas);
     });
@@ -404,10 +404,14 @@ function GrillaInsumos() {
               />
               <div className="text-start px-2">
                 <p className="mb-2"><strong>🧪 Denominación:</strong> {insumoSeleccionado.denominacion}</p>
+                 <p className="mb-2"><strong>🔧 Para elaborar:</strong> {insumoSeleccionado.esParaElaborar ? "Sí" : "No"}</p>
                 <p className="mb-2"><strong>📂 Categoría:</strong> {insumoSeleccionado.categoria?.denominacion || "-"}</p>
                 <p className="mb-2"><strong>⚖️ Unidad de Medida:</strong> {insumoSeleccionado.unidadMedida?.denominacion || "-"}</p>
                 <p className="mb-2"><strong>💰 Precio Compra:</strong> ${insumoSeleccionado.precioCompra.toFixed(2)}</p>
-                <p className="mb-2"><strong>🛒 Precio Venta:</strong> ${insumoSeleccionado.precioVenta?.toFixed(2)}</p>
+
+                {!insumoSeleccionado.esParaElaborar && (
+                  <p className="mb-2"><strong>🛒 Precio Venta:</strong> ${insumoSeleccionado.precioVenta?.toFixed(2)}</p>
+                )}
               </div>
             </div>
           )}
@@ -418,6 +422,7 @@ function GrillaInsumos() {
           </Button>
         </Modal.Footer>
       </Modal>
+
 
       {/* Modal de Información */}
       <Modal show={showModalInfo} onHide={() => setShowModalInfo(false)} centered>

@@ -16,7 +16,7 @@ import { useModal } from "../../../hooks/useModal.ts";
 import ImagenArticulo from "../../../models/ImagenArticulo.ts";
 import TipoArticulo from "../../../models/enums/TipoArticulo.ts";
 import { subirACloudinary } from "../../../funciones/funciones.tsx";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 function FormArticuloManufacturado() {
   const {
@@ -37,6 +37,8 @@ function FormArticuloManufacturado() {
     eliminarImagenNueva, CambiarCantidadDetalle
   } = useManufacturado();
   const { unidadesMedida, categorias } = useCargaDatosIniciales();
+  const navigate = useNavigate();
+
 
   // Setear automáticamente la unidad "Unidad" y no permitir cambiarla
   useEffect(() => {
@@ -51,6 +53,7 @@ function FormArticuloManufacturado() {
   const [insumoSeleccionado, setInsumoSeleccionado] = useState<ArticuloInsumo | null>(null);
   const [cantidadInsumo, setCantidadInsumo] = useState<number>(1);
   const [showModalCategoria, setShowModalCategoria] = useState(false);
+
 
   // Utilidades
   const totalInsumos = detalles.reduce((acc, det) => {
@@ -229,9 +232,16 @@ function FormArticuloManufacturado() {
         >
           {idFromUrl ? "Editar Producto" : "Nuevo Producto"}
         </h2>
-        <Link to="/empleado/productos" className="btn btn-outline-secondary ms-auto">
-          Volver a Productos
-        </Link>
+        <button
+          onClick={() => navigate(-1)}
+          className="promocion-detalle__back-button mt-5"
+          style={{ marginLeft: "5em" }}
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <polyline points="15,18 9,12 15,6"></polyline>
+          </svg>
+          Volver
+        </button>
       </div>
 
       <div className="row">
