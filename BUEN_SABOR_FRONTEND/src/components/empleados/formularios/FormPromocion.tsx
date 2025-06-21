@@ -18,7 +18,7 @@ import type Sucursal from "../../../models/Sucursal.ts";
 import DetalleInsumosTable from "../grillas/DetalleInsumosTable.tsx";
 import { Link } from "react-router-dom";
 import DetalleArticulosTable from "../grillas/DetalleArticulosTable.tsx";
-
+import SucursalService, { obtenerSucursales } from "../../../services/SucursalService.ts";
 function FormPromocion() {
     const { sucursalActual } = useSucursal();
     const [showModal, setShowModal] = useState(false);
@@ -43,7 +43,8 @@ function FormPromocion() {
     const [imagenesExistentes, setImagenesExistentes] = useState<ImagenPromocion[]>([]);
     const [searchParams] = useSearchParams();
     const idFromUrl = searchParams.get("id");
-
+    const [todasLasSucursales, setTodasLasSucursales] = useState<Sucursal[]>([]);
+    const [sucursalesSeleccionadas, setSucursalesSeleccionadas] = useState<number[]>([]);
     useEffect(() => {
         if (showModal) {
             cargarArticulos();
@@ -54,7 +55,27 @@ function FormPromocion() {
         ArticuloInsumoService.getAllNoParaElaborar().then(setArticulos);
         ArticuloManufacturadoService.getAll().then((art) => setArticulos(prev => [...prev, ...art]));
     }
+    useEffect(() => {
+        const cargarSucursales = async () => {
+            try {
+                const sucursales = await obtenerSucursales();
+                setTodasLasSucursales(sucursales);
+                // Si estamos editando, cargar las sucursales ya seleccionadas
+                if (idFromUrl) {
+                    // Este código se ejecutará después de que se cargue la promoción
+                } else {
+                    // Para nueva promoción, seleccionar la sucursal actual por defecto
+                    setSucursalesSeleccionadas([sucursalActual?.id || 0]);
+                }
+            } catch (error) {
+                console.error("Error al cargar sucursales:", error);
+            }
+        };
 
+        if (sucursalActual) {
+            cargarSucursales();
+        }
+    }, [sucursalActual]);
     const limpiarFormulario = () => {
         setArticuloSeleccionado(null)
         setCantidadInsumo(0)
@@ -67,6 +88,7 @@ function FormPromocion() {
         setDetalles([])
         setImagenes([])
         setPorcentajeDescuento(0)
+        setSucursalesSeleccionadas([sucursalActual?.id || 0]) // Resetear a sucursal actualAdd commentMore actions
     }
 
     // Calcular el precio total de los artículos sin descuento
@@ -155,14 +177,20 @@ function FormPromocion() {
                     setActiva(promocion.activa);
                     setDetalles(promocion.detalles || []);
                     setImagenesExistentes(promocion.imagenes || []);
-
+                    const sucursalesIds = promocion.sucursales?.map(s => s.id) || [];
+                    if (sucursalesIds.length === 0) {
+                        // Si no hay sucursales, seleccionar la sucursal actual por defecto
+                        sucursalesIds.push(sucursalActual?.id || 0);
+                    }else if (sucursalesIds.length > 0){
+                        setSucursalesSeleccionadas(sucursalesIds);
+                    }
                     // Calcular el porcentaje de descuento correctamente
                     const totalArticulosPromocion = promocion.detalles.reduce((acc, det) => {
                         return acc + (det.articulo.precioVenta * det.cantidad);
                     }, 0);
                     console.log(promocion.precioPromocional)
                     if (totalArticulosPromocion > 0) {
-                        const descuentoCalculado = ((totalArticulosPromocion - promocion.precioPromocional) *100) / totalArticulosPromocion;
+                        const descuentoCalculado = ((totalArticulosPromocion - promocion.precioPromocional) * 100) / totalArticulosPromocion;
                         setPorcentajeDescuento(Math.round(descuentoCalculado * 100) / 100); // Redondear a 2 decimales
                     }
                 } catch (error) {
@@ -173,7 +201,21 @@ function FormPromocion() {
             fetchPromocion();
         }
     }, [idFromUrl]);
+    const handleSucursalChange = (sucursalId: number, checked: boolean) => {
+        if (checked) {
+            setSucursalesSeleccionadas(prev => [...prev, sucursalId]);
+        } else {
+            setSucursalesSeleccionadas(prev => prev.filter(id => id !== sucursalId));
+        }
+    };
 
+    const handleSelectAllSucursales = (selectAll: boolean) => {
+        if (selectAll) {
+            setSucursalesSeleccionadas(todasLasSucursales.map(s => s.id!));
+        } else {
+            setSucursalesSeleccionadas([]);
+        }
+    };
     // Factoriza la creación del objeto promoción
     const buildPromocion = async (): Promise<Promocion | null> => {
         const promocion = new Promocion();
@@ -186,8 +228,10 @@ function FormPromocion() {
         promocion.precioPromocional = precio; // Usar el precio calculado con descuento
         promocion.tipoPromocion = tipo;
         promocion.activa = activa;
-        setSucursales([...sucursales!, sucursalActual!])
-        promocion.sucursales = [sucursalActual!];
+        const sucursalesParaPromocion = todasLasSucursales.filter(s =>
+            sucursalesSeleccionadas.includes(s.id!)
+        );
+        promocion.sucursales = sucursalesParaPromocion;
         console.log(sucursalActual)
         promocion.detalles = detalles.map(det => ({
             id: det.id ?? undefined,
@@ -452,7 +496,41 @@ function FormPromocion() {
                                     )}
                                 </div>
                             )}
-
+                            {/* SUCURSALES */}Add commentMore actions
+                            <div className="d-flex flex-column">
+                                <label>Sucursales donde aplicará la promoción:</label>
+                                <div className="border p-3 rounded text-start" style={{ overflowY: 'auto' }}>
+                                    <div className="text-start">
+                                        <label className="form-check-label fw-bold" htmlFor="selectAllSucursales">
+                                            Seleccionar todas
+                                        </label>
+                                        <input
+                                            className="form-check"
+                                            type="checkbox"
+                                            id="selectAllSucursales"
+                                            checked={sucursalesSeleccionadas.length === todasLasSucursales.length && todasLasSucursales.length > 0}
+                                            onChange={(e) => handleSelectAllSucursales(e.target.checked)}
+                                        />
+                                    </div>
+                                    {todasLasSucursales.map(sucursal => (
+                                        <div key={sucursal.id} className="">
+                                            <label className="form-check-label" htmlFor={`sucursal-${sucursal.id}`}>
+                                                {sucursal.nombre}
+                                            </label>
+                                            <input
+                                                className="form-check"
+                                                type="checkbox"
+                                                id={`sucursal-${sucursal.id}`}
+                                                checked={sucursalesSeleccionadas.includes(sucursal.id!)}
+                                                onChange={(e) => handleSucursalChange(sucursal.id!, e.target.checked)}
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                                {sucursalesSeleccionadas.length === 0 && (
+                                    <small className="text-danger mt-1">Debe seleccionar al menos una sucursal</small>
+                                )}
+                            </div>
                             {/* Imágenes nuevas */}
                             <div className="preview-imagenes mt-2 d-flex gap-2 flex-wrap">
                                 {imagenes.map((img, idx) => (
@@ -571,6 +649,7 @@ function FormPromocion() {
                                 !descripcion ||
                                 detalles.length === 0 ||
                                 !precio ||
+                                sucursalesSeleccionadas.length === 0 ||
                                 precio <= 0
                             }
                         >

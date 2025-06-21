@@ -20,7 +20,6 @@ public interface ArticuloManufacturadoService extends MasterService<ArticuloManu
      * Busca productos por categoría
      */
     List<ArticuloManufacturado> findByCategoria(Long categoriaId);
-    public ArticuloManufacturado updateSpecial(Long id, ArticuloManufacturado entity, double ganancia);
     /**
      * Busca productos en un rango de precio
      */

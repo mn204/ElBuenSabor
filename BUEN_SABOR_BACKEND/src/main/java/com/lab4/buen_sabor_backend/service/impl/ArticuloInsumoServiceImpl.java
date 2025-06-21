@@ -191,8 +191,7 @@ public class ArticuloInsumoServiceImpl extends MasterServiceImpl<ArticuloInsumo,
 
             // Evita división por cero
             if (total > 0) {
-                double ganancia = ((manufacturado.getPrecioVenta() - total) * 100) / total;
-                articuloManufacturadoService.updateSpecial(manufacturado.getId(), manufacturado, ganancia);
+                articuloManufacturadoService.update(manufacturado.getId(), manufacturado);
             } else {
                 logger.warn("El costo total del manufacturado {} es cero, no se puede calcular la ganancia", manufacturado.getId());
             }

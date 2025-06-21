@@ -1,9 +1,6 @@
 package com.lab4.buen_sabor_backend.service.impl;
 
-import com.lab4.buen_sabor_backend.model.DetallePromocion;
-import com.lab4.buen_sabor_backend.model.ImagenPromocion;
-import com.lab4.buen_sabor_backend.model.Promocion;
-import com.lab4.buen_sabor_backend.model.Sucursal;
+import com.lab4.buen_sabor_backend.model.*;
 import com.lab4.buen_sabor_backend.model.enums.TipoPromocion;
 import com.lab4.buen_sabor_backend.repository.PromocionRepository;
 
@@ -84,6 +81,13 @@ public class PromocionServiceImpl extends MasterServiceImpl<Promocion, Long> imp
         for (ImagenPromocion imagen : entity.getImagenes()) {
             imagen.setPromocion(entity);
         }
+
+        double total=0;
+        for(DetallePromocion detalle : entity.getDetalles()) {
+            total += detalle.getCantidad()*detalle.getArticulo().getPrecioVenta();
+            detalle.setPromocion(entity);
+        }
+        entity.setPrecioPromocional(total - (total*(entity.getDescuento()/100)));
 
         logger.info("Actualizando Promocion con ID: {}", id);
         return super.update(id, entity);
