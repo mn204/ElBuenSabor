@@ -1,6 +1,6 @@
 package com.lab4.buen_sabor_backend.model;
 
-import com.fasterxml.jackson.annotation.*;
+
 import com.lab4.buen_sabor_backend.model.enums.Estado;
 import com.lab4.buen_sabor_backend.model.enums.FormaPago;
 import com.lab4.buen_sabor_backend.model.enums.TipoEnvio;
@@ -10,7 +10,6 @@ import lombok.*;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 @Entity
@@ -52,7 +51,7 @@ public class Pedido extends Master{
     @JoinColumn(name = "domicilio_id", nullable = true)
     private Domicilio domicilio;
 
-    @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "pedido")
     private List<DetallePedido> detalles = new ArrayList<>();
 }
 

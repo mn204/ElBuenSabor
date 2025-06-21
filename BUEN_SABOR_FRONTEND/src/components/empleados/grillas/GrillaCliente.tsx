@@ -10,7 +10,6 @@ import { ReusableTable } from "../../Tabla";
 import BotonVer from "../../layout/BotonVer.tsx";
 import BotonEliminar from "../../layout/BotonEliminar.tsx";
 import BotonAlta from "../../layout/BotonAlta.tsx";
-import googleLogo from "../../../assets/google_logo.png";
 import { Modal, Form, Button } from "react-bootstrap";
 import { darDeAltaUsuario, eliminarUsuario } from "../../../services/UsuarioService.ts";
 import PedidoClienteModal from "../modales/PedidoClienteModal.tsx";
