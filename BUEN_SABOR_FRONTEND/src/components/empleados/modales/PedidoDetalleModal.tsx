@@ -269,9 +269,9 @@ const PedidoDetalleModal: React.FC<Props> = ({ show, onHide, pedido, onEstadoCha
                     : "Sin nombre";
 
                 const precioUnitario = esArticulo
-                  ? d.articulo?.precioVenta?.toFixed(2)
+                  ? d.subTotal / d.cantidad
                   : esPromocion
-                    ? d.promocion?.precioPromocional.toFixed(2)
+                    ? d.subTotal / d.cantidad
                     : "-";
 
                 return (
