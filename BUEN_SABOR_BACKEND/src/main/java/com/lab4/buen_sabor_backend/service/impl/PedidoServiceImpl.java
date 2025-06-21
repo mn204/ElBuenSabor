@@ -307,6 +307,40 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
         }
     }
 
+
+    public boolean verificarStockArticulo(Long articuloId, int cantidad, Long sucursalId) {
+        try {
+            try {
+                // Intentar como insumo directo
+                ArticuloInsumo insumo = articuloInsumoService.getById(articuloId);
+                if (!insumo.getEsParaElaborar()) {
+                    SucursalInsumo si = sucursalInsumoService.findBySucursalIdAndArticuloInsumoId(sucursalId, insumo.getId());
+                    if (si == null || si.getStockActual() < cantidad) {
+                        return false;
+                    }
+                    return true;
+                }
+            } catch (EntityNotFoundException e) {
+                // Es manufacturado
+                ArticuloManufacturado man = articuloManufacturadoService.getById(articuloId);
+                for (DetalleArticuloManufacturado det : man.getDetalles()) {
+                    ArticuloInsumo insumo = det.getArticuloInsumo();
+                    double cantidadRequerida = det.getCantidad() * cantidad;
+
+                    SucursalInsumo si = sucursalInsumoService.findBySucursalIdAndArticuloInsumoId(sucursalId, insumo.getId());
+                    if (si == null || si.getStockActual() < cantidadRequerida) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            return false;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     //Cambiar estado del pedido
     @Override
     @Transactional
@@ -650,5 +684,4 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
 
         return excelService.exportarPedidosAExcel(pedidosFiltrados);
     }
-
 }

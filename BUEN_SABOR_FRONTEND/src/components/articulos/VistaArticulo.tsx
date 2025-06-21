@@ -31,6 +31,7 @@ const VistaArticulo: React.FC = () => {
           ArticuloInsumoService.getById(Number(id))
             .then((data: Articulo) => {
               setArticulo(data);
+              console.log("Artículo obtenido desde ArticuloInsumoService:", JSON.stringify(data));
               setLoading(false);
             })
             .catch((err) => {

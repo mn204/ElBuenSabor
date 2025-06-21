@@ -1,4 +1,5 @@
 import Promocion from "../models/Promocion";
+import type Sucursal from "../models/Sucursal";
 
 const API_URL = "http://localhost:8080/api/promocion";
 
@@ -57,8 +58,22 @@ class PromocionService {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(promocion)
             });
-            console.log(JSON.stringify(promocion));
-            if (!res.ok) throw new Error("Error al crear artículo manufacturado");
+            if (!res.ok) throw new Error("Error al crear la promocion");
+            return await res.json();
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
+    
+    async consultarStockPromocion(promocion: Promocion, cantidad: number, sucursal: Sucursal): Promise<boolean> {
+        try {
+            const res = await fetch(`${API_URL}/verificar-stock/${cantidad}/${sucursal.id!}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(promocion)
+            });
+            if (!res.ok) throw new Error("Error al consultar la promocion");
             return await res.json();
         } catch (error) {
             console.error(error);
@@ -74,7 +89,7 @@ class PromocionService {
                 body: JSON.stringify(promocion)
             });
             console.log(JSON.stringify(promocion))
-            if (!res.ok) throw new Error("Error al actualizar artículo manufacturado");
+            if (!res.ok) throw new Error("Error al actualizar la promocion");
             return await res.json();
         } catch (error) {
             console.error(error);

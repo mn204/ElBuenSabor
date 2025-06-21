@@ -3,6 +3,7 @@ package com.lab4.buen_sabor_backend.repository;
 import com.lab4.buen_sabor_backend.model.ArticuloInsumo;
 import com.lab4.buen_sabor_backend.model.Categoria;
 import org.springframework.data.jpa.repository.*;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;

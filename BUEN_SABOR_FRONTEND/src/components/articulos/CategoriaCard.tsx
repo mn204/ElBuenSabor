@@ -8,7 +8,6 @@ interface Props {
 }
 
 const CategoriaCard: React.FC<Props> = ({ categoria }) => {
-  console.log(categoria)
   const navigate = useNavigate();
   const [imageError, setImageError] = useState(false);
 

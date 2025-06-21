@@ -1,5 +1,6 @@
 package com.lab4.buen_sabor_backend.repository;
 
+import com.lab4.buen_sabor_backend.model.ArticuloInsumo;
 import com.lab4.buen_sabor_backend.model.ArticuloManufacturado;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,7 +34,8 @@ public interface ArticuloManufacturadoRepository extends MasterRepository<Articu
             "LEFT JOIN FETCH d.articuloInsumo " +
             "WHERE am.eliminado = false")
     List<ArticuloManufacturado> findAllWithIngredientes();
-
+    @Query("SELECT a FROM ArticuloInsumo a WHERE a.id = :id")
+    ArticuloManufacturado findByArticuloInsumoId(@Param("id") Long id);
     // Query personalizada: productos por categoría con ingredientes
     @Query("SELECT DISTINCT am FROM ArticuloManufacturado am " +
             "LEFT JOIN FETCH am.detalles d " +

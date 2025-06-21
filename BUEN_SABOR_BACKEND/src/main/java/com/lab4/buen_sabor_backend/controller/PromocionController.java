@@ -2,7 +2,9 @@ package com.lab4.buen_sabor_backend.controller;
 
 import com.lab4.buen_sabor_backend.dto.PromocionDTO;
 import com.lab4.buen_sabor_backend.mapper.PromocionMapper;
+import com.lab4.buen_sabor_backend.model.Pedido;
 import com.lab4.buen_sabor_backend.model.Promocion;
+import com.lab4.buen_sabor_backend.model.Sucursal;
 import com.lab4.buen_sabor_backend.model.enums.TipoPromocion;
 import com.lab4.buen_sabor_backend.service.PromocionService;
 import com.lab4.buen_sabor_backend.service.SucursalService;
@@ -26,14 +28,12 @@ public class PromocionController extends MasterControllerImpl<Promocion, Promoci
     private static final Logger logger = LoggerFactory.getLogger(PromocionController.class);
 
     private final PromocionService promocionService;
-    private final SucursalService sucrusalService;
     private final PromocionMapper promocionMapper;
 
     @Autowired
     public PromocionController(PromocionService promocionService, SucursalService sucrusalService, PromocionMapper promocionMapper) {
         super(promocionService);
         this.promocionService = promocionService;
-        this.sucrusalService = sucrusalService;
         this.promocionMapper = promocionMapper;
     }
 
@@ -60,5 +60,16 @@ public class PromocionController extends MasterControllerImpl<Promocion, Promoci
         Page<PromocionDTO> result = promociones.map(promocionMapper::toDTO);
 
         return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/verificar-stock/{cantidad}/{sucursalId}")
+    public ResponseEntity<?> verificarStockPromocion(@RequestBody Promocion promocion,@PathVariable int cantidad, @PathVariable Long sucursalId) {
+        try {
+            boolean resultado = promocionService.verificarStockPromocion(promocion,cantidad, sucursalId);
+            return ResponseEntity.ok(resultado);
+        } catch (Exception e) {
+            logger.error("Error en controlador: ", e);
+            return ResponseEntity.ok(false); // Devuelve false en caso de error
+        }
     }
 }

@@ -14,6 +14,7 @@ public interface PromocionService extends MasterService<Promocion, Long> {
     List<Promocion> findPromocionsBySucursal(Sucursal sucursal);
 
     List<Promocion> findByDetalles_Articulo_Id(Long id);
+    boolean verificarStockPromocion(Promocion promocion, int cantidad, Long sucursalId);
 
     Page<Promocion> buscarPromocionesFiltradas(Long idSucursal, Boolean activa, TipoPromocion tipoPromocion,
                                                LocalDate fechaDesde, LocalDate fechaHasta, Pageable pageable);

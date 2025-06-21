@@ -17,9 +17,6 @@ class ArticuloService {
 
     async consultarStock(articulo: Articulo, sucursalId: number): Promise<boolean> {
         try {
-            console.log("Enviando articulo:", articulo);
-console.log("ID sucursal:", sucursalId);
-
             const res = await fetch(`${API_URL}/verificar-stock/${sucursalId}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
