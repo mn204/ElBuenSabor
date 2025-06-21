@@ -1,7 +1,6 @@
 package com.lab4.buen_sabor_backend.model;
 
-import com.fasterxml.jackson.annotation.*;
-import com.lab4.buen_sabor_backend.model.enums.Rol;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -39,6 +38,6 @@ public class Cliente extends Master{
     private Set<Domicilio> domicilios = new HashSet<>();
 
 
-    @OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "cliente")
     private List<Pedido> pedidos = new ArrayList<>();
 }
