@@ -7,8 +7,8 @@ import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import Form from "react-bootstrap/Form";
 import { ReusableTable } from "../../Tabla";
-import BotonVer from "../../layout/BotonVer.tsx";
-import BotonModificar from "../../layout/BotonModificar.tsx";
+import BotonVer from "../../layout/botones/BotonVer.tsx";
+import BotonModificar from "../../layout/botones/BotonModificar.tsx";
 import { ChevronLeft, ChevronRight } from "react-bootstrap-icons";
 import { Link } from "react-router-dom";
 

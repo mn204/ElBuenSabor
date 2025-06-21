@@ -1,6 +1,6 @@
 import CategoriaCard from '../articulos/CategoriaCard';
-import FlechaDerecha from '../../assets/flecha.svg';
-import FlechaIzquierda from '../../assets/flechaIzquierda.svg';
+import FlechaDerecha from '../../assets/botones/flechaDerecha.svg';
+import FlechaIzquierda from '../../assets/botones/flechaIzquierda.svg';
 import { useEffect, useState, useRef } from 'react';
 import Categoria from '../../models/Categoria';
 import CategoriaService from '../../services/CategoriaService';

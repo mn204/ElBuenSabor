@@ -1,7 +1,7 @@
 import '../../styles/footer.css';
-import Twitter from '../../assets/Twiter.svg';
-import Instragram from '../../assets/Instragram.svg';
-import Facebook from '../../assets/Facebook.svg';
+import Twitter from '../../assets/footer/Twiter.svg';
+import Instragram from '../../assets/footer/Instragram.svg';
+import Facebook from '../../assets/footer/Facebook.svg';
 function Footer() {
   return (
     <footer className="bg-gray-800 text-white py-4">

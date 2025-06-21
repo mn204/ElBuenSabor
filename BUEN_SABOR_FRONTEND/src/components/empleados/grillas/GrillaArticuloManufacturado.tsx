@@ -8,10 +8,10 @@ import Modal from "react-bootstrap/Modal";
 import { ChevronLeft, ChevronRight } from "react-bootstrap-icons";
 import { ReusableTable } from "../../Tabla";
 import "../../../styles/GrillaArticuloManufactura.css";
-import BotonEliminar from "../../layout/BotonEliminar.tsx";
-import BotonModificar from "../../layout/BotonModificar.tsx";
-import BotonVer from "../../layout/BotonVer.tsx";
-import BotonAlta from "../../layout/BotonAlta.tsx";
+import BotonEliminar from "../../layout/botones/BotonEliminar.tsx";
+import BotonModificar from "../../layout/botones/BotonModificar.tsx";
+import BotonVer from "../../layout/botones/BotonVer.tsx";
+import BotonAlta from "../../layout/botones/BotonAlta.tsx";
 import { Link } from "react-router-dom";
 
 function GrillaArticuloManufacturado() {
