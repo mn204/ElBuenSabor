@@ -92,4 +92,19 @@ public class EmpleadoController extends MasterControllerImpl<Empleado, EmpleadoD
         return ResponseEntity.ok(result);
     }
 
+    // Nuevos endpoints para eliminación y alta completa
+    @DeleteMapping("/eliminar/{id}")
+    public ResponseEntity<Void> eliminarEmpleado(@PathVariable Long id) {
+        empleadoService.eliminarEmpleado(id);
+        logger.info("Empleado y usuario con id {} eliminados lógicamente.", id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/darAltaEmpleado/{id}")
+    public ResponseEntity<Void> darDeAltaEmpleado(@PathVariable Long id) {
+        empleadoService.darDeAltaEmpleado(id);
+        logger.info("Empleado y usuario con id {} dados de alta lógicamente.", id);
+        return ResponseEntity.noContent().build();
+    }
+
 }

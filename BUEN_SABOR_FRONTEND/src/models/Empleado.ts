@@ -10,5 +10,6 @@ export default class Empleado {
     fechaNacimiento: Date = new Date();
     usuario!: Usuario;
     domicilio?: Domicilio;
-    sucursal!: Sucursal;
+    sucursal!: Sucursal
+    eliminado!: boolean;
 }
