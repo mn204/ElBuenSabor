@@ -76,7 +76,7 @@ export const actualizarEmpleado = async (id: number, empleado: Empleado): Promis
 
 //eliminar empleado
 export const eliminarEmpleado = async (id: number): Promise<void> => {
-    const response = await fetch(`${API_URL}/${id}`, {
+    const response = await fetch(`${API_URL}/eliminar/${id}`, {
         method: "DELETE",
     });
     if (!response.ok) {
@@ -86,7 +86,7 @@ export const eliminarEmpleado = async (id: number): Promise<void> => {
 
 //dar de alta empleado eliminado
 export const darDeAltaEmpleado = async (id: number): Promise<void> => {
-    const response = await fetch(`${API_URL}/darAlta/${id}`, {
+    const response = await fetch(`${API_URL}/darAltaEmpleado/${id}`, {
         method: "PUT",
     });
     if (!response.ok) {

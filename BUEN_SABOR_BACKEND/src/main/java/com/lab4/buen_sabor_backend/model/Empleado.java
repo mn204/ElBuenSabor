@@ -32,7 +32,7 @@ public class Empleado extends Master{
     @JoinColumn(name = "domicilio_id")
     private Domicilio domicilio;
 
-    @OneToMany(mappedBy = "empleado", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "empleado")
     private List<Pedido> pedidos = new ArrayList<>();
 
     @ManyToOne

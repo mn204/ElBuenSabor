@@ -20,4 +20,9 @@ public interface EmpleadoService extends MasterService<Empleado, Long> {
 
     List<Empleado> findBySucursalIdAndRol(Long sucursalId, Rol rol);
 
+    // Nuevos métodos para manejo completo de empleado y usuario
+    void eliminarEmpleado(Long empleadoId);
+    void darDeAltaEmpleado(Long empleadoId);
+
+
 }
