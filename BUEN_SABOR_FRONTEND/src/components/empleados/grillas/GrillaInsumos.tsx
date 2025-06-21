@@ -103,8 +103,8 @@ function GrillaInsumos() {
       (filtroEstado === "activo" && !a.eliminado) ||
       (filtroEstado === "eliminado" && a.eliminado)
     ) &&
-    (!filtroPrecioMin || a.precioVenta >= Number(filtroPrecioMin)) &&
-    (!filtroPrecioMax || a.precioVenta <= Number(filtroPrecioMax))
+    (!filtroPrecioMin || a.precioCompra >= Number(filtroPrecioMin)) &&
+    (!filtroPrecioMax || a.precioCompra <= Number(filtroPrecioMax))
   );
 
   // Calcular páginas totales basado en los elementos filtrados
@@ -234,7 +234,7 @@ function GrillaInsumos() {
     {
       key: "precioVenta",
       label: "Precio Venta",
-      render: (value: number) => `$${value}`,
+      render: (value?: number) => value != null ? `$${value}` : "-",
     },
     {
       key: "eliminado",
@@ -249,7 +249,7 @@ function GrillaInsumos() {
           <BotonVer onClick={() => handleVer(row)} />
           <BotonModificar onClick={() => handleActualizar(row)} />
           {!row.eliminado ? (
-            <BotonEliminar onClick={() => pedirConfirmacionEliminacion(row.id)} />
+            <BotonEliminar onClick={() => row.id !== undefined && pedirConfirmacionEliminacion(row.id)} />
           ) : (
             <BotonAlta onClick={() => pedirConfirmacionAlta(row.id!)} />
           )}
@@ -407,7 +407,7 @@ function GrillaInsumos() {
                 <p className="mb-2"><strong>📂 Categoría:</strong> {insumoSeleccionado.categoria?.denominacion || "-"}</p>
                 <p className="mb-2"><strong>⚖️ Unidad de Medida:</strong> {insumoSeleccionado.unidadMedida?.denominacion || "-"}</p>
                 <p className="mb-2"><strong>💰 Precio Compra:</strong> ${insumoSeleccionado.precioCompra.toFixed(2)}</p>
-                <p className="mb-2"><strong>🛒 Precio Venta:</strong> ${insumoSeleccionado.precioVenta.toFixed(2)}</p>
+                <p className="mb-2"><strong>🛒 Precio Venta:</strong> ${insumoSeleccionado.precioVenta?.toFixed(2)}</p>
               </div>
             </div>
           )}

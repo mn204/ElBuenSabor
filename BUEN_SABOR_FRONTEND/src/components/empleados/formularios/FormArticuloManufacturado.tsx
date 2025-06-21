@@ -54,10 +54,10 @@ function FormArticuloManufacturado() {
 
   // Utilidades
   const totalInsumos = detalles.reduce((acc, det) => {
-    const precio = det.articuloInsumo?.precioVenta ?? 0;
+    const precio = det.articuloInsumo?.precioCompra ?? 0;
     return acc + precio * det.cantidad;
   }, 0);
-  const totalConGanancia = totalInsumos + (totalInsumos * (porcentajeGanancia / 100));
+  const totalConGanancia = totalInsumos * (1 + (porcentajeGanancia / 100));
 
   // Handlers
   const handleImagenesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -132,6 +132,7 @@ function FormArticuloManufacturado() {
 
     const manufacturado = new ArticuloManufacturado();
     manufacturado.denominacion = denominacion;
+    manufacturado.ganancia = porcentajeGanancia;
     manufacturado.precioVenta = totalConGanancia;
     manufacturado.unidadMedida = { id: unidadMedidaSeleccionada.id } as UnidadMedida;
     manufacturado.categoria = { id: categoriaSeleccionada.id } as Categoria;
@@ -176,6 +177,7 @@ function FormArticuloManufacturado() {
       if (!manufacturado) return;
       console.log(manufacturado.detalles)
       manufacturado.precioVenta = totalConGanancia;
+      manufacturado.ganancia = porcentajeGanancia;
       manufacturado.eliminado = eliminado;
       manufacturado.tipoArticulo = TipoArticulo.ArticuloManufacturado;
       if (idFromUrl) {
@@ -194,21 +196,21 @@ function FormArticuloManufacturado() {
   };
 
   const modalProps = {
-  show: showModal,
-  onHide: () => {
-    setShowModal(false);
-    setInsumoSeleccionado(null);
-    setCantidadInsumo(1);
-  },
-  articulosInsumo: articulosInsumo.filter(
-    insumo => !detalles.some(det => det.articuloInsumo?.id === insumo.id)
-  ),
-  insumoSeleccionado: insumoSeleccionado,
-  setInsumoSeleccionado: setInsumoSeleccionado,
-  cantidadInsumo: cantidadInsumo,
-  setCantidadInsumo: setCantidadInsumo,
-  onAgregar: AgregarInsumo
-};
+    show: showModal,
+    onHide: () => {
+      setShowModal(false);
+      setInsumoSeleccionado(null);
+      setCantidadInsumo(1);
+    },
+    articulosInsumo: articulosInsumo.filter(
+      insumo => !detalles.some(det => det.articuloInsumo?.id === insumo.id)
+    ),
+    insumoSeleccionado: insumoSeleccionado,
+    setInsumoSeleccionado: setInsumoSeleccionado,
+    cantidadInsumo: cantidadInsumo,
+    setCantidadInsumo: setCantidadInsumo,
+    onAgregar: AgregarInsumo
+  };
 
 
   const tableProps = {
@@ -283,7 +285,7 @@ function FormArticuloManufacturado() {
             <div className="card p-4">
               <h5 className="text-center mb-3">Resumen</h5>
               <div className="d-flex justify-content-between mb-3">
-                <span className="fs-6">Total Precio Venta Insumos:</span>
+                <span className="fs-6">Total Precio Compra Insumos:</span>
                 <strong className="fs-6">${totalInsumos.toFixed(2)}</strong>
               </div>
               <div className="d-flex align-items-center justify-content-between gap-3 mb-3">
@@ -291,8 +293,9 @@ function FormArticuloManufacturado() {
                 <input
                   type="number"
                   min={0}
+                  step="0.1"
                   value={porcentajeGanancia}
-                  onChange={e => setPorcentajeGanancia(Number(e.target.value))}
+                  onChange={e => setPorcentajeGanancia(Number(e.target.value.replace(",", ".")))}
                   className="form-control form-control-sm"
                   style={{ maxWidth: '100px' }}
                 />

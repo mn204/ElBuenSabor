@@ -21,7 +21,7 @@ const DetalleInsumosTable = ({
           <th className="text-center align-middle" style={{ width: "10%" }}>Imagen</th>
           <th className="text-center align-middle" style={{ width: "32%" }}>Articulo</th>
           <th className="text-center align-middle" style={{ width: "23%" }}>Cantidad</th>
-          <th className="text-center align-middle" style={{ width: "20%" }}>Precio Venta</th>
+          <th className="text-center align-middle" style={{ width: "20%" }}>Precio Compra</th>
           <th className="text-center align-middle" style={{ width: "15%" }}>Acciones</th>
         </tr>
       </thead>
@@ -63,7 +63,7 @@ const DetalleInsumosTable = ({
                   type="number"
                   size="sm"
                   min={0}
-                  step={0.01}
+                  step={0.1}
                   value={det.cantidad}
                   onChange={(e) => onCantidadChange(idx, parseFloat(e.target.value))}
                   style={{
@@ -82,7 +82,7 @@ const DetalleInsumosTable = ({
               </div>
             </td>
             <td className="text-center align-middle">
-              ${ (det.articuloInsumo?.precioVenta ?? 0).toFixed(2) }
+              ${ (det.articuloInsumo?.precioCompra ?? 0).toFixed(2) }
             </td>
             <td className="text-center align-middle">
               <Button
