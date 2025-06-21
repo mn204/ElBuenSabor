@@ -160,9 +160,6 @@ const LoginUsuario = ({ onRegisterClick , onClose}: Props) => {
                         {loading ? "Conectando..." : "Continuar con Google"}
                     </button>
 
-
-                    {error && <div className="text-danger text-center mt-2">{error}</div>}
-                    {message && <div className="text-success text-center mt-2">{message}</div>}
                     <div className="text-center mt-2">
                         <Button variant="link" size="sm" onClick={() => setStep(2)}>
                             ¿Olvidaste tu contraseña?

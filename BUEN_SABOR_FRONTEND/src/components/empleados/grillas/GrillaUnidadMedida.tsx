@@ -4,10 +4,10 @@ import UnidadMedida from "../../../models/UnidadMedida.ts";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import { ReusableTable } from "../../Tabla";
-import BotonVer from "../../layout/BotonVer.tsx";
-import BotonEliminar from "../../layout/BotonEliminar.tsx";
-import BotonModificar from "../../layout/BotonModificar.tsx";
-import BotonAlta from "../../layout/BotonAlta.tsx";
+import BotonVer from "../../layout/botones/BotonVer.tsx";
+import BotonEliminar from "../../layout/botones/BotonEliminar.tsx";
+import BotonModificar from "../../layout/botones/BotonModificar.tsx";
+import BotonAlta from "../../layout/botones/BotonAlta.tsx";
 
 function GrillaUnidadMedida() {
   const [unidades, setUnidades] = useState<UnidadMedida[]>([]);

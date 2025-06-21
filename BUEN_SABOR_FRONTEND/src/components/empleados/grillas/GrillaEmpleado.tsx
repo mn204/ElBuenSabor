@@ -7,12 +7,12 @@ import {
     getEmpleadosFiltrados // <-- Nuevo import
 } from "../../../services/EmpleadoService.ts";
 import { ReusableTable } from "../../Tabla";
-import BotonVer from "../../layout/BotonVer.tsx";
-import BotonEliminar from "../../layout/BotonEliminar.tsx";
-import BotonAlta from "../../layout/BotonAlta.tsx";
+import BotonVer from "../../layout/botones/BotonVer.tsx";
+import BotonEliminar from "../../layout/botones/BotonEliminar.tsx";
+import BotonAlta from "../../layout/botones/BotonAlta.tsx";
 import { Modal , Form, Button} from "react-bootstrap";
 import { darDeAltaUsuario, eliminarUsuario } from "../../../services/UsuarioService.ts";
-import BotonModificar from "../../layout/BotonModificar.tsx";
+import BotonModificar from "../../layout/botones/BotonModificar.tsx";
 import { useNavigate } from "react-router-dom";
 import Sucursal from "../../../models/Sucursal.ts";
 import { obtenerSucursales } from "../../../services/SucursalService.ts";

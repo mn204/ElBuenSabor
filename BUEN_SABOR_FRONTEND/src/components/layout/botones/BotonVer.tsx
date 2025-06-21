@@ -1,5 +1,5 @@
 import React from "react";
-import iconVer from "../../assets/eye-svgrepo-com (1).svg";
+import iconVer from "../../../assets/botones/ojo.svg";
 import { Button } from "react-bootstrap";
 interface BotonVerProps {
   onClick?: () => void;

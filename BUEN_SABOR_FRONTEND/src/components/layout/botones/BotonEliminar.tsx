@@ -1,5 +1,5 @@
 import Button from "react-bootstrap/Button";
-import trashIcon from "../../assets/trash-xmark-svgrepo-com.svg";
+import trashIcon from "../../../assets/botones/basura.svg";
 interface BotonEliminarProps {
   onClick?: () => void;
 }

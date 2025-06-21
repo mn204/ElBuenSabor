@@ -7,10 +7,10 @@ import { ChevronLeft, ChevronRight } from "react-bootstrap-icons";
 import Promocion from "../../../models/Promocion.ts";
 import PromocionService from "../../../services/PromocionService.ts";
 import { ReusableTable } from "../../Tabla";
-import BotonAlta from "../../layout/BotonAlta.tsx";
-import BotonEliminar from "../../layout/BotonEliminar.tsx";
-import BotonModificar from "../../layout/BotonModificar.tsx";
-import BotonVer from "../../layout/BotonVer.tsx";
+import BotonAlta from "../../layout/botones/BotonAlta.tsx";
+import BotonEliminar from "../../layout/botones/BotonEliminar.tsx";
+import BotonModificar from "../../layout/botones/BotonModificar.tsx";
+import BotonVer from "../../layout/botones/BotonVer.tsx";
 import { useSucursal } from "../../../context/SucursalContextEmpleado.tsx";
 
 
