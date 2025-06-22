@@ -178,21 +178,25 @@ class PedidoService {
             throw error;
         }
     }
-    async getPedidosCliente(clienteId: number, filtros: any, page: number, size: number): Promise<{ content: Pedido[]; totalPages: number }> {
+    async getPedidosCliente(
+        clienteId: number,
+        filtros: any,
+        page: number,
+        size: number,
+        orden: "DESC" | "ASC" = "DESC"
+    ): Promise<{ content: Pedido[]; totalPages: number }> {
         const params = new URLSearchParams();
 
         if (filtros.sucursal) params.append("sucursal", filtros.sucursal);
         if (filtros.estado) params.append("estado", filtros.estado);
-        if (filtros.desde) params.append("desde", filtros.desde);
-        if (filtros.hasta) params.append("hasta", filtros.hasta);
+        if (filtros.fechaDesde) params.append("fechaDesde", filtros.fechaDesde);
+        if (filtros.fechaHasta) params.append("fechaHasta", filtros.fechaHasta);
         if (filtros.articulo) params.append("articulo", filtros.articulo);
 
         params.append("page", page.toString());
         params.append("size", size.toString());
-        params.append("sort", "fechaPedido,DESC"); // <-- Agrega el ordenamiento aquí
+        params.append("sort", `fechaPedido,${orden}`);
 
-
-        // FIX: Usar la misma base URL que los otros métodos
         const response = await fetch(`${API_URL}/cliente/${clienteId}?${params.toString()}`);
         if (!response.ok) {
             throw new Error("Error al obtener pedidos del cliente");

@@ -83,15 +83,15 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
             Long clienteId,
             String sucursalNombre,
             Estado estado,
-            OffsetDateTime desde,
-            OffsetDateTime hasta,
+            OffsetDateTime fechaDesde,
+            OffsetDateTime fechaHasta,
             String nombreArticulo,
             Pageable pageable
     ) {
         Specification<Pedido> spec = Specification.where(clienteIdEquals(clienteId))
                 .and(sucursalNombreContains(sucursalNombre))
                 .and(estadoEquals(estado))
-                .and(fechaBetween(desde, hasta))
+                .and(fechaBetween(fechaDesde, fechaHasta))
                 .and(contieneArticulo(nombreArticulo));
 
         return pedidoRepository.findAll(spec, pageable);

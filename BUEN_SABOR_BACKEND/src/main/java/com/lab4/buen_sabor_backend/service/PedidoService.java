@@ -16,7 +16,7 @@ public interface PedidoService extends MasterService<Pedido, Long> {
 
     //Esto es para los Pedidos del Cliente
     Page<Pedido> findPedidosByClienteWithFilters(Long clienteId, String sucursalNombre, Estado estado,
-                                                 OffsetDateTime desde, OffsetDateTime hasta, String nombreArticulo,
+                                                 OffsetDateTime fechaDesde, OffsetDateTime fechaHasta, String nombreArticulo,
                                                  Pageable pageable);
     public boolean verificarStockArticulo(Long articuloId, int cantidad, Long sucursalId);
     //Esto es para los Pedidos filtrados para delivery y cocina
