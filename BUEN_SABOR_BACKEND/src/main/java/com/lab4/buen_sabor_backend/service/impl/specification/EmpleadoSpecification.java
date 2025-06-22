@@ -77,7 +77,7 @@ public class EmpleadoSpecification {
     public static Specification<Empleado> dniEquals(String dni) {
         return (root, query, cb) -> {
             if (dni == null || dni.isBlank()) return null;
-            return cb.equal(root.get("usuario").get("dni"), dni);
+            return cb.equal(root.get("dni"), dni);
         };
     }
 }

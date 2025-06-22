@@ -189,11 +189,11 @@ const GrillaCliente = () => {
 
     // ACTUALIZADO: Reemplazar las funciones handleEliminar y handleAlta
     const handleEliminar = (cliente: Cliente) => {
-        mostrarConfirmacion('eliminar', cliente.id!, cliente.usuario.id, `${cliente.nombre} ${cliente.apellido}`);
+        mostrarConfirmacion('eliminar', cliente.id!, `${cliente.nombre} ${cliente.apellido}`);
     };
 
     const handleAlta = (cliente: Cliente) => {
-        mostrarConfirmacion('alta', cliente.id!, cliente.usuario.id, `${cliente.nombre} ${cliente.apellido}`);
+        mostrarConfirmacion('alta', cliente.id!, `${cliente.nombre} ${cliente.apellido}`);
     };
 
     const handleVer = async (cliente: Cliente) => {
@@ -392,7 +392,6 @@ const GrillaCliente = () => {
                             <div className="mb-3">
                                 <p><b>Nombre:</b> {clienteSeleccionado.nombre}</p>
                                 <p><b>Apellido:</b> {clienteSeleccionado.apellido}</p>
-                                <p><b>DNI:</b> {clienteSeleccionado.usuario.dni}</p>
                                 <p><b>Teléfono:</b> {clienteSeleccionado.telefono}</p>
                                 <p><b>Email:</b> {clienteSeleccionado.usuario.email}</p>
                                 <p><b>Proveedor:</b> {clienteSeleccionado.usuario.providerId === "google.com" ? "Google" : "Contraseña"}</p>
@@ -468,7 +467,7 @@ const GrillaCliente = () => {
                             }
                         </h5>
                         <p className="text-muted">
-                            <strong>{accionPendiente?.clienteNombre}</strong>
+                            <strong>{accionPendiente?.clienteNombre }</strong>
                         </p>
                         <p className="small text-muted">
                             {accionPendiente?.tipo === 'eliminar' 

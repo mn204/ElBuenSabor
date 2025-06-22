@@ -24,10 +24,6 @@ public class UsuarioServiceImpl extends MasterServiceImpl<Usuario, Long> impleme
     }
 
     @Override
-    public Optional<Usuario> findByDni(String dni) {
-        return usuarioRepository.findByDni(dni);
-    }
-    @Override
     public Optional<Usuario> findByEmail(String email) {
         return usuarioRepository.findByEmail(email);
     }

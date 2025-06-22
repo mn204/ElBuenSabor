@@ -10,7 +10,8 @@ import type Provincia from "../../models/Provincia.ts";
 import type Localidad from "../../models/Localidad.ts";
 import {obtenerLocalidades, obtenerPaises, obtenerProvincias} from "../../services/LocalizacionService.ts";
 import { registrarCliente } from "../../services/ClienteService.ts"; // ajusta la ruta si es necesario
-import { obtenerUsuarioPorDni, obtenerUsuarioPorEmail } from "../../services/UsuarioService";
+import { obtenerUsuarioPorEmail } from "../../services/UsuarioService";
+import { Modal } from "react-bootstrap";
 
 interface Props {
     onBackToLogin: () => void;
@@ -23,8 +24,11 @@ const RegisterCliente = ({ onBackToLogin }: Props) => {
     const [loading, setLoading] = useState(false);
     const [formError, setFormError] = useState<string | null>(null);
     const [emailError, setEmailError] = useState<string | null>(null);
-    const [dniError, setDniError] = useState<string | null>(null);
-
+// Estados para modales
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [showErrorModal, setShowErrorModal] = useState(false);
+    const [modalMessage, setModalMessage] = useState("");
+    const [modalTitle, setModalTitle] = useState("");
     // Primer paso
     const [nombre, setNombre] = useState("");
     const [apellido, setApellido] = useState("");
@@ -33,7 +37,6 @@ const RegisterCliente = ({ onBackToLogin }: Props) => {
     const [confirmarContrasena, setConfirmarContrasena] = useState("");
 
     // Segundo paso
-    const [dni, setDni] = useState("");
     const [fechaNacimiento, setFechaNacimiento] = useState("");
     const [telefono, setTelefono] = useState("");
     const [pais, setPais] = useState("");
@@ -108,27 +111,7 @@ const RegisterCliente = ({ onBackToLogin }: Props) => {
         }
     };
 
-    const handleDniChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
 
-        // Solo permitir dígitos (sin puntos, comas ni negativos)
-        if (!/^\d*$/.test(value)) return;
-
-        setDni(value);
-        setDniError(null);
-
-        // Si tiene algún valor, consultamos al backend
-        if (value) {
-            try {
-                const usuario = await obtenerUsuarioPorDni(value);
-                if (usuario) {
-                    setDniError("DNI ya está en uso");
-                }
-            } catch (error) {
-                console.error("Error al verificar DNI:", error);
-            }
-        }
-    };
     const handleTelefonoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         if (/^\d*$/.test(value)) {
@@ -184,7 +167,7 @@ const RegisterCliente = ({ onBackToLogin }: Props) => {
 
     const handleRegister = async () => {
 
-        if (!dni || !fechaNacimiento || !telefono || !pais || !provincia || !localidadId || !codigoPostal || !calle || !numero || !detalles) {
+        if ( !fechaNacimiento || !telefono || !pais || !provincia || !localidadId || !codigoPostal || !calle || !numero || !detalles) {
             setFormError("Te faltan campos obligatorios");
             return;
         }
@@ -200,12 +183,6 @@ const RegisterCliente = ({ onBackToLogin }: Props) => {
                 return;
             }
 
-            const usuarioPorDni = await obtenerUsuarioPorDni(dni.toString());
-            if (usuarioPorDni) {
-                setFormError("El DNI ya está registrado.");
-                setLoading(false);
-                return;
-            }
             const userCredential = await createUserWithEmailAndPassword(auth, email, contrasena);
 
             // Opcional: actualizar el nombre de usuario en Firebase
@@ -229,7 +206,7 @@ const RegisterCliente = ({ onBackToLogin }: Props) => {
                         numero: parseInt(numero),
                         codigoPostal: codigoPostal,
                         piso: piso,
-                        departamento: departamento,
+                        nroDepartamento: departamento,
                         detalles: detalles,
                         eliminado: false,
                         localidad: {
@@ -241,11 +218,9 @@ const RegisterCliente = ({ onBackToLogin }: Props) => {
                     email: email,
                     firebaseUid: userCredential.user.uid,
                     rol: Rol.CLIENTE,
-                    dni: dni.toString(),
                     providerId: userCredential.user.providerData[0].providerId,
                     eliminado: false
                 },
-                pedidos: [] // si tu clase no lo requiere aún, podés omitir este campo
             };
             console.log("Cliente a enviar:", JSON.stringify(cliente, null, 2));
 
@@ -262,8 +237,9 @@ const RegisterCliente = ({ onBackToLogin }: Props) => {
             // IMPORTANTE: Cerrar sesión del cliente recién creado
             await signOut(auth);
 
-            alert("¡Registro exitoso! Ahora podés iniciar sesión con tu cuenta.");
-            onBackToLogin(); // Vuelve al login
+            setModalTitle("¡Registro exitoso!");
+            setModalMessage("Ahora podés iniciar sesión con tu cuenta.");
+            setShowSuccessModal(true);
 
         } catch (error: any) {
             console.error("Error al registrar:", error);
@@ -279,7 +255,9 @@ const RegisterCliente = ({ onBackToLogin }: Props) => {
                 }
             }
 
-            alert(error.message || "Error desconocido durante el registro.");
+            setModalTitle("Error en el registro");
+            setModalMessage(error.message || "Error desconocido durante el registro.");
+            setShowErrorModal(true);
         }
     };
 
@@ -383,20 +361,6 @@ const RegisterCliente = ({ onBackToLogin }: Props) => {
 
                 {step === 2 && (
                     <>
-                        <Form.Group controlId="dni" className="mb-2">
-                            <Form.Control
-                                type="text"
-                                placeholder="DNI"
-                                value={dni}
-                                onChange={handleDniChange}
-                                isInvalid={!!dniError}
-                                disabled={loading}
-                                required
-                            />
-                            <Form.Control.Feedback type="invalid">
-                                {dniError}
-                            </Form.Control.Feedback>
-                        </Form.Group>
 
                         <Form.Group controlId="fechaNacimiento" className="mb-2">
                             <div className="d-flex p-1 align-items-end" style={{ width: "100%" }}>
@@ -554,6 +518,45 @@ const RegisterCliente = ({ onBackToLogin }: Props) => {
                     ¿Ya tenés cuenta? Iniciar sesión
                 </button>
             </div>
+
+            {/* Modal de éxito */}
+            <Modal show={showSuccessModal} onHide={() => setShowSuccessModal(false)} centered>
+                <Modal.Header closeButton>
+                    <Modal.Title>{modalTitle}</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    {modalMessage}
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button
+                        variant="success"
+                        onClick={() => {
+                            setShowSuccessModal(false);
+                            onBackToLogin();
+                        }}
+                    >
+                        Ir al Login
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+
+            {/* Modal de error */}
+            <Modal show={showErrorModal} onHide={() => setShowErrorModal(false)} centered>
+                <Modal.Header closeButton>
+                    <Modal.Title>{modalTitle}</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    {modalMessage}
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button
+                        variant="danger"
+                        onClick={() => setShowErrorModal(false)}
+                    >
+                        Cerrar
+                    </Button>
+                </Modal.Footer>
+            </Modal>
         </div>
     );
 };

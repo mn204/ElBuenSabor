@@ -13,6 +13,7 @@ public class EmpleadoDTO extends MasterDTO {
     private String nombre;
     private String apellido;
     private String telefono;
+    private String dni;
     private LocalDate fechaNacimiento;
     private DomicilioDTO domicilio;
     private UsuarioDTO usuario;

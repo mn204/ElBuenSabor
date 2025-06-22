@@ -2,7 +2,7 @@ import '../../styles/navbar.css'
 import LogoEmpresa from '../../assets/LogoEmpresa.png';
 import Vector from '../../assets/navbar/Carrito.svg';
 import Buscador from './Buscador';
-import { useEffect, useMemo, useState } from 'react';
+import {  useMemo, useState } from 'react';
 import { Dropdown, Modal, Form } from 'react-bootstrap'; // <- Agregado Form aquí
 import LoginUsuario from '../auth/LoginUsuario.tsx';
 import { Link, useNavigate } from 'react-router-dom';
@@ -23,7 +23,7 @@ function Navbar() {
     const [isLoginView, setIsLoginView] = useState(true);
     const [busqueda, setBusqueda] = useState("");
     const navigate = useNavigate();
-    const { isAuthenticated, getUserDisplayName, logout, usuario, user, empleado } = useAuth();
+    const { isAuthenticated, getUserDisplayName, logout, usuario, empleado } = useAuth();
     const { sucursalActual, sucursales, cambiarSucursal, esModoTodasSucursales } = useSucursal();
     const { sucursalActualUsuario, sucursalesUsuario, cambiarSucursalUsuario, esSucursalAbierta, mostrarModalCerrada, setMostrarModalCerrada } = useSucursalUsuario();
     const cantidadArticulos = useMemo(() => {
