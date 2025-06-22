@@ -36,14 +36,18 @@ class PedidoService {
                 body: JSON.stringify(pedido)
             });
 
-            const stockDisponible: boolean = await response.json();
-            console.log(stockDisponible)
+            if (!response.ok) {
+                const errorBody = await response.json();
+                throw new Error(JSON.stringify(errorBody) || 'Error verificando stock');
+            }
+
+            const stockDisponible = await response.json();
             return stockDisponible;
         } catch (error) {
-            alert(error)
-        }z
-
+            throw error;
+        }
     }
+
 
     async create(pedido: Pedido): Promise<Pedido | null> {
         try {
@@ -95,7 +99,7 @@ class PedidoService {
             // Si el resultado es un boolean true, significa que se procesó correctamente
             if (resultado === true) {
                 try {
-                    const ultimoPedidoRes = await fetch(`${API_URL}/ultimo/cliente/${pedido.cliente.id}`, {
+                    const ultimoPedidoRes = await fetch(`${API_URL}/ultimo/cliente/${pedido.cliente!.id}`, {
                         method: "GET",
                         headers: { "Content-Type": "application/json" },
                     });
@@ -368,6 +372,22 @@ class PedidoService {
             throw new Error("Error al exportar pedidos filtrados");
         }
         return await response.blob();
+    }
+
+    async verificarStockArticulo(articuloId: number, cantidad: number, sucursalId: number): Promise<boolean> {
+        try {
+            const res = await fetch(`${API_URL}/verificar-stock-articulo/${articuloId}/${cantidad}/${sucursalId}`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                }
+            });
+            if (!res.ok) throw new Error("Error al verificar stock de artículo");
+            return await res.json(); // debería devolver true o false
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
     }
 }
 

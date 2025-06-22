@@ -1,5 +1,5 @@
 import { Button } from "react-bootstrap";
-import pencilIcon from "../../assets/pencil-svgrepo-com.svg";
+import pencilIcon from "../../../assets/botones/lapiz.svg";
 interface BotonEditarProps {
   onClick?: () => void;
 }

@@ -1,6 +1,7 @@
 package com.lab4.buen_sabor_backend.controller;
 
 import com.lab4.buen_sabor_backend.dto.EmpleadoDTO;
+import com.lab4.buen_sabor_backend.dto.UsuarioDTO;
 import com.lab4.buen_sabor_backend.mapper.EmpleadoMapper;
 import com.lab4.buen_sabor_backend.model.Cliente;
 import com.lab4.buen_sabor_backend.model.Empleado;
@@ -53,6 +54,14 @@ public class EmpleadoController extends MasterControllerImpl<Empleado, EmpleadoD
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/dni/{dni}")
+    public ResponseEntity<EmpleadoDTO> getByDni(@PathVariable String dni) {
+        return empleadoService.findByDni(dni)
+                .map(empleado -> ResponseEntity.ok(empleadoMapper.toDTO(empleado)))
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+
     @GetMapping("/sucursal/{sucursalId}/rol/{rol}")
     public ResponseEntity<List<EmpleadoDTO>> getBySucursalAndRol(@PathVariable Long sucursalId, @PathVariable Rol rol) {
         List<Empleado> empleados = empleadoService.findBySucursalIdAndRol(sucursalId, rol);
@@ -90,6 +99,21 @@ public class EmpleadoController extends MasterControllerImpl<Empleado, EmpleadoD
         Page<EmpleadoDTO> result = empleados.map(empleadoMapper::toDTO);
 
         return ResponseEntity.ok(result);
+    }
+
+    // Nuevos endpoints para eliminación y alta completa
+    @DeleteMapping("/eliminar/{id}")
+    public ResponseEntity<Void> eliminarEmpleado(@PathVariable Long id) {
+        empleadoService.eliminarEmpleado(id);
+        logger.info("Empleado y usuario con id {} eliminados lógicamente.", id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/darAltaEmpleado/{id}")
+    public ResponseEntity<Void> darDeAltaEmpleado(@PathVariable Long id) {
+        empleadoService.darDeAltaEmpleado(id);
+        logger.info("Empleado y usuario con id {} dados de alta lógicamente.", id);
+        return ResponseEntity.noContent().build();
     }
 
 }

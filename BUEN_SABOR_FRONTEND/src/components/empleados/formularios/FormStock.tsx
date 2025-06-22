@@ -55,7 +55,7 @@ function FormStock() {
             console.log(sucursalInsumoData)
 
             // Setear valores del formulario
-            setSelectedId(sucursalInsumoData.articuloInsumo.id);
+            setSelectedId(sucursalInsumoData.articuloInsumo.id!);
             setStockMinimo(sucursalInsumoData.stockMinimo);
             setStockMaximo(sucursalInsumoData.stockMaximo);
             setStockActual(sucursalInsumoData.stockActual);
@@ -124,7 +124,10 @@ function FormStock() {
       return "El stock actual no puede ser negativo";
     }
     if (stockMaximo < stockMinimo) {
-      return "El stock máximo debe ser mayor o igual al stock mínimo";
+      return "El stock máximo debe ser mayor al stock mínimo";
+    }
+    if (stockMaximo == stockMinimo) {
+      return "El stock máximo no puede ser igual al stock mínimo";
     }
     if (!sucursalActual) {
       return "No se ha seleccionado una sucursal";
@@ -411,7 +414,7 @@ function FormStock() {
                     <Button
                       variant="primary"
                       type="submit"
-                      disabled={loadingForm || !sucursalActual || (insumosDisponibles.length === 0 && !isEditMode)}
+                      disabled={loadingForm || !sucursalActual || (insumosDisponibles.length === 0 && !isEditMode) || stockMinimo == stockMaximo}
                       className="d-flex align-items-center"
                     >
                       {loadingForm ? (

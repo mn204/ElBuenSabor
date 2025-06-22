@@ -15,7 +15,8 @@ import java.text.NumberFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
-
+//TODO corregir calculo de subtotales y precios en la factura ya sea de promocion o de articulo,
+// no utilizar los datos de los precios de articulos o de  promociones
 @Service
 public class PdfServiceImpl implements PdfService {
 
@@ -211,9 +212,6 @@ public class PdfServiceImpl implements PdfService {
         Paragraph datosPersonales = new Paragraph();
         datosPersonales.add(new Chunk("Cliente: ", fuenteNegrita));
         datosPersonales.add(new Chunk(pedido.getCliente().getNombre() + " " + pedido.getCliente().getApellido() + "\n", fuenteNormal));
-        datosPersonales.add(new Chunk("DNI: ", fuenteNegrita));
-        datosPersonales.add(new Chunk((pedido.getCliente().getUsuario().getDni() != null ?
-                pedido.getCliente().getUsuario().getDni() : "No especificado") + "\n", fuenteNormal));
         datosPersonales.add(new Chunk("Email: ", fuenteNegrita));
         datosPersonales.add(new Chunk(pedido.getCliente().getUsuario().getEmail() + "\n", fuenteNormal));
         datosPersonales.add(new Chunk("Teléfono: ", fuenteNegrita));

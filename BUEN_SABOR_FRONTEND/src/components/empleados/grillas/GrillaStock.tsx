@@ -7,10 +7,12 @@ import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import Form from "react-bootstrap/Form";
 import { ReusableTable } from "../../Tabla";
-import BotonVer from "../../layout/BotonVer.tsx";
-import BotonModificar from "../../layout/BotonModificar.tsx";
+import BotonVer from "../../layout/botones/BotonVer.tsx";
+import BotonModificar from "../../layout/botones/BotonModificar.tsx";
 import { ChevronLeft, ChevronRight } from "react-bootstrap-icons";
 import { Link } from "react-router-dom";
+import { useSucursal } from "../../../context/SucursalContextEmpleado.tsx";
+import ModalMensaje from "../modales/ModalMensaje.tsx";
 
 // Tipo para manejar los datos en la tabla
 interface StockTableRow {
@@ -24,6 +26,7 @@ interface StockTableRow {
 }
 
 function GrillaStock() {
+    const { sucursalActual } = useSucursal();
     const [sucursalInsumos, setSucursalInsumos] = useState<SucursalInsumo[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -33,7 +36,8 @@ function GrillaStock() {
     // Modal Ver
     const [showModal, setShowModal] = useState(false);
     const [stockSeleccionado, setStockSeleccionado] = useState<StockTableRow | null>(null);
-
+    const [mostrarModalMensaje, setMostrarModalMensaje] = useState(false);
+    const [mensaje, setMensaje] = useState("");
     // Modal Agregar Stock
     const [showModalAgregar, setShowModalAgregar] = useState(false);
     const [stockParaAgregar, setStockParaAgregar] = useState<StockTableRow | null>(null);
@@ -137,7 +141,13 @@ function GrillaStock() {
 
     const handleActualizarStock = (fila: StockTableRow) => {
         // Redirigir a formulario para actualizar el stock
-        window.location.href = `/FormularioStock?id=${fila.sucursalInsumo.id}`;
+        if (sucursalActual && sucursalActual.id) {
+            window.location.href = `/FormularioStock?id=${fila.sucursalInsumo.id}`;
+        } else {
+            // Para abrir el modal con un mensaje:
+            setMensaje("Debes seleccionar una sucursal antes de actualizar el stock.");
+            setMostrarModalMensaje(true);
+        }
     };
 
     // Manejar modal agregar stock
@@ -306,7 +316,7 @@ function GrillaStock() {
             render: (_: any, row: StockTableRow) => (
                 <div className="d-flex justify-content-center gap-1">
                     <BotonVer onClick={() => handleVer(row)} />
-                    <Button 
+                    <Button
                         onClick={() => handleAgregarStock(row)}
                         variant=""
                         size="sm"
@@ -568,7 +578,7 @@ function GrillaStock() {
                                     <div className="progress mt-2" style={{ height: '20px' }}>
                                         <div
                                             className={`progress-bar ${stockSeleccionado.stockActual <= stockSeleccionado.stockMinimo ? 'bg-danger' :
-                                                    stockSeleccionado.stockActual >= stockSeleccionado.stockMaximo ? 'bg-warning' : 'bg-success'
+                                                stockSeleccionado.stockActual >= stockSeleccionado.stockMaximo ? 'bg-warning' : 'bg-success'
                                                 }`}
                                             role="progressbar"
                                             style={{
@@ -664,8 +674,8 @@ function GrillaStock() {
                     <Button variant="secondary" onClick={handleCloseModalAgregar} disabled={loadingAgregar}>
                         Cancelar
                     </Button>
-                    <Button 
-                        variant="success" 
+                    <Button
+                        variant="success"
                         onClick={handleConfirmarAgregarStock}
                         disabled={loadingAgregar || cantidadAgregar <= 0}
                     >
@@ -682,6 +692,11 @@ function GrillaStock() {
                     </Button>
                 </Modal.Footer>
             </Modal>
+            <ModalMensaje
+                show={mostrarModalMensaje}
+                onHide={() => setMostrarModalMensaje(false)}
+                mensaje={mensaje}
+            />
         </div>
     );
 }

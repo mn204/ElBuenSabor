@@ -9,8 +9,8 @@ import type Provincia from "../../models/Provincia.ts";
 import type Localidad from "../../models/Localidad.ts";
 import {obtenerLocalidades, obtenerPaises, obtenerProvincias} from "../../services/LocalizacionService.ts";
 import {Eye, EyeSlash} from "react-bootstrap-icons";
-import {obtenerUsuarioPorDni, obtenerUsuarioPorEmail} from "../../services/UsuarioService.ts"; // Ajustá según tu estructura
-import {registrarEmpleado} from "../../services/EmpleadoService.ts";
+import { obtenerUsuarioPorEmail} from "../../services/UsuarioService.ts"; // Ajustá según tu estructura
+import {registrarEmpleado, obtenerEmpleadoPorDni} from "../../services/EmpleadoService.ts";
 import { useAuth } from "../../context/AuthContext";
 import type Sucursal from "../../models/Sucursal.ts";
 import { obtenerSucursales } from "../../services/SucursalService";
@@ -24,8 +24,11 @@ const RegisterEmpleado = () => {
     const [formError, setFormError] = useState<string | null>(null);
     const [emailError, setEmailError] = useState<string | null>(null);
     const [dniError, setDniError] = useState<string | null>(null);
+    const [telefonoError, setTelefonoError] = useState('');
     const { user: currentUser } = useAuth();
-
+// POR variables de estado del modal (agregar después de la línea 88):
+    const [showPasswordModal, setShowPasswordModal] = useState(false);
+    const [adminPassword, setAdminPassword] = useState("");
     // Campos
     const [nombre, setNombre] = useState("");
     const [apellido, setApellido] = useState("");
@@ -36,7 +39,8 @@ const RegisterEmpleado = () => {
     const [imagenEmpleado, setImagenEmpleado] = useState<File | null>(null);
     const [fechaNacimiento, setFechaNacimiento] = useState("");
     const [rolEmpleado, setRolEmpleado] = useState<Rol>(Rol.CAJERO);
-    const [telefono, setTelefono] = useState("");
+    const [telefono, setTelefono] = useState(""); // solo números
+    const [telefonoFormateado, setTelefonoFormateado] = useState("");
     const [sucursales, setSucursales] = useState<Sucursal[]>([]);
     const [sucursalSeleccionadaId, setSucursalSeleccionadaId] = useState<number | undefined>(undefined);
 
@@ -113,33 +117,58 @@ const RegisterEmpleado = () => {
         }
     };
 
+// 1. Agregar función de validación de DNI después de la función esTelefonoValido
+    const esDniValido = (dni: string): boolean => {
+        const soloNumeros = dni.replace(/\D/g, "");
+        return soloNumeros.length >= 7 && soloNumeros.length <= 8;
+    };
 
+// 2. Modificar la función handleDniChange para incluir validación de longitud
     const handleDniChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
 
-        // Solo permitir dígitos (sin puntos, comas ni negativos)
+        // Solo permitir dígitos
         if (!/^\d*$/.test(value)) return;
 
-        setDni(value);
+        // Limitar a máximo 8 dígitos
+        const dniLimitado = value.slice(0, 8);
+        setDni(dniLimitado);
         setDniError(null);
 
-        // Si tiene algún valor, consultamos al backend
-        if (value) {
+        // Validar longitud del DNI
+        if (dniLimitado.length > 0 && dniLimitado.length < 7) {
+            setDniError("El DNI debe tener entre 7 y 8 dígitos");
+            return;
+        }
+
+        // Si tiene valor válido, verificar disponibilidad en la base de datos
+        if (dniLimitado.length >= 7) {
             try {
-                const usuario = await obtenerUsuarioPorDni(value);
-                if (usuario) {
+                const empleadoExistente = await obtenerEmpleadoPorDni(dniLimitado);
+                if (empleadoExistente) {
                     setDniError("DNI ya está en uso");
                 }
             } catch (error) {
                 console.error("Error al verificar DNI:", error);
+                // Opcional: mostrar error si la validación falla
+                // setDniError("Error al verificar disponibilidad del DNI");
             }
         }
     };
-    const handleTelefonoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        if (/^\d*$/.test(value)) {
-            setTelefono(value);
+
+    const esTelefonoValido = (telefono: string): boolean => {
+        const soloNumeros = telefono.replace(/\D/g, "");
+        return soloNumeros.length === 10;
+    };
+    const formatearTelefono = (valor: string): string => {
+        // Elimina cualquier cosa que no sea número
+        const soloNumeros = valor.replace(/\D/g, "").slice(0, 10); // máx 10 dígitos
+
+        if (soloNumeros.length <= 3) return soloNumeros;
+        if (soloNumeros.length <= 6) {
+            return `${soloNumeros.slice(0, 3)}-${soloNumeros.slice(3)}`;
         }
+        return `${soloNumeros.slice(0, 3)}-${soloNumeros.slice(3, 6)}-${soloNumeros.slice(6)}`;
     };
     //numeor calle
     const handleNumeroChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -170,19 +199,29 @@ const RegisterEmpleado = () => {
             setFormError("La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula y un símbolo.");
             return;
         }
+        if (!esTelefonoValido(telefono)) {
+            setTelefonoError("El número debe tener exactamente 10 dígitos.");
+            return;
+        }
+        // Validar DNI
+        if (!esDniValido(dni)) {
+            setFormError("El DNI debe tener entre 7 y 8 dígitos.");
+            return;
+        }
 
         setLoading(true);
         setFormError(null);
 
+
+        // POR:
+        setShowPasswordModal(true);
+        setLoading(false);
+
+    };
+
+    const handleRegisterContinue = async () => {
         // Guardar datos del admin actual
         const adminEmail = currentUser?.email;
-        const adminPassword = prompt("Por favor, ingresa tu contraseña de administrador para continuar:");
-
-        if (!adminPassword) {
-            setFormError("Se requiere la contraseña del administrador para crear el empleado.");
-            setLoading(false);
-            return;
-        }
 
 
         try {
@@ -193,8 +232,8 @@ const RegisterEmpleado = () => {
                 return;
             }
 
-            const usuarioPorDni = await obtenerUsuarioPorDni(dni.toString());
-            if (usuarioPorDni) {
+            const empleadoPorDni = await obtenerEmpleadoPorDni(dni.toString());
+            if (empleadoPorDni) {
                 setFormError("El DNI ya está registrado.");
                 setLoading(false);
                 return;
@@ -238,6 +277,7 @@ const RegisterEmpleado = () => {
                 nombre: nombre,
                 apellido: apellido,
                 telefono: telefono,
+                dni: dni.toString(),
                 fechaNacimiento: new Date(fechaNacimiento),
                 eliminado: false,
                 domicilio:
@@ -246,7 +286,7 @@ const RegisterEmpleado = () => {
                         numero: parseInt(numero),
                         codigoPostal: codigoPostal,
                         piso: piso,
-                        departamento: departamento,
+                        nroDepartamento: departamento,
                         detalles: detalles,
                         eliminado: false,
                         localidad: {
@@ -257,16 +297,14 @@ const RegisterEmpleado = () => {
                     email: email,
                     firebaseUid: userCredential.user.uid,
                     rol: rolEmpleado,
-                    dni: dni.toString(),
                     providerId: userCredential.user.providerData[0].providerId || "password",
                     photoUrl: fotoUrl,
                     eliminado: false
                 },
-                pedidos: [], // si tu clase no lo requiere aún, podés omitir este campo
                 sucursal: {
                     id: sucursalSeleccionadaId,
                 }
-        };
+            };
             console.log("Empleado a enviar:", JSON.stringify(empleado, null, 2));
 
             const response = await registrarEmpleado(empleado);
@@ -275,7 +313,7 @@ const RegisterEmpleado = () => {
                 // Si falla el backend, eliminar el usuario de Firebase
                 await userCredential.user.delete();
                 throw new Error("Error al registrar empleado en el backend. Usuario Firebase eliminado.");
-              }
+            }
 
             if (!response.ok) throw new Error("Error al registrar empleado en el backend");
 
@@ -344,7 +382,6 @@ const RegisterEmpleado = () => {
             setLoading(false);
         }
     };
-
 
     return (
         <div className="p-4" style={{width: "600px", margin: "0 auto", border: "1px solid #ccc", borderRadius: "10px"}}>
@@ -443,7 +480,8 @@ const RegisterEmpleado = () => {
                             </div>
                         </Form.Group>
 
-                        <Form.Group controlId="dni" className="mb-2">
+                        <Form.Group controlId="dni" className="mb-3">
+                            <Form.Label>DNI</Form.Label>
                             <Form.Control
                                 type="text"
                                 placeholder="DNI"
@@ -452,10 +490,14 @@ const RegisterEmpleado = () => {
                                 isInvalid={!!dniError}
                                 disabled={loading}
                                 required
+                                maxLength={8} // Limitar visualmente también
                             />
                             <Form.Control.Feedback type="invalid">
                                 {dniError}
                             </Form.Control.Feedback>
+                            <Form.Text className="text-muted">
+                                El DNI debe tener entre 7 y 8 dígitos numéricos.
+                            </Form.Text>
                         </Form.Group>
 
                         <Form.Group controlId="fechaNacimiento" className="mb-2">
@@ -477,11 +519,30 @@ const RegisterEmpleado = () => {
                             <Form.Control
                                 type="text"
                                 placeholder="Teléfono"
-                                value={telefono}
-                                onChange={handleTelefonoChange}
+                                value={telefonoFormateado}
+                                onChange={(e) => {
+                                    const input = e.target.value;
+                                    const soloNumeros = input.replace(/\D/g, "").slice(0, 10); // Solo 10 dígitos
+
+                                    setTelefono(soloNumeros); // Guardamos sin formato
+                                    setTelefonoFormateado(formatearTelefono(soloNumeros)); // Mostramos formateado
+
+                                    // Validamos longitud
+                                    if (soloNumeros.length < 10) {
+                                        setTelefonoError("El número debe tener exactamente 10 dígitos.");
+                                    } else {
+                                        setTelefonoError('');
+                                    }
+                                }}
+                                isInvalid={!!telefonoError}
                                 disabled={loading}
-                                required
                             />
+                            <Form.Control.Feedback type="invalid">
+                                {telefonoError}
+                            </Form.Control.Feedback>
+                            <Form.Text className="text-muted">
+                                El número debe tener 10 dígitos, sin el 15 y con el código de área.
+                            </Form.Text>
                         </Form.Group>
 
                         <Form.Group controlId="rolEmpleado" className="mb-3">
@@ -646,6 +707,53 @@ const RegisterEmpleado = () => {
                     </>
             </Form>
             {formError && <div className="alert alert-danger mt-3">{formError}</div>}
+
+            {/* Modal para contraseña de administrador */}
+            <div className={`modal fade ${showPasswordModal ? 'show d-block' : ''}`} style={{backgroundColor: showPasswordModal ? 'rgba(0,0,0,0.5)' : 'transparent'}}>
+                <div className="modal-dialog modal-dialog-centered">
+                    <div className="modal-content">
+                        <div className="modal-header">
+                            <h5 className="modal-title">Confirmar Identidad</h5>
+                        </div>
+                        <div className="modal-body">
+                            <p>Por favor, ingresa tu contraseña de administrador para continuar:</p>
+                            <Form.Control
+                                type="password"
+                                value={adminPassword}
+                                onChange={(e) => setAdminPassword(e.target.value)}
+                                placeholder="Contraseña de administrador"
+                            />
+                        </div>
+                        <div className="modal-footer">
+                            <Button
+                                variant="secondary"
+                                onClick={() => {
+                                    setShowPasswordModal(false);
+                                    setAdminPassword("");
+                                    setLoading(false);
+                                }}
+                            >
+                                Cancelar
+                            </Button>
+                            <Button
+                                variant="primary"
+                                onClick={() => {
+                                    if (!adminPassword) {
+                                        setFormError("Se requiere la contraseña del administrador para crear el empleado.");
+                                        return;
+                                    }
+                                    setShowPasswordModal(false);
+                                    setLoading(true);
+                                    // Continuar con el proceso de registro aquí
+                                    handleRegisterContinue();
+                                }}
+                            >
+                                Continuar
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 };

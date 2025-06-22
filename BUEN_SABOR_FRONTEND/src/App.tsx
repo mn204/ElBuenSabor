@@ -7,7 +7,6 @@ import Home from './components/layout/Home'
 import Perfil from './components/auth/Perfil'
 import FormArticuloManufacturado from './components/empleados/formularios/FormArticuloManufacturado.tsx'
 import RegisterEmpleado from "./components/auth/RegisterEmpleado.tsx";
-import { Carrito } from './components/articulos/Carrito.tsx'
 import Busqueda from './components/articulos/Busqueda.tsx'
 import VistaArticulo from './components/articulos/VistaArticulo.tsx'
 import FormInsumos from './components/empleados/formularios/FormInsumos.tsx'

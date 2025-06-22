@@ -120,21 +120,25 @@ export function Carrito() {
     setStockError(null);
 
     try {
-      const stockDisponible = await PedidoService.consultarStock(pedido)
-      if (!stockDisponible) {
-        setStockError("No hay stock suficiente para algunos productos en la sucursal seleccionada.");
-        return false;
+      // Si hay stock suficiente, el backend devuelve true
+      const stockDisponible = await PedidoService.consultarStock(pedido);
+      console.log("Stock disponible:", stockDisponible);
+      return stockDisponible; // Si es false, es decisión del backend, pero no debería llegar acá con excepciones.
+    } catch (error: any) {
+      // 🔥 Esta parte es la importante: capturás el mensaje del backend
+      const parsed = JSON.parse(error.message);
+      if (parsed.errorMsg) {
+        setStockError(parsed.errorMsg);
+      } else {
+        setStockError("Error al verificar el stock.");
       }
 
-      return true;
-    } catch (error) {
-      console.error('Error verificando stock:', error);
-      setStockError("Error al verificar el stock. Intenta nuevamente.");
       return false;
     } finally {
       setVerificandoStock(false);
     }
   };
+
 
   const handleProceedToStep2 = async () => {
     if (!cliente) {
@@ -304,8 +308,8 @@ export function Carrito() {
                                       objectFit: "cover",
                                       transition: "transform 0.2s ease"
                                     }}
-                                    onMouseEnter={(e) => e.target.style.transform = "scale(1.05)"}
-                                    onMouseLeave={(e) => e.target.style.transform = "scale(1)"}
+                                    onMouseEnter={(e) => ((e.target as HTMLImageElement).style.transform = "scale(1.05)")}
+                                    onMouseLeave={(e) => ((e.target as HTMLImageElement).style.transform = "scale(1)")}
                                   />
                                   <div className="position-absolute top-0 start-0 m-1">
                                     <span className="badge bg-success rounded-pill px-2 py-1">
@@ -409,8 +413,8 @@ export function Carrito() {
                                     objectFit: "cover",
                                     transition: "transform 0.2s ease"
                                   }}
-                                  onMouseEnter={(e) => e.target.style.transform = "scale(1.05)"}
-                                  onMouseLeave={(e) => e.target.style.transform = "scale(1)"}
+                                  onMouseEnter={(e) => ((e.target as HTMLImageElement).style.transform = "scale(1.05)")}
+                                  onMouseLeave={(e) => ((e.target as HTMLImageElement).style.transform = "scale(1)")}
                                 />
                               </div>
                             </div>
@@ -428,7 +432,7 @@ export function Carrito() {
                                     <button
                                       className="btn btn-outline-danger btn-sm rounded-circle p-0 d-flex align-items-center justify-content-center flex-shrink-0"
                                       style={{ width: "32px", height: "32px", fontSize: "14px" }}
-                                      onClick={() => quitarDelCarrito(item.articulo!.id)}
+                                      onClick={() => quitarDelCarrito(item.articulo!.id!)}
                                       title="Eliminar del carrito"
                                     >
                                       ×
@@ -438,7 +442,7 @@ export function Carrito() {
                                   {/* Precio unitario */}
                                   <div className="mb-3">
                                     <span className="badge bg-light text-dark border px-3 py-2 rounded-pill">
-                                      <strong>${item.articulo!.precioVenta.toFixed(2)}</strong>
+                                      <strong>${item.articulo!.precioVenta!.toFixed(2)}</strong>
                                     </span>
                                   </div>
                                 </div>
@@ -454,7 +458,7 @@ export function Carrito() {
                                         <div className="btn-group" role="group">
                                           <button
                                             className="btn btn-outline-secondary btn-sm px-2 px-sm-3"
-                                            onClick={() => restarDelCarrito(item.articulo!.id)}
+                                            onClick={() => restarDelCarrito(item.articulo!.id!)}
                                             disabled={item.cantidad <= 1}
                                           >
                                             −
@@ -693,7 +697,7 @@ export function Carrito() {
                       {item.cantidad}x {item.articulo?.denominacion}
                     </span>
                     <span>
-                      ${(item.subTotal || (item.cantidad * item.articulo!.precioVenta)).toFixed(2)}
+                      ${(item.subTotal || (item.cantidad * item.articulo!.precioVenta!)).toFixed(2)}
                     </span>
                   </div>
                 ))}
@@ -712,7 +716,7 @@ export function Carrito() {
                     ${(() => {
                       const items = carrito && carrito.length > 0 ? carrito : pedidoGuardado?.detalles || [];
                       return items.reduce((acc, item) => {
-                        return acc + (item.subTotal || (item.cantidad * item.articulo!.precioVenta));
+                        return acc + (item.subTotal || (item.cantidad * item.articulo!.precioVenta!));
                       }, 0).toFixed(2);
                     })()}
                   </strong>
@@ -836,12 +840,12 @@ export function Carrito() {
                             onClick={() => handleDomicilioSelect(domicilio)}
                             onMouseEnter={(e) => {
                               if (domicilioSeleccionado?.id !== domicilio.id) {
-                                e.target.classList.add('shadow-sm', 'border-primary', 'border-opacity-50');
+                                (e.target as HTMLElement).classList.add('shadow-sm', 'border-primary', 'border-opacity-50');
                               }
                             }}
                             onMouseLeave={(e) => {
                               if (domicilioSeleccionado?.id !== domicilio.id) {
-                                e.target.classList.remove('shadow-sm', 'border-primary', 'border-opacity-50');
+                                (e.target as HTMLElement).classList.remove('shadow-sm', 'border-primary', 'border-opacity-50');
                               }
                             }}
                           >
@@ -928,15 +932,15 @@ export function Carrito() {
                 </div>
               </div>
               {mensajeCambioSucursal && (
-                  <div className="alert alert-info alert-dismissible fade show" role="alert">
-                    <strong>Cambio de sucursal:</strong> {mensajeCambioSucursal}
-                    <button
-                        type="button"
-                        className="btn-close"
-                        onClick={() => setMensajeCambioSucursal("")}
-                        aria-label="Close"
-                    ></button>
-                  </div>
+                <div className="alert alert-info alert-dismissible fade show" role="alert">
+                  <strong>Cambio de sucursal:</strong> {mensajeCambioSucursal}
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => setMensajeCambioSucursal("")}
+                    aria-label="Close"
+                  ></button>
+                </div>
               )}
 
               <ModalDomicilio

@@ -1,5 +1,5 @@
 import Button from "react-bootstrap/Button";
-import iconFlecha from "../../assets/up-arrow-svgrepo-com.svg";
+import iconFlecha from "../../../assets/botones/flechaArriba.svg";
 interface BotonAltaProps {
   onClick?: () => void;
 }

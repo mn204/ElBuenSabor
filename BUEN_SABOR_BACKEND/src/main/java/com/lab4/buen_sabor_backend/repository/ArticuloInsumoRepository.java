@@ -3,6 +3,7 @@ package com.lab4.buen_sabor_backend.repository;
 import com.lab4.buen_sabor_backend.model.ArticuloInsumo;
 import com.lab4.buen_sabor_backend.model.Categoria;
 import org.springframework.data.jpa.repository.*;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -27,5 +28,5 @@ public interface ArticuloInsumoRepository extends MasterRepository<ArticuloInsum
     @Query("SELECT a FROM ArticuloInsumo a WHERE a.eliminado = false AND a.esParaElaborar = true")
     List<ArticuloInsumo> findAllEsParaElaborar();
     List<ArticuloInsumo> findArticuloInsumosByEsParaElaborarFalse();
-    List<ArticuloInsumo> findByEsParaElaborarFalseAndDenominacionContainingIgnoreCase(String denominacion);
+    List<ArticuloInsumo> findByEsParaElaborarFalseAndDenominacionContainingIgnoreCaseAndEliminadoFalse(String denominacion);
 }

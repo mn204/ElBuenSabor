@@ -1,6 +1,7 @@
 package com.lab4.buen_sabor_backend.repository;
 
 import com.lab4.buen_sabor_backend.model.Empleado;
+import com.lab4.buen_sabor_backend.model.Usuario;
 import com.lab4.buen_sabor_backend.model.enums.Rol;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,6 +15,9 @@ import java.util.Optional;
 @Repository
 public interface EmpleadoRepository extends MasterRepository<Empleado, Long>,JpaSpecificationExecutor<Empleado> {
     Optional<Empleado> findByUsuarioId(Long usuarioId);
+
+    Optional<Empleado> findByDni(String dni);
+
 
     @Query("SELECT e FROM Empleado e WHERE e.sucursal.id = :sucursalId AND e.usuario.rol = :rol AND e.usuario.eliminado = false")
     List<Empleado> findBySucursalIdAndRol(@Param("sucursalId") Long sucursalId, @Param("rol") Rol rol);

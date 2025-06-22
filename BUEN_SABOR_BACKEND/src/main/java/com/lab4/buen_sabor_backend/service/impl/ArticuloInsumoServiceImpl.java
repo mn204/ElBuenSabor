@@ -3,6 +3,7 @@ package com.lab4.buen_sabor_backend.service.impl;
 import com.lab4.buen_sabor_backend.model.*;
 import com.lab4.buen_sabor_backend.repository.ArticuloInsumoRepository;
 import com.lab4.buen_sabor_backend.repository.DetalleArticuloManufacturadoRepository;
+import com.lab4.buen_sabor_backend.service.PromocionService;
 import com.lab4.buen_sabor_backend.repository.SucursalInsumoRepository;
 import com.lab4.buen_sabor_backend.service.ArticuloInsumoService;
 import com.lab4.buen_sabor_backend.service.ArticuloManufacturadoService;
@@ -25,14 +26,16 @@ public class ArticuloInsumoServiceImpl extends MasterServiceImpl<ArticuloInsumo,
     private final DetalleArticuloManufacturadoRepository detalleArticuloManufacturadoRepository;
     private final SucursalInsumoRepository sucursalInsumoRepository;
     private final ArticuloManufacturadoService articuloManufacturadoService;
+    private final PromocionService promocionService;
 
     @Autowired
-    public ArticuloInsumoServiceImpl(ArticuloInsumoRepository articuloInsumoRepository, DetalleArticuloManufacturadoRepository detalleArticuloManufacturadoRepository, SucursalInsumoRepository sucursalInsumoRepository, ArticuloManufacturadoService articuloManufacturadoService) {
+    public ArticuloInsumoServiceImpl(ArticuloInsumoRepository articuloInsumoRepository, DetalleArticuloManufacturadoRepository detalleArticuloManufacturadoRepository, SucursalInsumoRepository sucursalInsumoRepository, ArticuloManufacturadoService articuloManufacturadoService, PromocionService promocionService) {
         super(articuloInsumoRepository);
         this.articuloInsumoRepository = articuloInsumoRepository;
         this.detalleArticuloManufacturadoRepository = detalleArticuloManufacturadoRepository;
         this.sucursalInsumoRepository = sucursalInsumoRepository;
         this.articuloManufacturadoService = articuloManufacturadoService;
+        this.promocionService = promocionService;
     }
 
     @Override
@@ -127,7 +130,7 @@ public class ArticuloInsumoServiceImpl extends MasterServiceImpl<ArticuloInsumo,
     @Transactional
     public List<ArticuloInsumo> findAllNoEsParaElaborarByDenominacion(String denominacion) {
         logger.info("Obteniendo todos los ArticuloInsumo que son para elaborar");
-        return articuloInsumoRepository.findByEsParaElaborarFalseAndDenominacionContainingIgnoreCase(denominacion);
+        return articuloInsumoRepository.findByEsParaElaborarFalseAndDenominacionContainingIgnoreCaseAndEliminadoFalse(denominacion);
     }
 
     @Override
@@ -194,6 +197,26 @@ public class ArticuloInsumoServiceImpl extends MasterServiceImpl<ArticuloInsumo,
                 articuloManufacturadoService.update(manufacturado.getId(), manufacturado);
             } else {
                 logger.warn("El costo total del manufacturado {} es cero, no se puede calcular la ganancia", manufacturado.getId());
+            }
+        }
+        List<Promocion> promociones = promocionService.findByDetalles_Articulo_Id(id);
+
+        for (Promocion promocion : promociones) {
+            double total = 0;
+
+            for (DetallePromocion det : promocion.getDetalles()) {
+                total += det.getCantidad() * det.getArticulo().getPrecioVenta();
+
+                if (det.getArticulo().getId().equals(id)) {
+                    det.setArticulo(entity); // Actualiza el insumo si es el editado
+                }
+            }
+
+            // Evita división por cero
+            if (total > 0) {
+                promocionService.update(promocion.getId(), promocion);
+            } else {
+                logger.warn("El costo total del manufacturado {} es cero, no se puede calcular el descuento", promocion.getId());
             }
         }
 

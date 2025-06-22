@@ -1,6 +1,8 @@
 package com.lab4.buen_sabor_backend.service;
 
 import com.lab4.buen_sabor_backend.model.Pedido;
+import com.lab4.buen_sabor_backend.model.Promocion;
+import com.lab4.buen_sabor_backend.model.Sucursal;
 import com.lab4.buen_sabor_backend.model.enums.Estado;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,7 +16,7 @@ public interface PedidoService extends MasterService<Pedido, Long> {
     Page<Pedido> findPedidosByClienteWithFilters(Long clienteId, String sucursalNombre, Estado estado,
                                                  LocalDateTime desde, LocalDateTime hasta, String nombreArticulo,
                                                  Pageable pageable);
-
+    public boolean verificarStockArticulo(Long articuloId, int cantidad, Long sucursalId);
     //Esto es para los Pedidos filtrados para delivery y cocina
     Page<Pedido> buscarPedidosFiltrados(Long idSucursal,
                                         Estado estado,
@@ -28,7 +30,6 @@ public interface PedidoService extends MasterService<Pedido, Long> {
 
     //Cambiar pagado del pedido
     Pedido marcarComoPagado(Long id);
-
     //Cambiar Estado del Pedido
     void cambiarEstadoPedido(Pedido pedido);
 

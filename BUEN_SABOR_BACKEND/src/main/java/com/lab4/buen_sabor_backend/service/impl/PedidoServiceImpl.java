@@ -171,7 +171,9 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
 
                         try {
                             ArticuloInsumo insumo = articuloInsumoService.getById(art.getId());
-
+                            if(insumo.isEliminado()){
+                                throw new RuntimeException("El articulo "+ insumo.getDenominacion() +" está eliminado");
+                            }
                             if (!insumo.getEsParaElaborar()) {
                                 SucursalInsumo si = sucursalInsumoService.findBySucursalIdAndArticuloInsumoId(sucursal.getId(), insumo.getId());
                                 if (si == null) throw new RuntimeException("El artículo no tiene stock");
@@ -191,7 +193,9 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
                             // Es manufacturado
                             try {
                                 ArticuloManufacturado man = articuloManufacturadoService.getById(art.getId());
-
+                                if(man.isEliminado()){
+                                    throw new RuntimeException("El articulo "+ man.getDenominacion() +" está eliminado");
+                                }
                                 for (DetalleArticuloManufacturado dam : man.getDetalles()) {
                                     ArticuloInsumo ai = dam.getArticuloInsumo();
                                     SucursalInsumo si = sucursalInsumoService.findBySucursalIdAndArticuloInsumoId(sucursal.getId(), ai.getId());
@@ -225,7 +229,9 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
                     try {
                         // Intentar como insumo directo
                         ArticuloInsumo insumo = articuloInsumoService.getById(art2.getId());
-
+                        if(insumo.isEliminado()){
+                            throw new RuntimeException("El articulo "+ insumo.getDenominacion() +" está eliminado");
+                        }
                         if (!insumo.getEsParaElaborar()) {
 
                             SucursalInsumo si = sucursalInsumoService.findBySucursalIdAndArticuloInsumoId(sucursal.getId(), insumo.getId());
@@ -249,7 +255,9 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
                         // Es un artículo manufacturado
                         try {
                             ArticuloManufacturado man = articuloManufacturadoService.getById(art2.getId());
-
+                            if(man.isEliminado()){
+                                throw new RuntimeException("El articulo "+ man.getDenominacion() +" está eliminado");
+                            }
                             for (DetalleArticuloManufacturado dam : man.getDetalles()) {
                                 ArticuloInsumo ai = dam.getArticuloInsumo();
                                 SucursalInsumo si = sucursalInsumoService.findBySucursalIdAndArticuloInsumoId(sucursal.getId(), ai.getId());
@@ -294,16 +302,53 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
                 si = sucursalInsumoService.getById(si.getId());
 
                 if (si.getStockActual() < requerido) {
-                    throw new RuntimeException("No hay stock del insumo ID: " + si.getId() + " en la sucursal: " + sucursal.getNombre());
+                    throw new RuntimeException("No hay stock del insumo: " + si.getArticuloInsumo().getDenominacion() + " en la sucursal: " + sucursal.getNombre());
                 }
             }
 
             // Si llegamos aquí, hay stock suficiente - proceder con la transacción
             return true;
 
+        } catch (RuntimeException e) {
+            // Dejá pasar el error como está, para que llegue al AdviceController
+            throw e;
         } catch (Exception e) {
-            logger.error("Error al procesar pedido: ", e);
-            throw new RuntimeException("Error al procesar pedido: ", e);
+            logger.error("Error inesperado al procesar pedido: ", e);
+            throw new RuntimeException("Ocurrió un error inesperado al procesar el pedido.");
+        }
+    }
+
+
+    public boolean verificarStockArticulo(Long articuloId, int cantidad, Long sucursalId) {
+        try {
+            try {
+                // Intentar como insumo directo
+                ArticuloInsumo insumo = articuloInsumoService.getById(articuloId);
+                if (!insumo.getEsParaElaborar()) {
+                    SucursalInsumo si = sucursalInsumoService.findBySucursalIdAndArticuloInsumoId(sucursalId, insumo.getId());
+                    if (si == null || si.getStockActual() < cantidad) {
+                        return false;
+                    }
+                    return true;
+                }
+            } catch (EntityNotFoundException e) {
+                // Es manufacturado
+                ArticuloManufacturado man = articuloManufacturadoService.getById(articuloId);
+                for (DetalleArticuloManufacturado det : man.getDetalles()) {
+                    ArticuloInsumo insumo = det.getArticuloInsumo();
+                    double cantidadRequerida = det.getCantidad() * cantidad;
+
+                    SucursalInsumo si = sucursalInsumoService.findBySucursalIdAndArticuloInsumoId(sucursalId, insumo.getId());
+                    if (si == null || si.getStockActual() < cantidadRequerida) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            return false;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
         }
     }
 
@@ -650,5 +695,4 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
 
         return excelService.exportarPedidosAExcel(pedidosFiltrados);
     }
-
 }

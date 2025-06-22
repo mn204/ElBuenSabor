@@ -1,12 +1,16 @@
 package com.lab4.buen_sabor_backend.controller;
 
 import com.lab4.buen_sabor_backend.dto.PedidoDTO;
+import com.lab4.buen_sabor_backend.exceptions.EntityNotFoundException;
 import com.lab4.buen_sabor_backend.mapper.PedidoMapper;
+import com.lab4.buen_sabor_backend.model.*;
 import com.lab4.buen_sabor_backend.model.MercadoPago.PreferenceMP;
-import com.lab4.buen_sabor_backend.model.Pedido;
 import com.lab4.buen_sabor_backend.model.enums.Estado;
+import com.lab4.buen_sabor_backend.service.ArticuloInsumoService;
+import com.lab4.buen_sabor_backend.service.ArticuloManufacturadoService;
 import com.lab4.buen_sabor_backend.service.MercadoPago.MercadoPagoService;
 import com.lab4.buen_sabor_backend.service.PedidoService;
+import com.lab4.buen_sabor_backend.service.SucursalInsumoService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.*;
@@ -25,19 +29,24 @@ import java.util.*;
 @RestController
 @RequestMapping("/api/pedidos")
 @CrossOrigin(origins = "*")
-public class PedidoController extends MasterControllerImpl<Pedido, PedidoDTO, Long> implements MasterController<PedidoDTO, Long>{
+public class PedidoController extends MasterControllerImpl<Pedido, PedidoDTO, Long> implements MasterController<PedidoDTO, Long> {
 
     private static final Logger logger = LoggerFactory.getLogger(PedidoController.class);
     private final PedidoService pedidoService;
     private final PedidoMapper pedidoMapper;
     private final MercadoPagoService mercadoPagoService;
-
+    private final SucursalInsumoService sucursalInsumoService;
+    private final ArticuloInsumoService articuloInsumoService;
+    private final ArticuloManufacturadoService articuloManufacturadoService;
     @Autowired
-    public PedidoController(PedidoService pedidoService, PedidoMapper pedidoMapper, MercadoPagoService mercadoPagoService) {
+    public PedidoController(PedidoService pedidoService, PedidoMapper pedidoMapper, MercadoPagoService mercadoPagoService, SucursalInsumoService sucursalInsumoService, ArticuloInsumoService articuloInsumoService, ArticuloManufacturadoService articuloManufacturadoService) {
         super(pedidoService);
         this.pedidoService = pedidoService;
         this.pedidoMapper = pedidoMapper;
         this.mercadoPagoService = mercadoPagoService;
+        this.sucursalInsumoService = sucursalInsumoService;
+        this.articuloInsumoService = articuloInsumoService;
+        this.articuloManufacturadoService = articuloManufacturadoService;
     }
 
     @Override
@@ -50,7 +59,9 @@ public class PedidoController extends MasterControllerImpl<Pedido, PedidoDTO, Lo
         return pedidoMapper.toDTO(entity);
     }
 
-    protected List<Pedido> toEntity(List<PedidoDTO> dtoList) {return pedidoMapper.toEntitiesList(dtoList);}
+    protected List<Pedido> toEntity(List<PedidoDTO> dtoList) {
+        return pedidoMapper.toEntitiesList(dtoList);
+    }
 
     // GET de pedidos con filtros para un cliente específico
     @GetMapping("/cliente/{clienteId}")
@@ -69,11 +80,10 @@ public class PedidoController extends MasterControllerImpl<Pedido, PedidoDTO, Lo
     }
 
     @GetMapping("/cliente/{clienteId}/count")
-    public ResponseEntity<Long> getCountPedidosDelCliente(@PathVariable("clienteId") Long clienteId){
+    public ResponseEntity<Long> getCountPedidosDelCliente(@PathVariable("clienteId") Long clienteId) {
         Long count = pedidoService.countPedidosByClienteId(clienteId);
         return ResponseEntity.ok(count);
     }
-
 
 
     //GET de pedidos con filtros para una sucursal específica
@@ -89,7 +99,7 @@ public class PedidoController extends MasterControllerImpl<Pedido, PedidoDTO, Lo
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fechaHasta,
             Pageable pageable
     ) {
-        Page <Pedido> pedidos = pedidoService.buscarPedidosFiltrados(idSucursal, estado, clienteNombre, idPedido, idEmpleado, pagado, fechaDesde, fechaHasta, pageable);
+        Page<Pedido> pedidos = pedidoService.buscarPedidosFiltrados(idSucursal, estado, clienteNombre, idPedido, idEmpleado, pagado, fechaDesde, fechaHasta, pageable);
         Page<PedidoDTO> result = pedidos.map(pedidoMapper::toDTO);
 
         return ResponseEntity.ok(result);
@@ -150,10 +160,18 @@ public class PedidoController extends MasterControllerImpl<Pedido, PedidoDTO, Lo
         }
     }
 
+
     @PostMapping("/verificar-stock")
-    public ResponseEntity<?> verificarStockPedido(@RequestBody Pedido pedido) {
+    public ResponseEntity<Boolean> verificarStockPedido(@RequestBody Pedido pedido) {
+        boolean resultado = pedidoService.verificarStockPedido(pedido); // Si falla, lanza RuntimeException
+        return ResponseEntity.ok(resultado);
+    }
+
+
+    @GetMapping("/verificar-stock-articulo/{aritculoId}/{cantidad}/{sucursalId}")
+    public ResponseEntity<?> verificarStockArticulo(@PathVariable Long aritculoId, @PathVariable int cantidad, @PathVariable Long sucursalId) {
         try {
-            boolean resultado = pedidoService.verificarStockPedido(pedido);
+            boolean resultado = pedidoService.verificarStockArticulo(aritculoId, cantidad, sucursalId);
             return ResponseEntity.ok(resultado);
         } catch (Exception e) {
             logger.error("Error en controlador: ", e);

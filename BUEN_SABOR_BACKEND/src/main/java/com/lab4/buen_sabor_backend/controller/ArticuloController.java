@@ -35,14 +35,14 @@ public class ArticuloController extends MasterControllerImpl<Articulo, ArticuloD
     }
 
     @Override
-    protected Articulo toEntity(ArticuloDTO dto) {
-        return null;
-    }
+protected Articulo toEntity(ArticuloDTO dto) {
+    return articuloMapper.toEntity(dto);
+}
 
-    @Override
-    protected ArticuloDTO toDTO(Articulo entity) {
-        return null;
-    }
+@Override
+protected ArticuloDTO toDTO(Articulo entity) {
+    return articuloMapper.toDTO(entity);
+}
 
     @GetMapping("/buscar")
     public ResponseEntity<List<ArticuloDTO>> buscarPorDenominacion(@RequestParam String denominacion) {

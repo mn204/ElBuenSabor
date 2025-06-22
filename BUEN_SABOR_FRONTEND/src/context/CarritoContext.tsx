@@ -212,7 +212,7 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
             return {
               ...d,
               cantidad: nuevaCantidad,
-              subTotal: articulo.precioVenta * nuevaCantidad,
+              subTotal: articulo.precioVenta! * nuevaCantidad,
             };
           }
           return d;
@@ -221,7 +221,7 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
         const nuevoDetalles = new PedidoDetalle();
         nuevoDetalles.articulo = articulo;
         nuevoDetalles.cantidad = cantidad;
-        nuevoDetalles.subTotal = articulo.precioVenta * cantidad;
+        nuevoDetalles.subTotal = articulo.precioVenta! * cantidad;
         nuevosdetalles = [...prevPedido.detalles, nuevoDetalles];
       }
 
@@ -321,7 +321,7 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
             return {
               ...d,
               cantidad: nuevaCantidad,
-              subTotal: nuevaCantidad * d.articulo!.precioVenta,
+              subTotal: nuevaCantidad * d.articulo!.precioVenta!,
             };
           } else if (d.promocion?.id === idArticulo) {
             const nuevaCantidad = d.cantidad - 1;
@@ -407,7 +407,7 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
           for (const det of pedido.detalles) {
             if (det.articulo) {
               try {
-                const prod = await ArticuloManufacturadoService.getById(det.articulo.id);
+                const prod = await ArticuloManufacturadoService.getById(det.articulo.id!);
                 tiempoTotalMinutos += prod.tiempoEstimadoMinutos ?? 0;
               } catch (error) {
                 console.error("Error al obtener artículo manufacturado:", error);
@@ -416,7 +416,7 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
             if (det.promocion) {
               for (const deta of det.promocion.detalles) {
                 try {
-                  const prod = await ArticuloManufacturadoService.getById(deta.articulo!.id);
+                  const prod = await ArticuloManufacturadoService.getById(deta.articulo!.id!);
                   tiempoTotalMinutos += prod.tiempoEstimadoMinutos ?? 0;
                 } catch (error) {
                   console.error("Error al obtener artículo manufacturado:", error);
