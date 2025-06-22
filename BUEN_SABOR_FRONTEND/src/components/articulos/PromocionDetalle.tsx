@@ -112,7 +112,7 @@ const PromocionDetalle: React.FC = () => {
         );
     }
 
-    if (!promocion) {
+    if (!promocion || promocion.eliminado) {
         return (
             <div className="promocion-detalle">
                 <div className="promocion-detalle__not-found">
