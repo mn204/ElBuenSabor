@@ -216,33 +216,34 @@ class PedidoService {
     async getPedidosFiltrados(
         idSucursal: number | null,
         filtros: {
-            estado?: string;
+            estados?: string[];
             clienteNombre?: string;
             idPedido?: number;
             idEmpleado?: number;
             pagado?: boolean;
             fechaDesde?: string;
             fechaHasta?: string;
+            tipoEnvio?: "DELIVERY" | "TAKEAWAY";
         },
         page: number = 0,
-        size: number = 10
+        size: number = 10,
+        sort?: string // <--- Nuevo parámetro
     ): Promise<{ content: Pedido[]; totalPages: number }> {
         const params = new URLSearchParams();
 
-        if (idSucursal !== null) {
-            params.append("idSucursal", idSucursal.toString());
-        }
-        if (filtros.estado) params.append("estado", filtros.estado);
+        if (idSucursal !== null) params.append("idSucursal", idSucursal.toString());
+        if (filtros.estados && filtros.estados.length > 0) filtros.estados.forEach(estado => params.append("estados", estado));
         if (filtros.clienteNombre) params.append("clienteNombre", filtros.clienteNombre);
         if (filtros.idPedido !== undefined) params.append("idPedido", filtros.idPedido.toString());
         if (filtros.idEmpleado !== undefined) params.append("idEmpleado", filtros.idEmpleado.toString());
         if (filtros.pagado !== undefined) params.append("pagado", filtros.pagado.toString());
         if (filtros.fechaDesde) params.append("fechaDesde", filtros.fechaDesde);
         if (filtros.fechaHasta) params.append("fechaHasta", filtros.fechaHasta);
+        if (filtros.tipoEnvio) params.append("tipoEnvio", filtros.tipoEnvio);
 
         params.append("page", page.toString());
         params.append("size", size.toString());
-        params.append("sort", "fechaPedido,DESC"); // <-- Agrega el ordenamiento aquí
+        if (sort) params.append("sort", sort); // <--- Agrega el sort
 
         const response = await fetch(`${API_URL}/filtrados?${params.toString()}`);
         if (!response.ok) {
@@ -345,11 +346,12 @@ class PedidoService {
     async exportarPedidosFiltrados(
         idSucursal: number | null,
         filtros: {
-            estado?: string;
+            estados?: string[];
             clienteNombre?: string;
             idPedido?: number;
             idEmpleado?: number;
             pagado?: boolean;
+            tipoEnvio?: "DELIVERY" | "TAKEAWAY";
             fechaDesde?: string;
             fechaHasta?: string;
         },
@@ -357,11 +359,12 @@ class PedidoService {
         const params = new URLSearchParams();
 
         if (idSucursal !== null) params.append("idSucursal", idSucursal.toString());
-        if (filtros.estado) params.append("estado", filtros.estado);
+        if (filtros.estados && filtros.estados.length > 0) filtros.estados.forEach(estado => params.append("estados", estado));
         if (filtros.clienteNombre) params.append("clienteNombre", filtros.clienteNombre);
         if (filtros.idPedido !== undefined) params.append("idPedido", filtros.idPedido.toString());
         if (filtros.idEmpleado !== undefined) params.append("idEmpleado", filtros.idEmpleado.toString());
         if (filtros.pagado !== undefined) params.append("pagado", filtros.pagado.toString());
+        if (filtros.tipoEnvio) params.append("tipoEnvio", filtros.tipoEnvio);
         if (filtros.fechaDesde) params.append("fechaDesde", filtros.fechaDesde);
         if (filtros.fechaHasta) params.append("fechaHasta", filtros.fechaHasta);
 

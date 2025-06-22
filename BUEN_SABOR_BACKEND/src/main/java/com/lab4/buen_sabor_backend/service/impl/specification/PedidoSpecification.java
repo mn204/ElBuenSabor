@@ -3,10 +3,13 @@ package com.lab4.buen_sabor_backend.service.impl.specification;
 import com.lab4.buen_sabor_backend.model.Pedido;
 import com.lab4.buen_sabor_backend.model.*;
 import com.lab4.buen_sabor_backend.model.enums.Estado;
+import com.lab4.buen_sabor_backend.model.enums.TipoEnvio;
 import org.springframework.data.jpa.domain.Specification;
 
 import jakarta.persistence.criteria.Join;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.util.List;
 
 public class PedidoSpecification {
 
@@ -45,14 +48,24 @@ public class PedidoSpecification {
         return (root, query, cb) -> estado == null ? null : cb.equal(root.get("estado"), estado);
     }
 
-    public static Specification<Pedido> fechaBetween(LocalDateTime desde, LocalDateTime hasta) {
+    public static Specification<Pedido> estadoIn(List<Estado> estados) {
+        return (root, query, builder) ->
+                estados == null || estados.isEmpty() ? null : root.get("estado").in(estados);
+    }
+
+    public static Specification<Pedido> tipoEnvioEquals(TipoEnvio tipoEnvio) {
+        return (root, query, builder) ->
+                tipoEnvio == null ? null : builder.equal(root.get("tipoEnvio"), tipoEnvio);
+    }
+
+    public static Specification<Pedido> fechaBetween(OffsetDateTime desde, OffsetDateTime hasta) {
         return (root, query, cb) -> {
             if (desde == null && hasta == null) return null;
             if (desde != null && hasta != null)
-                return cb.between(root.get("fechaPedido"), desde, hasta);
+                return cb.between(root.get("fechaPedido"), desde.toLocalDateTime(), hasta.toLocalDateTime());
             if (desde != null)
-                return cb.greaterThanOrEqualTo(root.get("fechaPedido"), desde);
-            return cb.lessThanOrEqualTo(root.get("fechaPedido"), hasta);
+                return cb.greaterThanOrEqualTo(root.get("fechaPedido"), desde.toLocalDateTime());
+            return cb.lessThanOrEqualTo(root.get("fechaPedido"), hasta.toLocalDateTime());
         };
     }
 
