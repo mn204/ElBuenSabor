@@ -80,7 +80,7 @@ public class ArticuloManufacturadoServiceImpl extends MasterServiceImpl<Articulo
         }
         entity.setPrecioVenta(total + (total*(entity.getGanancia()/100)));
 
-        List<Promocion> promociones = promocionService.findByDetalles_Articulo_Id(entity.getId());
+        List<Promocion> promociones = promocionService.findByDetalles_Articulo_Id(id);
         for (Promocion promocion : promociones){
             double precioPromo = 0;
             for(DetallePromocion det : promocion.getDetalles()){

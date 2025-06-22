@@ -184,6 +184,7 @@ function FormArticuloManufacturado() {
       manufacturado.eliminado = eliminado;
       manufacturado.tipoArticulo = TipoArticulo.ArticuloManufacturado;
       if (idFromUrl) {
+        manufacturado.id = Number(idFromUrl);
         await ArticuloManufacturadoService.update(Number(idFromUrl), manufacturado);
         alert("Artículo manufacturado actualizado correctamente");
       } else {

@@ -118,7 +118,7 @@ public class PromocionServiceImpl extends MasterServiceImpl<Promocion, Long> imp
 
     @Override
     public List<Promocion> findByDetalles_Articulo_Id(Long id) {
-        return promocionRepository.findByDetalles_Articulo_Id(id);
+        return promocionRepository.findByDetallesArticuloId(id);
     }
 
 

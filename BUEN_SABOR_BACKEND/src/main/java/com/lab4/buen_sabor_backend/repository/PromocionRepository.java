@@ -36,7 +36,9 @@ public interface PromocionRepository extends MasterRepository<Promocion, Long>, 
         """)
     List<Promocion> findPromocionesActivasPorSucursalConArticulosNoEliminados(@Param("sucursal") Sucursal sucursal);
     boolean existsByDenominacion(String denominacion);
-    List<Promocion> findByDetalles_Articulo_Id(Long id);
+
+    @Query("SELECT p FROM Promocion p JOIN p.detalles d WHERE d.articulo.id = :id")
+    List<Promocion> findByDetallesArticuloId(Long id);
 
     boolean existsByDenominacionAndIdNot(String denominacion, Long id);
 }
