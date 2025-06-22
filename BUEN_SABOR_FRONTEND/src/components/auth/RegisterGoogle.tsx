@@ -19,11 +19,13 @@ const RegisterGoogle = ({ onFinish }: { onFinish: () => void }) => {
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [modalMessage, setModalMessage] = useState("");
     const [modalTitle, setModalTitle] = useState("");
+    const [telefonoError, setTelefonoError] = useState('');
 
     const [nombre, setNombre] = useState("");
     const [apellido, setApellido] = useState("");
     const [fechaNacimiento, setFechaNacimiento] = useState("");
-    const [telefono, setTelefono] = useState("");
+    const [telefono, setTelefono] = useState(""); // solo números
+    const [telefonoFormateado, setTelefonoFormateado] = useState("");
     const [pais, setPais] = useState("");
     const [provincia, setProvincia] = useState("");
     const [localidadId, setLocalidadId] = useState<number | "">("");
@@ -64,11 +66,20 @@ const RegisterGoogle = ({ onFinish }: { onFinish: () => void }) => {
     }, []);
 
 
-    const handleTelefonoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        if (/^\d*$/.test(value)) {
-            setTelefono(value);
+    const esTelefonoValido = (telefono: string): boolean => {
+        const soloNumeros = telefono.replace(/\D/g, "");
+        return soloNumeros.length === 10;
+    };
+
+    const formatearTelefono = (valor: string): string => {
+        // Elimina cualquier cosa que no sea número
+        const soloNumeros = valor.replace(/\D/g, "").slice(0, 10); // máx 10 dígitos
+
+        if (soloNumeros.length <= 3) return soloNumeros;
+        if (soloNumeros.length <= 6) {
+            return `${soloNumeros.slice(0, 3)}-${soloNumeros.slice(3)}`;
         }
+        return `${soloNumeros.slice(0, 3)}-${soloNumeros.slice(3, 6)}-${soloNumeros.slice(6)}`;
     };
     //numeor calle
     const handleNumeroChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -100,7 +111,10 @@ const RegisterGoogle = ({ onFinish }: { onFinish: () => void }) => {
             setFormError("Te faltan campos obligatorios");
             return;
         }
-
+        if (!esTelefonoValido(telefono)) {
+            setTelefonoError("El número debe tener exactamente 10 dígitos.");
+            return;
+        }
 
         setLoading(true);
         setFormError(null);
@@ -220,11 +234,30 @@ const RegisterGoogle = ({ onFinish }: { onFinish: () => void }) => {
                         <Form.Control
                             type="text"
                             placeholder="Teléfono"
-                            value={telefono}
-                            onChange={handleTelefonoChange}
+                            value={telefonoFormateado}
+                            onChange={(e) => {
+                                const input = e.target.value;
+                                const soloNumeros = input.replace(/\D/g, "").slice(0, 10); // Solo 10 dígitos
+
+                                setTelefono(soloNumeros); // Guardamos sin formato
+                                setTelefonoFormateado(formatearTelefono(soloNumeros)); // Mostramos formateado
+
+                                // Validamos longitud
+                                if (soloNumeros.length < 10) {
+                                    setTelefonoError("El número debe tener exactamente 10 dígitos.");
+                                } else {
+                                    setTelefonoError('');
+                                }
+                            }}
+                            isInvalid={!!telefonoError}
                             disabled={loading}
-                            required
                         />
+                        <Form.Control.Feedback type="invalid">
+                            {telefonoError}
+                        </Form.Control.Feedback>
+                        <Form.Text className="text-muted">
+                            El número debe tener 10 dígitos, sin el 15 y con el código de área.
+                        </Form.Text>
                     </Form.Group>
 
                     <Form.Group controlId="pais" className="mb-2">
