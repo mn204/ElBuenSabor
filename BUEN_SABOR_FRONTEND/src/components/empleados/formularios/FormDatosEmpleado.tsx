@@ -24,6 +24,7 @@ const FormDatosEmpleado = ({ show, onHide, empleado, onEmpleadoActualizado, edit
     const [formError, setFormError] = useState<string | null>(null);
     const [dniError, setDniError] = useState<string | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
+    const [telefonoError, setTelefonoError] = useState('');
 
 
     // Estados del formulario - datos personales
@@ -31,7 +32,8 @@ const FormDatosEmpleado = ({ show, onHide, empleado, onEmpleadoActualizado, edit
     const [apellido, setApellido] = useState("");
     const [dni, setDni] = useState("");
     const [fechaNacimiento, setFechaNacimiento] = useState("");
-    const [telefono, setTelefono] = useState("");
+    const [telefono, setTelefono] = useState(""); // solo números
+    const [telefonoFormateado, setTelefonoFormateado] = useState("");
 
     const [rolEmpleado, setRolEmpleado] = useState<Rol>(empleado.usuario.rol);
     const [sucursalSeleccionadaId, setSucursalSeleccionadaId] = useState<number | null>(empleado.sucursal?.id || null);
@@ -60,6 +62,22 @@ const FormDatosEmpleado = ({ show, onHide, empleado, onEmpleadoActualizado, edit
 
     // Localidades filtradas por provincia seleccionada
     const localidadesFiltradas = localidades.filter(l => l.provincia.nombre === provincia);
+
+    const formatearTelefono = (valor: string): string => {
+        // Elimina cualquier cosa que no sea número
+        const soloNumeros = valor.replace(/\D/g, "").slice(0, 10); // máx 10 dígitos
+
+        if (soloNumeros.length <= 3) return soloNumeros;
+        if (soloNumeros.length <= 6) {
+            return `${soloNumeros.slice(0, 3)}-${soloNumeros.slice(3)}`;
+        }
+        return `${soloNumeros.slice(0, 3)}-${soloNumeros.slice(3, 6)}-${soloNumeros.slice(6)}`;
+    };
+
+    const esTelefonoValido = (telefono: string): boolean => {
+        const soloNumeros = telefono.replace(/\D/g, "");
+        return soloNumeros.length === 10;
+    };
 
     // Cargar datos de ubicación
     useEffect(() => {
@@ -90,13 +108,32 @@ const FormDatosEmpleado = ({ show, onHide, empleado, onEmpleadoActualizado, edit
             setNombre(empleado.nombre || "");
             setApellido(empleado.apellido || "");
             setDni(empleado.dni || "");
-            setTelefono(empleado.telefono || "");
-            
+
+            // Formatear teléfono
+            if (empleado.telefono) {
+                const telefonoLimpio = empleado.telefono.replace(/\D/g, "");
+                setTelefono(telefonoLimpio);
+                setTelefonoFormateado(formatearTelefono(telefonoLimpio));
+
+                // Validar teléfono inicial
+                if (telefonoLimpio.length < 10) {
+                    setTelefonoError("El número debe tener exactamente 10 dígitos.");
+                } else {
+                    setTelefonoError('');
+                }
+            } else {
+                setTelefono("");
+                setTelefonoFormateado("");
+                setTelefonoError('');
+            }
+
             // Formatear fecha para el input date
             if (empleado.fechaNacimiento) {
                 const fecha = new Date(empleado.fechaNacimiento);
                 const fechaFormateada = fecha.toISOString().split('T')[0];
                 setFechaNacimiento(fechaFormateada);
+            } else {
+                setFechaNacimiento("");
             }
 
             // Datos del domicilio
@@ -133,32 +170,42 @@ const FormDatosEmpleado = ({ show, onHide, empleado, onEmpleadoActualizado, edit
         }
     }, [show]);
 
+    // 1. Agregar función de validación de DNI después de la función esTelefonoValido
+    const esDniValido = (dni: string): boolean => {
+        const soloNumeros = dni.replace(/\D/g, "");
+        return soloNumeros.length >= 7 && soloNumeros.length <= 8;
+    };
+
+// 2. Modificar la función handleDniChange para incluir validación de longitud
     const handleDniChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
 
         // Solo permitir dígitos
         if (!/^\d*$/.test(value)) return;
 
-        setDni(value);
+        // Limitar a máximo 8 dígitos
+        const dniLimitado = value.slice(0, 8);
+        setDni(dniLimitado);
         setDniError(null);
 
-        // Si tiene valor y es diferente al DNI actual, verificar disponibilidad
-        if (value && value !== empleado.dni) {
+        // Validar longitud del DNI
+        if (dniLimitado.length > 0 && dniLimitado.length < 7) {
+            setDniError("El DNI debe tener entre 7 y 8 dígitos");
+            return;
+        }
+
+        // Si tiene valor válido, verificar disponibilidad en la base de datos
+        if (dniLimitado.length >= 7) {
             try {
-                const empleado = await obtenerEmpleadoPorDni(value);
-                if (empleado) {
+                const empleadoExistente = await obtenerEmpleadoPorDni(dniLimitado);
+                if (empleadoExistente) {
                     setDniError("DNI ya está en uso");
                 }
             } catch (error) {
                 console.error("Error al verificar DNI:", error);
+                // Opcional: mostrar error si la validación falla
+                // setDniError("Error al verificar disponibilidad del DNI");
             }
-        }
-    };
-
-    const handleTelefonoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        if (/^\d*$/.test(value)) {
-            setTelefono(value);
         }
     };
 
@@ -178,7 +225,7 @@ const FormDatosEmpleado = ({ show, onHide, empleado, onEmpleadoActualizado, edit
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         // Validaciones
         if (!nombre || !apellido || !dni || !fechaNacimiento || !telefono) {
             setFormError("Por favor completá todos los campos personales.");
@@ -194,7 +241,15 @@ const FormDatosEmpleado = ({ show, onHide, empleado, onEmpleadoActualizado, edit
             setFormError("No podés guardar con errores en el DNI.");
             return;
         }
-
+        if (!esTelefonoValido(telefono)) {
+            setTelefonoError("El número debe tener exactamente 10 dígitos.");
+            return;
+        }
+        // Validar DNI
+        if (!esDniValido(dni)) {
+            setFormError("El DNI debe tener entre 7 y 8 dígitos.");
+            return;
+        }
         setLoading(true);
         setFormError(null);
         setSuccessMessage(null);
@@ -247,7 +302,7 @@ const FormDatosEmpleado = ({ show, onHide, empleado, onEmpleadoActualizado, edit
             if (response) {
                 setSuccessMessage("¡Datos actualizados correctamente!");
                 onEmpleadoActualizado(response);
-                
+
                 // Cerrar modal después de 1.5 segundos
                 setTimeout(() => {
                     onHide();
@@ -275,11 +330,11 @@ const FormDatosEmpleado = ({ show, onHide, empleado, onEmpleadoActualizado, edit
             <Modal.Header closeButton={!loading}>
                 <Modal.Title>Editar Datos Personales</Modal.Title>
             </Modal.Header>
-            
+
             <Modal.Body>
                 <Form onSubmit={handleSubmit}>
                     <h5 className="mb-3">Datos Personales</h5>
-                    
+
                     <Form.Group controlId="nombre" className="mb-3">
                         <Form.Label>Nombre</Form.Label>
                         <Form.Control
@@ -314,10 +369,14 @@ const FormDatosEmpleado = ({ show, onHide, empleado, onEmpleadoActualizado, edit
                             isInvalid={!!dniError}
                             disabled={loading}
                             required
+                            maxLength={8} // Limitar visualmente también
                         />
                         <Form.Control.Feedback type="invalid">
                             {dniError}
                         </Form.Control.Feedback>
+                        <Form.Text className="text-muted">
+                            El DNI debe tener entre 7 y 8 dígitos numéricos.
+                        </Form.Text>
                     </Form.Group>
 
                     <Form.Group controlId="fechaNacimiento" className="mb-3">
@@ -337,11 +396,30 @@ const FormDatosEmpleado = ({ show, onHide, empleado, onEmpleadoActualizado, edit
                         <Form.Control
                             type="text"
                             placeholder="Teléfono"
-                            value={telefono}
-                            onChange={handleTelefonoChange}
+                            value={telefonoFormateado}
+                            onChange={(e) => {
+                                const input = e.target.value;
+                                const soloNumeros = input.replace(/\D/g, "").slice(0, 10); // Solo 10 dígitos
+
+                                setTelefono(soloNumeros); // Guardamos sin formato
+                                setTelefonoFormateado(formatearTelefono(soloNumeros)); // Mostramos formateado
+
+                                // Validamos longitud
+                                if (soloNumeros.length < 10) {
+                                    setTelefonoError("El número debe tener exactamente 10 dígitos.");
+                                } else {
+                                    setTelefonoError('');
+                                }
+                            }}
+                            isInvalid={!!telefonoError}
                             disabled={loading}
-                            required
                         />
+                        <Form.Control.Feedback type="invalid">
+                            {telefonoError}
+                        </Form.Control.Feedback>
+                        <Form.Text className="text-muted">
+                            El número debe tener 10 dígitos, sin el 15 y con el código de área.
+                        </Form.Text>
                     </Form.Group>
 
                     {editableAdmin && (
@@ -381,8 +459,8 @@ const FormDatosEmpleado = ({ show, onHide, empleado, onEmpleadoActualizado, edit
 
                     <Form.Group controlId="pais" className="mb-2">
                         <Form.Label>País</Form.Label>
-                        <Form.Select 
-                            value={pais} 
+                        <Form.Select
+                            value={pais}
                             onChange={e => {
                                 setPais(e.target.value);
                                 setProvincia("");
@@ -400,8 +478,8 @@ const FormDatosEmpleado = ({ show, onHide, empleado, onEmpleadoActualizado, edit
 
                     <Form.Group controlId="provincia" className="mb-2">
                         <Form.Label>Provincia</Form.Label>
-                        <Form.Select 
-                            value={provincia} 
+                        <Form.Select
+                            value={provincia}
                             onChange={e => {
                                 setProvincia(e.target.value);
                                 setLocalidadId("");
@@ -418,9 +496,9 @@ const FormDatosEmpleado = ({ show, onHide, empleado, onEmpleadoActualizado, edit
 
                     <Form.Group controlId="localidad" className="mb-2">
                         <Form.Label>Localidad</Form.Label>
-                        <Form.Select 
-                            value={localidadId} 
-                            onChange={e => setLocalidadId(parseInt(e.target.value))} 
+                        <Form.Select
+                            value={localidadId}
+                            onChange={e => setLocalidadId(parseInt(e.target.value))}
                             disabled={loading || !localidadesFiltradas.length}
                             required
                         >
@@ -515,15 +593,15 @@ const FormDatosEmpleado = ({ show, onHide, empleado, onEmpleadoActualizado, edit
             </Modal.Body>
 
             <Modal.Footer>
-                <Button 
-                    variant="secondary" 
+                <Button
+                    variant="secondary"
                     onClick={handleClose}
                     disabled={loading}
                 >
                     Cancelar
                 </Button>
-                <Button 
-                    variant="primary" 
+                <Button
+                    variant="primary"
                     onClick={handleSubmit}
                     disabled={loading || !!dniError}
                 >

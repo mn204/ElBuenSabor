@@ -24,6 +24,7 @@ const RegisterEmpleado = () => {
     const [formError, setFormError] = useState<string | null>(null);
     const [emailError, setEmailError] = useState<string | null>(null);
     const [dniError, setDniError] = useState<string | null>(null);
+    const [telefonoError, setTelefonoError] = useState('');
     const { user: currentUser } = useAuth();
 // POR variables de estado del modal (agregar después de la línea 88):
     const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -38,7 +39,8 @@ const RegisterEmpleado = () => {
     const [imagenEmpleado, setImagenEmpleado] = useState<File | null>(null);
     const [fechaNacimiento, setFechaNacimiento] = useState("");
     const [rolEmpleado, setRolEmpleado] = useState<Rol>(Rol.CAJERO);
-    const [telefono, setTelefono] = useState("");
+    const [telefono, setTelefono] = useState(""); // solo números
+    const [telefonoFormateado, setTelefonoFormateado] = useState("");
     const [sucursales, setSucursales] = useState<Sucursal[]>([]);
     const [sucursalSeleccionadaId, setSucursalSeleccionadaId] = useState<number | undefined>(undefined);
 
@@ -115,33 +117,58 @@ const RegisterEmpleado = () => {
         }
     };
 
+// 1. Agregar función de validación de DNI después de la función esTelefonoValido
+    const esDniValido = (dni: string): boolean => {
+        const soloNumeros = dni.replace(/\D/g, "");
+        return soloNumeros.length >= 7 && soloNumeros.length <= 8;
+    };
 
+// 2. Modificar la función handleDniChange para incluir validación de longitud
     const handleDniChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
 
-        // Solo permitir dígitos (sin puntos, comas ni negativos)
+        // Solo permitir dígitos
         if (!/^\d*$/.test(value)) return;
 
-        setDni(value);
+        // Limitar a máximo 8 dígitos
+        const dniLimitado = value.slice(0, 8);
+        setDni(dniLimitado);
         setDniError(null);
 
-        // Si tiene algún valor, consultamos al backend
-        if (value) {
+        // Validar longitud del DNI
+        if (dniLimitado.length > 0 && dniLimitado.length < 7) {
+            setDniError("El DNI debe tener entre 7 y 8 dígitos");
+            return;
+        }
+
+        // Si tiene valor válido, verificar disponibilidad en la base de datos
+        if (dniLimitado.length >= 7) {
             try {
-                const empleado = await obtenerEmpleadoPorDni(value);
-                if (empleado) {
+                const empleadoExistente = await obtenerEmpleadoPorDni(dniLimitado);
+                if (empleadoExistente) {
                     setDniError("DNI ya está en uso");
                 }
             } catch (error) {
                 console.error("Error al verificar DNI:", error);
+                // Opcional: mostrar error si la validación falla
+                // setDniError("Error al verificar disponibilidad del DNI");
             }
         }
     };
-    const handleTelefonoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        if (/^\d*$/.test(value)) {
-            setTelefono(value);
+
+    const esTelefonoValido = (telefono: string): boolean => {
+        const soloNumeros = telefono.replace(/\D/g, "");
+        return soloNumeros.length === 10;
+    };
+    const formatearTelefono = (valor: string): string => {
+        // Elimina cualquier cosa que no sea número
+        const soloNumeros = valor.replace(/\D/g, "").slice(0, 10); // máx 10 dígitos
+
+        if (soloNumeros.length <= 3) return soloNumeros;
+        if (soloNumeros.length <= 6) {
+            return `${soloNumeros.slice(0, 3)}-${soloNumeros.slice(3)}`;
         }
+        return `${soloNumeros.slice(0, 3)}-${soloNumeros.slice(3, 6)}-${soloNumeros.slice(6)}`;
     };
     //numeor calle
     const handleNumeroChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -157,6 +184,41 @@ const RegisterEmpleado = () => {
             setPiso(value);
         }
     };
+
+    const handleRegister = async () => {
+        if (!nombre || !apellido || !email || !contrasena || !confirmarContrasena || !dni || !fechaNacimiento || !telefono || !pais || !provincia || !localidadId || !codigoPostal || !calle || !numero || !detalles || !rolEmpleado || !sucursalSeleccionadaId) {
+            setFormError("Por favor completá todos los campos.");
+            return;
+        }
+        if (contrasena !== confirmarContrasena) {
+            setFormError("Las contraseñas no coinciden.");
+            return;
+        }
+
+        if (!passwordValida(contrasena)) {
+            setFormError("La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula y un símbolo.");
+            return;
+        }
+        if (!esTelefonoValido(telefono)) {
+            setTelefonoError("El número debe tener exactamente 10 dígitos.");
+            return;
+        }
+        // Validar DNI
+        if (!esDniValido(dni)) {
+            setFormError("El DNI debe tener entre 7 y 8 dígitos.");
+            return;
+        }
+
+        setLoading(true);
+        setFormError(null);
+
+
+        // POR:
+        setShowPasswordModal(true);
+        setLoading(false);
+
+    };
+
     const handleRegisterContinue = async () => {
         // Guardar datos del admin actual
         const adminEmail = currentUser?.email;
@@ -321,32 +383,6 @@ const RegisterEmpleado = () => {
         }
     };
 
-    const handleRegister = async () => {
-        if (!nombre || !apellido || !email || !contrasena || !confirmarContrasena || !dni || !fechaNacimiento || !telefono || !pais || !provincia || !localidadId || !codigoPostal || !calle || !numero || !detalles || !rolEmpleado || !sucursalSeleccionadaId) {
-            setFormError("Por favor completá todos los campos.");
-            return;
-        }
-        if (contrasena !== confirmarContrasena) {
-            setFormError("Las contraseñas no coinciden.");
-            return;
-        }
-
-        if (!passwordValida(contrasena)) {
-            setFormError("La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula y un símbolo.");
-            return;
-        }
-
-        setLoading(true);
-        setFormError(null);
-
-
-        // POR:
-        setShowPasswordModal(true);
-        setLoading(false);
-
-    };
-
-
     return (
         <div className="p-4" style={{width: "600px", margin: "0 auto", border: "1px solid #ccc", borderRadius: "10px"}}>
             <div className="d-flex align-items-center justify-content-between mb-5">
@@ -444,7 +480,8 @@ const RegisterEmpleado = () => {
                             </div>
                         </Form.Group>
 
-                        <Form.Group controlId="dni" className="mb-2">
+                        <Form.Group controlId="dni" className="mb-3">
+                            <Form.Label>DNI</Form.Label>
                             <Form.Control
                                 type="text"
                                 placeholder="DNI"
@@ -453,10 +490,14 @@ const RegisterEmpleado = () => {
                                 isInvalid={!!dniError}
                                 disabled={loading}
                                 required
+                                maxLength={8} // Limitar visualmente también
                             />
                             <Form.Control.Feedback type="invalid">
                                 {dniError}
                             </Form.Control.Feedback>
+                            <Form.Text className="text-muted">
+                                El DNI debe tener entre 7 y 8 dígitos numéricos.
+                            </Form.Text>
                         </Form.Group>
 
                         <Form.Group controlId="fechaNacimiento" className="mb-2">
@@ -478,11 +519,30 @@ const RegisterEmpleado = () => {
                             <Form.Control
                                 type="text"
                                 placeholder="Teléfono"
-                                value={telefono}
-                                onChange={handleTelefonoChange}
+                                value={telefonoFormateado}
+                                onChange={(e) => {
+                                    const input = e.target.value;
+                                    const soloNumeros = input.replace(/\D/g, "").slice(0, 10); // Solo 10 dígitos
+
+                                    setTelefono(soloNumeros); // Guardamos sin formato
+                                    setTelefonoFormateado(formatearTelefono(soloNumeros)); // Mostramos formateado
+
+                                    // Validamos longitud
+                                    if (soloNumeros.length < 10) {
+                                        setTelefonoError("El número debe tener exactamente 10 dígitos.");
+                                    } else {
+                                        setTelefonoError('');
+                                    }
+                                }}
+                                isInvalid={!!telefonoError}
                                 disabled={loading}
-                                required
                             />
+                            <Form.Control.Feedback type="invalid">
+                                {telefonoError}
+                            </Form.Control.Feedback>
+                            <Form.Text className="text-muted">
+                                El número debe tener 10 dígitos, sin el 15 y con el código de área.
+                            </Form.Text>
                         </Form.Group>
 
                         <Form.Group controlId="rolEmpleado" className="mb-3">
