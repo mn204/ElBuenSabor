@@ -28,5 +28,5 @@ public interface ArticuloInsumoRepository extends MasterRepository<ArticuloInsum
     @Query("SELECT a FROM ArticuloInsumo a WHERE a.eliminado = false AND a.esParaElaborar = true")
     List<ArticuloInsumo> findAllEsParaElaborar();
     List<ArticuloInsumo> findArticuloInsumosByEsParaElaborarFalse();
-    List<ArticuloInsumo> findByEsParaElaborarFalseAndDenominacionContainingIgnoreCase(String denominacion);
+    List<ArticuloInsumo> findByEsParaElaborarFalseAndDenominacionContainingIgnoreCaseAndEliminadoFalse(String denominacion);
 }

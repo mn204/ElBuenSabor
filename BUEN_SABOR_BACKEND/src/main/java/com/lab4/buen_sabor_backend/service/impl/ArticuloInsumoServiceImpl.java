@@ -130,7 +130,7 @@ public class ArticuloInsumoServiceImpl extends MasterServiceImpl<ArticuloInsumo,
     @Transactional
     public List<ArticuloInsumo> findAllNoEsParaElaborarByDenominacion(String denominacion) {
         logger.info("Obteniendo todos los ArticuloInsumo que son para elaborar");
-        return articuloInsumoRepository.findByEsParaElaborarFalseAndDenominacionContainingIgnoreCase(denominacion);
+        return articuloInsumoRepository.findByEsParaElaborarFalseAndDenominacionContainingIgnoreCaseAndEliminadoFalse(denominacion);
     }
 
     @Override
