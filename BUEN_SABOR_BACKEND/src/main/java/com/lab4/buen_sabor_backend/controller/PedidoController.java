@@ -162,15 +162,11 @@ public class PedidoController extends MasterControllerImpl<Pedido, PedidoDTO, Lo
 
 
     @PostMapping("/verificar-stock")
-    public ResponseEntity<?> verificarStockPedido(@RequestBody Pedido pedido) {
-        try {
-            boolean resultado = pedidoService.verificarStockPedido(pedido);
-            return ResponseEntity.ok(resultado);
-        } catch (Exception e) {
-            logger.error("Error en controlador: ", e);
-            return ResponseEntity.ok(false); // Devuelve false en caso de error
-        }
+    public ResponseEntity<Boolean> verificarStockPedido(@RequestBody Pedido pedido) {
+        boolean resultado = pedidoService.verificarStockPedido(pedido); // Si falla, lanza RuntimeException
+        return ResponseEntity.ok(resultado);
     }
+
 
     @GetMapping("/verificar-stock-articulo/{aritculoId}/{cantidad}/{sucursalId}")
     public ResponseEntity<?> verificarStockArticulo(@PathVariable Long aritculoId, @PathVariable int cantidad, @PathVariable Long sucursalId) {

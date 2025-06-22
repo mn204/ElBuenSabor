@@ -36,14 +36,18 @@ class PedidoService {
                 body: JSON.stringify(pedido)
             });
 
-            const stockDisponible: boolean = await response.json();
-            console.log(stockDisponible)
+            if (!response.ok) {
+                const errorBody = await response.json();
+                throw new Error(JSON.stringify(errorBody) || 'Error verificando stock');
+            }
+
+            const stockDisponible = await response.json();
             return stockDisponible;
         } catch (error) {
-            alert(error)
+            throw error;
         }
-
     }
+
 
     async create(pedido: Pedido): Promise<Pedido | null> {
         try {
@@ -369,10 +373,10 @@ class PedidoService {
         }
         return await response.blob();
     }
-    
-    async verificarStockArticulo (articuloId: number, cantidad: number, sucursalId: number):Promise<boolean> {
+
+    async verificarStockArticulo(articuloId: number, cantidad: number, sucursalId: number): Promise<boolean> {
         try {
-            const res = await fetch(`${API_URL}/verificar-stock-articulo/${articuloId}/${cantidad}/${sucursalId}`,{
+            const res = await fetch(`${API_URL}/verificar-stock-articulo/${articuloId}/${cantidad}/${sucursalId}`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
