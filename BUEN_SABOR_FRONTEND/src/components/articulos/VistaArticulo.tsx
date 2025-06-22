@@ -233,14 +233,6 @@ const VistaArticulo: React.FC = () => {
                 </div>
               </div>
 
-              {/* Descripción */}
-              <div className="mb-4">
-                <h5 className="fw-semibold mb-3">Descripción</h5>
-                <p className="text-muted lh-lg">
-                  {articulo?.denominacion}
-                </p>
-              </div>
-
               {/* Información adicional */}
               <div className="mb-4">
                 <div className="row g-3">
