@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button, Form, Modal, Alert } from "react-bootstrap";
 import type Cliente from "../../models/Cliente.ts";
-import { obtenerUsuarioPorDni } from "../../services/UsuarioService";
 import { actualizarCliente } from "../../services/ClienteService.ts";
 
 interface Props {
@@ -14,13 +13,11 @@ interface Props {
 const FormDatosCliente = ({ show, onHide, cliente, onClienteActualizado }: Props) => {
     const [loading, setLoading] = useState(false);
     const [formError, setFormError] = useState<string | null>(null);
-    const [dniError, setDniError] = useState<string | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
     // Estados del formulario
     const [nombre, setNombre] = useState("");
     const [apellido, setApellido] = useState("");
-    const [dni, setDni] = useState("");
     const [fechaNacimiento, setFechaNacimiento] = useState("");
     const [telefono, setTelefono] = useState("");
 
@@ -29,7 +26,6 @@ const FormDatosCliente = ({ show, onHide, cliente, onClienteActualizado }: Props
         if (cliente && show) {
             setNombre(cliente.nombre || "");
             setApellido(cliente.apellido || "");
-            setDni(cliente.usuario?.dni || "");
             setTelefono(cliente.telefono || "");
             
             // Formatear fecha para el input date
@@ -45,32 +41,11 @@ const FormDatosCliente = ({ show, onHide, cliente, onClienteActualizado }: Props
     useEffect(() => {
         if (show) {
             setFormError(null);
-            setDniError(null);
             setSuccessMessage(null);
         }
     }, [show]);
 
-    const handleDniChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
 
-        // Solo permitir dígitos
-        if (!/^\d*$/.test(value)) return;
-
-        setDni(value);
-        setDniError(null);
-
-        // Si tiene valor y es diferente al DNI actual, verificar disponibilidad
-        if (value && value !== cliente.usuario?.dni) {
-            try {
-                const usuario = await obtenerUsuarioPorDni(value);
-                if (usuario) {
-                    setDniError("DNI ya está en uso");
-                }
-            } catch (error) {
-                console.error("Error al verificar DNI:", error);
-            }
-        }
-    };
 
     const handleTelefonoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
@@ -82,30 +57,18 @@ const FormDatosCliente = ({ show, onHide, cliente, onClienteActualizado }: Props
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         
-        if (!nombre || !apellido || !dni || !fechaNacimiento || !telefono) {
+        if (!nombre || !apellido || !fechaNacimiento || !telefono) {
             setFormError("Por favor completá todos los campos.");
             return;
         }
 
-        if (dniError) {
-            setFormError("No podés guardar con errores en el DNI.");
-            return;
-        }
+
 
         setLoading(true);
         setFormError(null);
         setSuccessMessage(null);
 
         try {
-            // Verificar DNI solo si cambió
-            if (dni !== cliente.usuario?.dni) {
-                const usuarioPorDni = await obtenerUsuarioPorDni(dni);
-                if (usuarioPorDni) {
-                    setFormError("El DNI ya está registrado.");
-                    setLoading(false);
-                    return;
-                }
-            }
 
             const clienteActualizado: Cliente = {
                 ...cliente,
@@ -114,8 +77,7 @@ const FormDatosCliente = ({ show, onHide, cliente, onClienteActualizado }: Props
                 telefono: telefono.trim(),
                 fechaNacimiento: new Date(fechaNacimiento),
                 usuario: {
-                    ...cliente.usuario!,
-                    dni: dni.trim()
+                    ...cliente.usuario!
                 }
             };
 
@@ -179,21 +141,6 @@ const FormDatosCliente = ({ show, onHide, cliente, onClienteActualizado }: Props
                         />
                     </Form.Group>
 
-                    <Form.Group controlId="dni" className="mb-3">
-                        <Form.Label>DNI</Form.Label>
-                        <Form.Control
-                            type="text"
-                            placeholder="DNI"
-                            value={dni}
-                            onChange={handleDniChange}
-                            isInvalid={!!dniError}
-                            disabled={loading}
-                            required
-                        />
-                        <Form.Control.Feedback type="invalid">
-                            {dniError}
-                        </Form.Control.Feedback>
-                    </Form.Group>
 
                     <Form.Group controlId="fechaNacimiento" className="mb-3">
                         <Form.Label>Fecha de Nacimiento</Form.Label>
@@ -244,7 +191,7 @@ const FormDatosCliente = ({ show, onHide, cliente, onClienteActualizado }: Props
                 <Button 
                     variant="primary" 
                     onClick={handleSubmit}
-                    disabled={loading || !!dniError}
+                    disabled={loading }
                 >
                     {loading ? "Guardando..." : "Guardar Cambios"}
                 </Button>

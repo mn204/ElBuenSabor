@@ -9,8 +9,8 @@ import type Provincia from "../../models/Provincia.ts";
 import type Localidad from "../../models/Localidad.ts";
 import {obtenerLocalidades, obtenerPaises, obtenerProvincias} from "../../services/LocalizacionService.ts";
 import {Eye, EyeSlash} from "react-bootstrap-icons";
-import {obtenerUsuarioPorDni, obtenerUsuarioPorEmail} from "../../services/UsuarioService.ts"; // Ajustá según tu estructura
-import {registrarEmpleado} from "../../services/EmpleadoService.ts";
+import { obtenerUsuarioPorEmail} from "../../services/UsuarioService.ts"; // Ajustá según tu estructura
+import {registrarEmpleado, obtenerEmpleadoPorDni} from "../../services/EmpleadoService.ts";
 import { useAuth } from "../../context/AuthContext";
 import type Sucursal from "../../models/Sucursal.ts";
 import { obtenerSucursales } from "../../services/SucursalService";
@@ -25,7 +25,9 @@ const RegisterEmpleado = () => {
     const [emailError, setEmailError] = useState<string | null>(null);
     const [dniError, setDniError] = useState<string | null>(null);
     const { user: currentUser } = useAuth();
-
+// POR variables de estado del modal (agregar después de la línea 88):
+    const [showPasswordModal, setShowPasswordModal] = useState(false);
+    const [adminPassword, setAdminPassword] = useState("");
     // Campos
     const [nombre, setNombre] = useState("");
     const [apellido, setApellido] = useState("");
@@ -126,8 +128,8 @@ const RegisterEmpleado = () => {
         // Si tiene algún valor, consultamos al backend
         if (value) {
             try {
-                const usuario = await obtenerUsuarioPorDni(value);
-                if (usuario) {
+                const empleado = await obtenerEmpleadoPorDni(value);
+                if (empleado) {
                     setDniError("DNI ya está en uso");
                 }
             } catch (error) {
@@ -155,34 +157,9 @@ const RegisterEmpleado = () => {
             setPiso(value);
         }
     };
-
-    const handleRegister = async () => {
-        if (!nombre || !apellido || !email || !contrasena || !confirmarContrasena || !dni || !fechaNacimiento || !telefono || !pais || !provincia || !localidadId || !codigoPostal || !calle || !numero || !detalles || !rolEmpleado || !sucursalSeleccionadaId) {
-            setFormError("Por favor completá todos los campos.");
-            return;
-        }
-        if (contrasena !== confirmarContrasena) {
-            setFormError("Las contraseñas no coinciden.");
-            return;
-        }
-
-        if (!passwordValida(contrasena)) {
-            setFormError("La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula y un símbolo.");
-            return;
-        }
-
-        setLoading(true);
-        setFormError(null);
-
+    const handleRegisterContinue = async () => {
         // Guardar datos del admin actual
         const adminEmail = currentUser?.email;
-        const adminPassword = prompt("Por favor, ingresa tu contraseña de administrador para continuar:");
-
-        if (!adminPassword) {
-            setFormError("Se requiere la contraseña del administrador para crear el empleado.");
-            setLoading(false);
-            return;
-        }
 
 
         try {
@@ -193,8 +170,8 @@ const RegisterEmpleado = () => {
                 return;
             }
 
-            const usuarioPorDni = await obtenerUsuarioPorDni(dni.toString());
-            if (usuarioPorDni) {
+            const empleadoPorDni = await obtenerEmpleadoPorDni(dni.toString());
+            if (empleadoPorDni) {
                 setFormError("El DNI ya está registrado.");
                 setLoading(false);
                 return;
@@ -238,6 +215,7 @@ const RegisterEmpleado = () => {
                 nombre: nombre,
                 apellido: apellido,
                 telefono: telefono,
+                dni: dni.toString(),
                 fechaNacimiento: new Date(fechaNacimiento),
                 eliminado: false,
                 domicilio:
@@ -246,7 +224,7 @@ const RegisterEmpleado = () => {
                         numero: parseInt(numero),
                         codigoPostal: codigoPostal,
                         piso: piso,
-                        departamento: departamento,
+                        nroDepartamento: departamento,
                         detalles: detalles,
                         eliminado: false,
                         localidad: {
@@ -257,16 +235,14 @@ const RegisterEmpleado = () => {
                     email: email,
                     firebaseUid: userCredential.user.uid,
                     rol: rolEmpleado,
-                    dni: dni.toString(),
                     providerId: userCredential.user.providerData[0].providerId || "password",
                     photoUrl: fotoUrl,
                     eliminado: false
                 },
-                pedidos: [], // si tu clase no lo requiere aún, podés omitir este campo
                 sucursal: {
                     id: sucursalSeleccionadaId,
                 }
-        };
+            };
             console.log("Empleado a enviar:", JSON.stringify(empleado, null, 2));
 
             const response = await registrarEmpleado(empleado);
@@ -275,7 +251,7 @@ const RegisterEmpleado = () => {
                 // Si falla el backend, eliminar el usuario de Firebase
                 await userCredential.user.delete();
                 throw new Error("Error al registrar empleado en el backend. Usuario Firebase eliminado.");
-              }
+            }
 
             if (!response.ok) throw new Error("Error al registrar empleado en el backend");
 
@@ -343,6 +319,31 @@ const RegisterEmpleado = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleRegister = async () => {
+        if (!nombre || !apellido || !email || !contrasena || !confirmarContrasena || !dni || !fechaNacimiento || !telefono || !pais || !provincia || !localidadId || !codigoPostal || !calle || !numero || !detalles || !rolEmpleado || !sucursalSeleccionadaId) {
+            setFormError("Por favor completá todos los campos.");
+            return;
+        }
+        if (contrasena !== confirmarContrasena) {
+            setFormError("Las contraseñas no coinciden.");
+            return;
+        }
+
+        if (!passwordValida(contrasena)) {
+            setFormError("La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula y un símbolo.");
+            return;
+        }
+
+        setLoading(true);
+        setFormError(null);
+
+
+        // POR:
+        setShowPasswordModal(true);
+        setLoading(false);
+
     };
 
 
@@ -646,6 +647,53 @@ const RegisterEmpleado = () => {
                     </>
             </Form>
             {formError && <div className="alert alert-danger mt-3">{formError}</div>}
+
+            {/* Modal para contraseña de administrador */}
+            <div className={`modal fade ${showPasswordModal ? 'show d-block' : ''}`} style={{backgroundColor: showPasswordModal ? 'rgba(0,0,0,0.5)' : 'transparent'}}>
+                <div className="modal-dialog modal-dialog-centered">
+                    <div className="modal-content">
+                        <div className="modal-header">
+                            <h5 className="modal-title">Confirmar Identidad</h5>
+                        </div>
+                        <div className="modal-body">
+                            <p>Por favor, ingresa tu contraseña de administrador para continuar:</p>
+                            <Form.Control
+                                type="password"
+                                value={adminPassword}
+                                onChange={(e) => setAdminPassword(e.target.value)}
+                                placeholder="Contraseña de administrador"
+                            />
+                        </div>
+                        <div className="modal-footer">
+                            <Button
+                                variant="secondary"
+                                onClick={() => {
+                                    setShowPasswordModal(false);
+                                    setAdminPassword("");
+                                    setLoading(false);
+                                }}
+                            >
+                                Cancelar
+                            </Button>
+                            <Button
+                                variant="primary"
+                                onClick={() => {
+                                    if (!adminPassword) {
+                                        setFormError("Se requiere la contraseña del administrador para crear el empleado.");
+                                        return;
+                                    }
+                                    setShowPasswordModal(false);
+                                    setLoading(true);
+                                    // Continuar con el proceso de registro aquí
+                                    handleRegisterContinue();
+                                }}
+                            >
+                                Continuar
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 };

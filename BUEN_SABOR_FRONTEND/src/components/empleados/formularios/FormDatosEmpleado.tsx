@@ -4,11 +4,11 @@ import type Empleado from "../../../models/Empleado.ts";
 import type Pais from "../../../models/Pais.ts";
 import type Provincia from "../../../models/Provincia.ts";
 import type Localidad from "../../../models/Localidad.ts";
-import { obtenerUsuarioPorDni } from "../../../services/UsuarioService.ts";
-import { actualizarEmpleado } from "../../../services/EmpleadoService.ts";
+import { actualizarEmpleado, obtenerEmpleadoPorDni } from "../../../services/EmpleadoService.ts";
 import { obtenerPaises, obtenerProvincias, obtenerLocalidades } from "../../../services/LocalizacionService.ts";
 import {obtenerSucursales} from "../../../services/SucursalService.ts"
 import  Rol  from "../../../models/enums/Rol.ts";
+import type Sucursal from "../../../models/Sucursal.ts";
 
 
 interface Props {
@@ -89,7 +89,7 @@ const FormDatosEmpleado = ({ show, onHide, empleado, onEmpleadoActualizado, edit
             // Datos personales
             setNombre(empleado.nombre || "");
             setApellido(empleado.apellido || "");
-            setDni(empleado.usuario?.dni || "");
+            setDni(empleado.dni || "");
             setTelefono(empleado.telefono || "");
             
             // Formatear fecha para el input date
@@ -143,10 +143,10 @@ const FormDatosEmpleado = ({ show, onHide, empleado, onEmpleadoActualizado, edit
         setDniError(null);
 
         // Si tiene valor y es diferente al DNI actual, verificar disponibilidad
-        if (value && value !== empleado.usuario?.dni) {
+        if (value && value !== empleado.dni) {
             try {
-                const usuario = await obtenerUsuarioPorDni(value);
-                if (usuario) {
+                const empleado = await obtenerEmpleadoPorDni(value);
+                if (empleado) {
                     setDniError("DNI ya está en uso");
                 }
             } catch (error) {
@@ -201,9 +201,9 @@ const FormDatosEmpleado = ({ show, onHide, empleado, onEmpleadoActualizado, edit
 
         try {
             // Verificar DNI solo si cambió
-            if (dni !== empleado.usuario?.dni) {
-                const usuarioPorDni = await obtenerUsuarioPorDni(dni);
-                if (usuarioPorDni) {
+            if (dni !== empleado.dni) {
+                const empleadoPorDni = await obtenerEmpleadoPorDni(dni);
+                if (empleadoPorDni) {
                     setFormError("El DNI ya está registrado.");
                     setLoading(false);
                     return;
@@ -223,10 +223,10 @@ const FormDatosEmpleado = ({ show, onHide, empleado, onEmpleadoActualizado, edit
                 nombre: nombre.trim(),
                 apellido: apellido.trim(),
                 telefono: telefono.trim(),
+                dni: dni.trim(),
                 fechaNacimiento: new Date(fechaNacimiento),
                 usuario: {
                     ...empleado.usuario!,
-                    dni: dni.trim(),
                     ...(editableAdmin && { rol: rolEmpleado }) // ← solo si es editable
                 },
                 domicilio: {

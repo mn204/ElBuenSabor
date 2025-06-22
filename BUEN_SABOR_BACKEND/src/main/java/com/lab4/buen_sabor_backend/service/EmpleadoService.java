@@ -10,6 +10,8 @@ import java.util.Optional;
 
 public interface EmpleadoService extends MasterService<Empleado, Long> {
     public Optional<Empleado> findByUsuarioId(Long usuarioId);
+    Optional<Empleado> findByDni(String dni);
+
 
     Page<Empleado> buscarEmpleadosFiltrados(String nombre,
                                             String email,
