@@ -35,6 +35,11 @@ public class EmpleadoServiceImpl extends MasterServiceImpl<Empleado, Long> imple
     }
 
     @Override
+    public Optional<Empleado> findByDni(String dni) {
+        return empleadoRepository.findByDni(dni);
+    }
+
+    @Override
     public Page<Empleado> buscarEmpleadosFiltrados(
             String nombre, // Ahora este parámetro funciona como búsqueda general
             String email,  // Puedes mantenerlo para compatibilidad pero no se usará

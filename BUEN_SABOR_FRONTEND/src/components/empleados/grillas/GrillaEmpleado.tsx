@@ -388,7 +388,7 @@ const GrillaEmpleado = () => {
                             <div className="mb-3">
                                 <p><b>Nombre:</b> {empleadoSeleccionado.nombre}</p>
                                 <p><b>Apellido:</b> {empleadoSeleccionado.apellido}</p>
-                                <p><b>DNI:</b> {empleadoSeleccionado.usuario.dni}</p>
+                                <p><b>DNI:</b> {empleadoSeleccionado.dni}</p>
                                 <p><b>Teléfono:</b> {empleadoSeleccionado.telefono}</p>
                                 <p><b>Email:</b> {empleadoSeleccionado.usuario.email}</p>
                                 <p><b>Rol:</b> {empleadoSeleccionado.usuario.rol}</p>

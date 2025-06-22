@@ -55,12 +55,6 @@ public class ClienteSpecification {
         };
     }
 
-    public static Specification<Cliente> dniEquals(String dni) {
-        return (root, query, cb) -> {
-            if (dni == null || dni.isBlank()) return null;
-            return cb.equal(root.get("usuario").get("dni"), dni);
-        };
-    }
 
     public static Specification<Cliente> telefonoContains(String telefono) {
         return (root, query, cb) -> {

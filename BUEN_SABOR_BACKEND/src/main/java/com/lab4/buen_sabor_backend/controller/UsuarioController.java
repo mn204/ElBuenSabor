@@ -36,12 +36,6 @@ public class UsuarioController extends MasterControllerImpl<Usuario, UsuarioDTO,
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/dni/{dni}")
-    public ResponseEntity<UsuarioDTO> getByDni(@PathVariable String dni) {
-        return usuarioService.findByDni(dni)
-                .map(usuario -> ResponseEntity.ok(usuarioMapper.toDTO(usuario)))
-                .orElse(ResponseEntity.notFound().build());
-    }
 
     @GetMapping("/email/{email}")
     public ResponseEntity<UsuarioDTO> getByEmail(@PathVariable String email) {

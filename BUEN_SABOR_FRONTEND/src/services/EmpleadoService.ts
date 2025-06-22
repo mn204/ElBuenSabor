@@ -1,4 +1,5 @@
 import  Empleado  from "../models/Empleado";
+import Usuario from "../models/Usuario.ts";
 
 const API_URL = "http://localhost:8080/api/empleado";
 
@@ -39,6 +40,17 @@ export const obtenerEmpleadoPorUsuarioId = async (usuarioId: number) => {
         throw new Error('Empleado no encontrado');
     }
     return response.json();
+};
+
+export const obtenerEmpleadoPorDni = async (dni: string): Promise<Empleado | null> => {
+    try {
+        const response = await fetch(`${API_URL}/dni/${dni}`);
+        if (!response.ok) return null;
+        return await response.json();
+    } catch (error) {
+        console.error("Error al verificar DNI:", error);
+        return null;
+    }
 };
 
 // Obtener empleado por ID

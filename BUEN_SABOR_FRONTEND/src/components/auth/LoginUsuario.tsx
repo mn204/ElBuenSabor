@@ -22,7 +22,7 @@ const LoginUsuario = ({ onRegisterClick , onClose}: Props) => {
     const [loading, setLoading] = useState(false);
     const [offlineMode, setOfflineMode] = useState(false);
 
-    const { login, loginOffline, isOfflineMode, setIsOfflineMode } = useAuth();
+    const { login, loginOffline,  setIsOfflineMode } = useAuth();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
