@@ -120,21 +120,25 @@ export function Carrito() {
     setStockError(null);
 
     try {
-      const stockDisponible = await PedidoService.consultarStock(pedido)
-      if (!stockDisponible) {
-        setStockError("No hay stock suficiente para algunos productos en la sucursal seleccionada.");
-        return false;
+      // Si hay stock suficiente, el backend devuelve true
+      const stockDisponible = await PedidoService.consultarStock(pedido);
+      console.log("Stock disponible:", stockDisponible);
+      return stockDisponible; // Si es false, es decisión del backend, pero no debería llegar acá con excepciones.
+    } catch (error: any) {
+      // 🔥 Esta parte es la importante: capturás el mensaje del backend
+      const parsed = JSON.parse(error.message);
+      if (parsed.errorMsg) {
+        setStockError(parsed.errorMsg);
+      } else {
+        setStockError("Error al verificar el stock.");
       }
 
-      return true;
-    } catch (error) {
-      console.error('Error verificando stock:', error);
-      setStockError("Error al verificar el stock. Intenta nuevamente.");
       return false;
     } finally {
       setVerificandoStock(false);
     }
   };
+
 
   const handleProceedToStep2 = async () => {
     if (!cliente) {
@@ -928,15 +932,15 @@ export function Carrito() {
                 </div>
               </div>
               {mensajeCambioSucursal && (
-                  <div className="alert alert-info alert-dismissible fade show" role="alert">
-                    <strong>Cambio de sucursal:</strong> {mensajeCambioSucursal}
-                    <button
-                        type="button"
-                        className="btn-close"
-                        onClick={() => setMensajeCambioSucursal("")}
-                        aria-label="Close"
-                    ></button>
-                  </div>
+                <div className="alert alert-info alert-dismissible fade show" role="alert">
+                  <strong>Cambio de sucursal:</strong> {mensajeCambioSucursal}
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => setMensajeCambioSucursal("")}
+                    aria-label="Close"
+                  ></button>
+                </div>
               )}
 
               <ModalDomicilio
