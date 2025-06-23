@@ -19,10 +19,10 @@ public class Categoria extends Master {
     @JoinColumn(name = "categoria_padre_id")
     private Categoria categoriaPadre;
 
-    @OneToMany(mappedBy = "categoriaPadre", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "categoriaPadre", cascade = CascadeType.REFRESH)
     private Set<Categoria> subcategorias = new HashSet<>();
 
-    @OneToMany(mappedBy = "categoria", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "categoria", cascade = CascadeType.REFRESH)
     private Set<Articulo> articulos = new HashSet<>();
 
     private String urlImagen;

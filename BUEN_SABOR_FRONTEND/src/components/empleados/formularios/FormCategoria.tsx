@@ -13,7 +13,11 @@ function FormCategoria() {
     const idFromUrl = searchParams.get("id");
     const [categoriaPadreId, setCategoriaPadreId] = useState<string>("");
     const [eliminado, setEliminado] = useState(false);
-    const [imagen, setImagen] = useState<string>("");
+    
+    // Estados para manejo de imagen (solo una)
+    const [imagenExistente, setImagenExistente] = useState<string>("");
+    const [eliminarImagenExistente, setEliminarImagenExistente] = useState(false);
+    const [nuevaImagen, setNuevaImagen] = useState<File | null>(null);
 
     useEffect(() => {
         if (idFromUrl) {
@@ -22,6 +26,9 @@ function FormCategoria() {
                     setDenominacion(categoria.denominacion);
                     setCategoriaPadreId(categoria.categoriaPadre?.id?.toString() || "");
                     setEliminado(!!categoria.eliminado);
+                    if (categoria.urlImagen) {
+                        setImagenExistente(categoria.urlImagen);
+                    }
                 });
         }
     }, [idFromUrl]);
@@ -29,16 +36,54 @@ function FormCategoria() {
     useEffect(() => {
         categoriaService.getAll().then(setCategorias).catch(() => setCategorias([]));
     }, []);
-    const handleImagenesChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+
+    const handleImagenChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
-            const archivo = e.target.files[0]; // tomamos solo el primero
-            const url = await subirACloudinary(archivo);
-            console.log(url)
-            setImagen(url);
+            const archivo = e.target.files[0];
+            setNuevaImagen(archivo);
+            // Al seleccionar nueva imagen, marcar la existente como eliminada
+            if (imagenExistente) {
+                setEliminarImagenExistente(true);
+            }
+        }
+    };
+
+    const removerImagenExistente = () => {
+        setEliminarImagenExistente(true);
+    };
+
+    const restaurarImagenExistente = () => {
+        setEliminarImagenExistente(false);
+        // Al restaurar la imagen existente, quitar la nueva imagen
+        setNuevaImagen(null);
+        const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+        if (fileInput) {
+            fileInput.value = '';
+        }
+    };
+
+    const removerNuevaImagen = () => {
+        setNuevaImagen(null);
+        const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+        if (fileInput) {
+            fileInput.value = '';
+        }
+        // Al remover la nueva imagen, restaurar la existente si había una
+        if (imagenExistente) {
+            setEliminarImagenExistente(false);
         }
     };
 
     const Guardar = async () => {
+        let urlImagenFinal = "";
+
+        // Lógica simplificada para una sola imagen
+        if (nuevaImagen) {
+            urlImagenFinal = await subirACloudinary(nuevaImagen);
+        } else if (imagenExistente && !eliminarImagenExistente) {
+            urlImagenFinal = imagenExistente;
+        }
+
         const categoria: Categoria = {
             id: idFromUrl ? Number(idFromUrl) : undefined,
             denominacion,
@@ -46,7 +91,7 @@ function FormCategoria() {
             categoriaPadre: categoriaPadreId
                 ? categorias.find(cat => cat.id === Number(categoriaPadreId))
                 : undefined,
-            urlImagen: imagen
+            urlImagen: urlImagenFinal
         };
 
         try {
@@ -56,7 +101,7 @@ function FormCategoria() {
                 await categoriaService.create(categoria);
             }
             alert("Categoría guardada exitosamente");
-            window.location.href = "/empleado/categorias"; // Redirige a la lista de categorías
+            window.location.href = "/empleado/categorias";
         } catch (error) {
             console.error("Error al guardar la categoría:", error);
             alert("Error al guardar la categoría");
@@ -69,17 +114,23 @@ function FormCategoria() {
             <form className="formContainer container d-flex flex-column gap-3 text-start" onSubmit={e => e.preventDefault()}>
                 <div>
                     <label>Denominación:</label>
-                    <input className="form-control" value={denominacion} onChange={e => setDenominacion(e.target.value)} />
+                    <input 
+                        className="form-control" 
+                        value={denominacion} 
+                        onChange={e => setDenominacion(e.target.value)} 
+                    />
                 </div>
+                
                 <div>
                     <label>Categoría:</label>
                     <select
+                        className="form-control"
                         value={categoriaPadreId}
                         onChange={e => setCategoriaPadreId(e.target.value)}
                     >
                         <option value="">Seleccione una opción</option>
                         {categorias
-                            .filter(cat => !idFromUrl || cat.id !== Number(idFromUrl)) // Evita seleccionarse a sí misma
+                            .filter(cat => !idFromUrl || cat.id !== Number(idFromUrl))
                             .map((cat: Categoria) => (
                                 <option key={cat.id} value={cat.id}>
                                     {cat.denominacion}
@@ -87,9 +138,11 @@ function FormCategoria() {
                             ))}
                     </select>
                 </div>
+                
                 <div>
                     <label>Estado:</label>
                     <select
+                        className="form-control"
                         value={eliminado ? "eliminado" : "activo"}
                         onChange={e => setEliminado(e.target.value === "eliminado")}
                     >
@@ -97,20 +150,99 @@ function FormCategoria() {
                         <option value="eliminado">Eliminado</option>
                     </select>
                 </div>
-                <input
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    onChange={handleImagenesChange}
-                    className="form-control mt-2"
-                />
+
+                {/* Sección de imagen */}
+                <div>
+                    <label>Imagen:</label>
+                    
+                    {/* Imagen existente */}
+                    {idFromUrl && imagenExistente && !eliminarImagenExistente && (
+                        <div className="mb-3">
+                            <h6>Imagen actual:</h6>
+                            <div className="d-flex align-items-center gap-3">
+                                <img 
+                                    src={imagenExistente} 
+                                    alt="Imagen actual" 
+                                    style={{ 
+                                        width: '100px', 
+                                        height: '100px', 
+                                        objectFit: 'cover',
+                                        borderRadius: '8px',
+                                        border: '1px solid #ddd'
+                                    }} 
+                                />
+                                <Button 
+                                    variant="outline-danger" 
+                                    size="sm"
+                                    onClick={removerImagenExistente}
+                                >
+                                    Eliminar
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Mensaje de imagen eliminada */}
+                    {idFromUrl && imagenExistente && eliminarImagenExistente && (
+                        <div className="mb-3">
+                            <div className="alert alert-warning d-flex justify-content-between align-items-center">
+                                <span>Imagen marcada para eliminación</span>
+                                <Button 
+                                    variant="outline-primary" 
+                                    size="sm"
+                                    onClick={restaurarImagenExistente}
+                                >
+                                    Restaurar
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Input para nueva imagen */}
+                    <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImagenChange}
+                        className="form-control"
+                    />
+
+                    {/* Vista previa de nueva imagen */}
+                    {nuevaImagen && (
+                        <div className="mt-3">
+                            <h6>Nueva imagen:</h6>
+                            <div className="d-flex align-items-center gap-3">
+                                <img 
+                                    src={URL.createObjectURL(nuevaImagen)} 
+                                    alt="Nueva imagen" 
+                                    style={{ 
+                                        width: '100px', 
+                                        height: '100px', 
+                                        objectFit: 'cover',
+                                        borderRadius: '8px',
+                                        border: '1px solid #ddd'
+                                    }} 
+                                />
+                                <div>
+                                    <p className="mb-1 text-muted small">{nuevaImagen.name}</p>
+                                    <Button 
+                                        variant="outline-danger" 
+                                        size="sm"
+                                        onClick={removerNuevaImagen}
+                                    >
+                                        Remover
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
                 <Button
                     variant="success"
-                    className="mt-3"
+                    className="mt-4"
                     onClick={Guardar}
-                    disabled={
-                        !denominacion
-                    }>
+                    disabled={!denominacion}
+                >
                     {idFromUrl ? "Actualizar" : "Crear"}
                 </Button>
             </form>
