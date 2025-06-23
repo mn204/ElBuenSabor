@@ -2,6 +2,7 @@ package com.lab4.buen_sabor_backend.repository;
 
 import com.lab4.buen_sabor_backend.model.Pedido;
 import com.lab4.buen_sabor_backend.model.enums.Estado;
+import com.lab4.buen_sabor_backend.model.enums.TipoEnvio;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,65 +32,32 @@ public interface PedidoRepository extends MasterRepository<Pedido, Long>, JpaSpe
 
     Optional<Pedido> findByIdAndSucursalId(Long idPedido, Long idSucursal);
 
-    //busqueda para pedido grilla administrador:
-    @Query(value = """
-    SELECT p FROM Pedido p
-    WHERE (:idSucursal IS NULL OR p.sucursal.id = :idSucursal)
-    AND (:estado IS NULL OR p.estado = :estado)
-    AND (:clienteNombre IS NULL OR LOWER(p.cliente.nombre) LIKE LOWER(CONCAT('%', :clienteNombre, '%')))
-    AND (:idPedido IS NULL OR p.id = :idPedido)
-    AND (:idEmpleado IS NULL OR p.empleado.id = :idEmpleado)
-    AND (:fechaDesde IS NULL OR p.fechaPedido >= :fechaDesde)
-    AND (:fechaHasta IS NULL OR p.fechaPedido <= :fechaHasta)
-    AND (:pagado IS NULL OR p.pagado = :pagado)
-    ORDER BY p.fechaPedido DESC
-""",
-            countQuery = """
-    SELECT COUNT(p) FROM Pedido p
-    WHERE (:idSucursal IS NULL OR p.sucursal.id = :idSucursal)
-    AND (:estado IS NULL OR p.estado = :estado)
-    AND (:clienteNombre IS NULL OR LOWER(p.cliente.nombre) LIKE LOWER(CONCAT('%', :clienteNombre, '%')))
-    AND (:idPedido IS NULL OR p.id = :idPedido)
-    AND (:idEmpleado IS NULL OR p.empleado.id = :idEmpleado)
-    AND (:fechaDesde IS NULL OR p.fechaPedido >= :fechaDesde)
-    AND (:fechaHasta IS NULL OR p.fechaPedido <= :fechaHasta)
-    AND (:pagado IS NULL OR p.pagado = :pagado)
-""")
-    Page<Pedido> buscarPedidosFiltrados(
-            @Param("idSucursal") Long idSucursal,
-            @Param("estado") Estado estado,
-            @Param("clienteNombre") String clienteNombre,
-            @Param("idPedido") Long idPedido,
-            @Param("idEmpleado") Long idEmpleado,
-            @Param("fechaDesde") LocalDateTime fechaDesde,
-            @Param("fechaHasta") LocalDateTime fechaHasta,
-            @Param("pagado") Boolean pagado,
-            Pageable pageable
-    );
-
 
     Long countPedidosByClienteId(Long clienteId);
 
+    //AGREGAR PARA COLOCAR EL FILTRO TIPOENVIO
     @Query("""
     SELECT p FROM Pedido p
     WHERE (:idSucursal IS NULL OR p.sucursal.id = :idSucursal)
-    AND (:estado IS NULL OR p.estado = :estado)
+    AND ((:estados) IS NULL OR p.estado IN (:estados))
     AND (:clienteNombre IS NULL OR LOWER(p.cliente.nombre) LIKE LOWER(CONCAT('%', :clienteNombre, '%')))
     AND (:idPedido IS NULL OR p.id = :idPedido)
     AND (:idEmpleado IS NULL OR p.empleado.id = :idEmpleado)
     AND (:fechaDesde IS NULL OR p.fechaPedido >= :fechaDesde)
     AND (:fechaHasta IS NULL OR p.fechaPedido <= :fechaHasta)
     AND (:pagado IS NULL OR p.pagado = :pagado)
+    AND (:tipoEnvio IS NULL OR p.tipoEnvio = :tipoEnvio)
     ORDER BY p.fechaPedido DESC
 """)
     List<Pedido> exportarPedidosFiltrados(
             @Param("idSucursal") Long idSucursal,
-            @Param("estado") Estado estado,
+            @Param("estados") List <Estado> estados,
             @Param("clienteNombre") String clienteNombre,
             @Param("idPedido") Long idPedido,
             @Param("idEmpleado") Long idEmpleado,
-            @Param("fechaDesde") LocalDateTime fechaDesde,
-            @Param("fechaHasta") LocalDateTime fechaHasta,
+            @Param("fechaDesde") OffsetDateTime fechaDesde,
+            @Param("fechaHasta") OffsetDateTime fechaHasta,
+            @Param("tipoEnvio") TipoEnvio tipoEnvio,
             @Param("pagado") Boolean pagado
     );
 }

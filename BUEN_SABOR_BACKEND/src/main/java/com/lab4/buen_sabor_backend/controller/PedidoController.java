@@ -6,6 +6,7 @@ import com.lab4.buen_sabor_backend.mapper.PedidoMapper;
 import com.lab4.buen_sabor_backend.model.*;
 import com.lab4.buen_sabor_backend.model.MercadoPago.PreferenceMP;
 import com.lab4.buen_sabor_backend.model.enums.Estado;
+import com.lab4.buen_sabor_backend.model.enums.TipoEnvio;
 import com.lab4.buen_sabor_backend.service.ArticuloInsumoService;
 import com.lab4.buen_sabor_backend.service.ArticuloManufacturadoService;
 import com.lab4.buen_sabor_backend.service.MercadoPago.MercadoPagoService;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.*;
 
 @RestController
@@ -69,12 +71,12 @@ public class PedidoController extends MasterControllerImpl<Pedido, PedidoDTO, Lo
             @PathVariable Long clienteId,
             @RequestParam(required = false) String sucursal,
             @RequestParam(required = false) Estado estado,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime desde,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime hasta,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime fechaDesde,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime fechaHasta,
             @RequestParam(required = false) String articulo,
             Pageable pageable
     ) {
-        Page<Pedido> pedidos = pedidoService.findPedidosByClienteWithFilters(clienteId, sucursal, estado, desde, hasta, articulo, pageable);
+        Page<Pedido> pedidos = pedidoService.findPedidosByClienteWithFilters(clienteId, sucursal, estado, fechaDesde, fechaHasta, articulo, pageable);
         Page<PedidoDTO> result = pedidos.map(pedidoMapper::toDTO);
         return ResponseEntity.ok(result);
     }
@@ -90,16 +92,17 @@ public class PedidoController extends MasterControllerImpl<Pedido, PedidoDTO, Lo
     @GetMapping("/filtrados")
     public ResponseEntity<Page<PedidoDTO>> obtenerPedidosFiltrados(
             @RequestParam(required = false) Long idSucursal,
-            @RequestParam(required = false) Estado estado,
+            @RequestParam(required = false) List<Estado> estados,
             @RequestParam(required = false) String clienteNombre,
             @RequestParam(required = false) Long idPedido,
             @RequestParam(required = false) Long idEmpleado,
             @RequestParam(required = false) Boolean pagado,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fechaDesde,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fechaHasta,
-            Pageable pageable
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime fechaDesde,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime fechaHasta,
+            @RequestParam(required = false) TipoEnvio tipoEnvio,
+            @PageableDefault(sort = "fechaPedido", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        Page<Pedido> pedidos = pedidoService.buscarPedidosFiltrados(idSucursal, estado, clienteNombre, idPedido, idEmpleado, pagado, fechaDesde, fechaHasta, pageable);
+        Page<Pedido> pedidos = pedidoService.buscarPedidosFiltrados(idSucursal, estados, clienteNombre, idPedido, idEmpleado, pagado, fechaDesde, fechaHasta, tipoEnvio, pageable);
         Page<PedidoDTO> result = pedidos.map(pedidoMapper::toDTO);
 
         return ResponseEntity.ok(result);
@@ -198,16 +201,17 @@ public class PedidoController extends MasterControllerImpl<Pedido, PedidoDTO, Lo
     @GetMapping("/filtrados/excel")
     public ResponseEntity<byte[]> exportarPedidosFiltradosExcel(
             @RequestParam(required = false) Long idSucursal,
-            @RequestParam(required = false) Estado estado,
+            @RequestParam(required = false) List<Estado> estados,
             @RequestParam(required = false) String clienteNombre,
             @RequestParam(required = false) Long idPedido,
             @RequestParam(required = false) Long idEmpleado,
             @RequestParam(required = false) Boolean pagado,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fechaDesde,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fechaHasta
+            @RequestParam(required = false) TipoEnvio tipoEnvio,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime fechaDesde,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime fechaHasta
     ) {
         byte[] excel = pedidoService.exportarPedidosFiltradosExcel(
-                idSucursal, estado, clienteNombre, idPedido, idEmpleado, fechaDesde, fechaHasta, pagado
+                idSucursal, estados, clienteNombre, idPedido, idEmpleado, fechaDesde, fechaHasta, pagado, tipoEnvio
         );
 
         HttpHeaders headers = new HttpHeaders();

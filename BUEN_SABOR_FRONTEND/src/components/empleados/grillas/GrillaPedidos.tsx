@@ -16,15 +16,36 @@ import type Sucursal from "../../../models/Sucursal.ts";
 import SelectDeliveryModal from '../modales/ModalDeliverySeleccion.tsx';
 import Empleado from '../../../models/Empleado.ts';
 import Rol from '../../../models/enums/Rol.ts';
-import dayjs from 'dayjs';
+import { es } from 'date-fns/locale';
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+dayjs.extend(utc);
+dayjs.extend(timezone);
 interface Props {
     cliente?: Cliente;
+}
+
+function ajustarFechaHasta(date: Date | null): Date | null {
+    if (!date) return null;
+    // Si la hora es 00:00:00, setea a 23:59:59.999
+    if (
+        date.getHours() === 0 &&
+        date.getMinutes() === 0 &&
+        date.getSeconds() === 0 &&
+        date.getMilliseconds() === 0
+    ) {
+        const finDia = new Date(date);
+        finDia.setHours(23, 59, 59, 999);
+        return finDia;
+    }
+    return date;
 }
 
 const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
     const [loadingEstados, setLoadingEstados] = useState<Record<number, boolean>>({});
     const { sucursalActual, sucursalIdSeleccionada } = useSucursal();
-    const { empleado, usuario } = useAuth();
+    const { usuario } = useAuth();
 
     const getColorEstado = (estado: Estado): string => {
         switch (estado) {
@@ -54,17 +75,20 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
 
     // Estados para exportación a Excel (solo admin)
     const [pedidosSeleccionados, setPedidosSeleccionados] = useState<Map<number, Pedido>>(new Map());
-    const [modoSeleccion, setModoSeleccion] = useState(false);
+    const [modoSeleccion] = useState(false);
 
     const [filtros, setFiltros] = useState({
         sucursalId: "",
-        estado: "",
+        estados: [Estado.PENDIENTE, Estado.LISTO] as Estado[],
         desde: null as Date | null,
         hasta: null as Date | null,
-        idPedido: undefined as number | undefined,
+        idPedido: "" as string,
         clienteNombre: "",
-        pagado: ""
+        pagado: "",
+        tipoEnvio: ""
     });
+    const [sortDesc, setSortDesc] = useState(true);
+
 
     const fetchPedidos = async () => {
         const sucursalId = usuario?.rol === 'ADMINISTRADOR' && filtros.sucursalId
@@ -73,13 +97,16 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
 
         try {
             setLoading(true);
-            const filtrosConvertidos = {
-                estado: filtros.estado || undefined,
-                clienteNombre: cliente ? `${cliente.nombre} ${cliente.apellido}` : (filtros.clienteNombre || undefined),
-                fechaDesde: filtros.desde ? filtros.desde.toISOString() : undefined,
-                fechaHasta: filtros.hasta ? filtros.hasta.toISOString() : undefined,
-                pagado: filtros.pagado === "" ? undefined : filtros.pagado === "true"
+            const filtrosConvertidos: any = {
+                estados: filtros.estados && filtros.estados.length > 0 ? filtros.estados : undefined, clienteNombre: cliente ? `${cliente.nombre} ${cliente.apellido}` : (filtros.clienteNombre || undefined),
+                fechaDesde: filtros.desde ? dayjs(filtros.desde).tz("America/Argentina/Buenos_Aires").format() : undefined,
+                fechaHasta: filtros.hasta ? dayjs(ajustarFechaHasta(filtros.hasta)!).tz("America/Argentina/Buenos_Aires").format() : undefined,
+                pagado: filtros.pagado === "" ? undefined : filtros.pagado === "true",
+                tipoEnvio: filtros.tipoEnvio || undefined,
+                idPedido: filtros.idPedido ? Number(filtros.idPedido) : undefined
             };
+
+            const sortParam = `fechaPedido,${sortDesc ? "DESC" : "ASC"}`;
 
             // Agregamos el parámetro de orden descendente por fecha
             const result = await pedidoService.getPedidosFiltrados(
@@ -87,6 +114,7 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
                 filtrosConvertidos,
                 page,
                 size,
+                sortParam
             );
             setPedidos(result.content);
             setTotalPages(result.totalPages);
@@ -116,11 +144,10 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
     }, [usuario]);
 
     useEffect(() => {
-        // Los empleados regulares necesitan sucursal, los admin pueden ver todas
         if (usuario?.rol === 'ADMINISTRADOR' || sucursalActual?.id) {
             fetchPedidos();
         }
-    }, [page, sucursalIdSeleccionada, filtros.estado, filtros.desde, filtros.hasta, filtros.idPedido, filtros.clienteNombre, filtros.sucursalId, filtros.pagado]);
+    }, [page, sucursalIdSeleccionada, filtros.estados, filtros.desde, filtros.hasta, filtros.idPedido, filtros.clienteNombre, filtros.sucursalId, filtros.pagado, filtros.tipoEnvio, sortDesc]);
 
     const handleVerDetalle = async (pedidoId: number) => {
         try {
@@ -298,12 +325,13 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
     const handleVerTodos = () => {
         setFiltros({
             sucursalId: "",
-            estado: "",
+            estados: [],
             desde: null,
             hasta: null,
-            idPedido: undefined,
+            idPedido: "",
             clienteNombre: "",
-            pagado: ""
+            pagado: "",
+            tipoEnvio: ""
         });
         setPage(0);
     };
@@ -324,28 +352,6 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
         });
     };
 
-    /*
-    const handleSeleccionarTodos = () => {
-        const pedidosActualesSeleccionados = pedidos.filter(p => pedidosSeleccionados.has(p.id!));
-
-        if (pedidosActualesSeleccionados.length === pedidos.length) {
-            // Deseleccionar todos los de esta página
-            setPedidosSeleccionados(prev => {
-                const newMap = new Map(prev);
-                pedidos.forEach(p => newMap.delete(p.id!));
-                return newMap;
-            });
-        } else {
-            // Seleccionar todos los de esta página
-            setPedidosSeleccionados(prev => {
-                const newMap = new Map(prev);
-                pedidos.forEach(p => newMap.set(p.id!, p));
-                return newMap;
-            });
-        }
-    };
-    */
-
     const handleExportarExcel = async () => {
         try {
             setLoading(true);
@@ -355,11 +361,15 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
                 : sucursalIdSeleccionada;
 
             const filtrosConvertidos = {
-                estado: filtros.estado || undefined,
+                estados: filtros.estados && filtros.estados.length > 0 ? filtros.estados : undefined,
                 clienteNombre: cliente ? `${cliente.nombre} ${cliente.apellido}` : (filtros.clienteNombre || undefined),
-                fechaDesde: filtros.desde ? filtros.desde.toISOString() : undefined,
-                fechaHasta: filtros.hasta ? filtros.hasta.toISOString() : undefined,
-                pagado: filtros.pagado === "" ? undefined : filtros.pagado === "true"
+                fechaDesde: filtros.desde ? dayjs(filtros.desde).tz("America/Argentina/Buenos_Aires").format() : undefined,
+                fechaHasta: filtros.hasta ? dayjs(ajustarFechaHasta(filtros.hasta)!).tz("America/Argentina/Buenos_Aires").format() : undefined,
+                pagado: filtros.pagado === "" ? undefined : filtros.pagado === "true",
+                tipoEnvio: filtros.tipoEnvio === "DELIVERY" || filtros.tipoEnvio === "TAKEAWAY"
+                    ? filtros.tipoEnvio as "DELIVERY" | "TAKEAWAY"
+                    : undefined,
+                idPedido: filtros.idPedido ? Number(filtros.idPedido) : undefined
             };
 
             // Llama a un método que exporte todos los pedidos filtrados (sin paginación)
@@ -499,7 +509,7 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
 
     return (
         <>
-            <Card>
+            <Card className="mb-4 shadow-sm">
                 <Card.Header>
                     <div className="d-flex justify-content-between align-items-center">
                         <Card.Title className="mb-0">
@@ -519,62 +529,133 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
                     </div>
                 </Card.Header>
                 <Card.Body>
-                    <Form className="mb-3">
-                        <Row>
-                            {!cliente && (
-                                <Col>
+                    <Form className="mb-5">
+                        <Row className="gy-2 align-items-center">
+                            <Col xs={12} md={8} lg={9} className="d-flex flex-wrap align-items-center gap-3">
+                                <div>
+                                    <Form.Label className="fw-bold mb-0 me-2">Estados</Form.Label>
+                                    <div className="d-inline-flex flex-wrap gap-2 align-items-center">
+                                        {Object.values(Estado).map((est) => (
+                                            <Form.Check
+                                                key={est}
+                                                type="checkbox"
+                                                id={`estado-${est}`}
+                                                label={<span style={{ fontSize: "0.85em" }}>{est}</span>}
+                                                value={est}
+                                                checked={filtros.estados.includes(est)}
+                                                onChange={(e) => {
+                                                    const checked = e.target.checked;
+                                                    setFiltros((prev) => ({
+                                                        ...prev,
+                                                        estados: checked
+                                                            ? [...prev.estados, est]
+                                                            : prev.estados.filter((estado) => estado !== est)
+                                                    }));
+                                                }}
+                                                className="mb-0"
+                                                style={{ minWidth: "auto" }}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                                {!cliente && (
+                                    <div>
+                                        <Form.Label className="fw-bold mb-0 me-2">Cliente</Form.Label>
+                                        <Form.Control
+                                            size="sm"
+                                            style={{ width: 140, display: "inline-block" }}
+                                            placeholder="Nombre del Cliente"
+                                            value={filtros.clienteNombre}
+                                            onChange={(e) => setFiltros({ ...filtros, clienteNombre: e.target.value })}
+                                        />
+                                    </div>
+                                )}
+                                <div>
+                                    <Form.Label className="fw-bold mb-0 me-2">ID</Form.Label>
                                     <Form.Control
-                                        placeholder="Cliente"
-                                        value={filtros.clienteNombre}
-                                        onChange={(e) => setFiltros({ ...filtros, clienteNombre: e.target.value })}
+                                        size="sm"
+                                        type="number"
+                                        style={{ width: 90, display: "inline-block" }}
+                                        placeholder="ID Pedido"
+                                        value={filtros.idPedido}
+                                        onChange={(e) => setFiltros({ ...filtros, idPedido: e.target.value })}
                                     />
-                                </Col>
-                            )}
-                            <Col>
-                                <Form.Select value={filtros.estado} onChange={(e) => setFiltros({ ...filtros, estado: e.target.value })}>
-                                    <option value="">Estados</option>
-                                    {Object.values(Estado).map((est) => (
-                                        <option key={est} value={est}>{est}</option>
-                                    ))}
-                                </Form.Select>
+                                </div>
+                                <div>
+                                    <Form.Label className="fw-bold mb-0 me-2">Envío</Form.Label>
+                                    <Form.Select
+                                        size="sm"
+                                        style={{ width: 120, display: "inline-block" }}
+                                        value={filtros.tipoEnvio}
+                                        onChange={(e) => setFiltros({ ...filtros, tipoEnvio: e.target.value })}
+                                    >
+                                        <option value="">Todos</option>
+                                        <option value="DELIVERY">Delivery</option>
+                                        <option value="TAKEAWAY">Take Away</option>
+                                    </Form.Select>
+                                </div>
+                                <div>
+                                    <Form.Label className="fw-bold mb-0 me-2">Pagado</Form.Label>
+                                    <Form.Select
+                                        size="sm"
+                                        style={{ width: 120, display: "inline-block" }}
+                                        value={filtros.pagado}
+                                        onChange={(e) => setFiltros({ ...filtros, pagado: e.target.value })}
+                                    >
+                                        <option value="">Todos</option>
+                                        <option value="true">SI</option>
+                                        <option value="false">NO</option>
+                                    </Form.Select>
+                                </div>
+                                <div className="d-flex align-items-end">
+                                    <div>
+                                        <Form.Label className="fw-bold mb-0 me-2">Fecha Desde</Form.Label>
+                                        <DatePicker
+                                            className="form-control form-control-sm d-inline-block"
+                                            placeholderText="Desde"
+                                            selected={filtros.desde}
+                                            onChange={(date) => {
+                                                setFiltros({ ...filtros, desde: date, hasta: filtros.hasta && date && filtros.hasta < date ? null : filtros.hasta });
+                                            }}
+                                            showTimeSelect
+                                            dateFormat="dd/MM/yyyy HH:mm"
+                                            locale={es}
+                                            maxDate={filtros.hasta || undefined}
+                                            isClearable
+                                        />
+                                    </div>
+                                    <div className="ms-2">
+                                        <Form.Label className="fw-bold mb-0 me-2">Fecha Hasta</Form.Label>
+                                        <DatePicker
+                                            className="form-control form-control-sm d-inline-block"
+                                            placeholderText="Hasta"
+                                            selected={filtros.hasta}
+                                            onChange={(date) => setFiltros({ ...filtros, hasta: date })}
+                                            showTimeSelect
+                                            dateFormat="dd/MM/yyyy HH:mm"
+                                            locale={es}
+                                            minDate={filtros.desde || undefined}
+                                            isClearable
+                                        />
+                                    </div>
+                                </div>
                             </Col>
-                            <Col>
-                                <DatePicker
-                                    className="form-control"
-                                    placeholderText="Desde"
-                                    selected={filtros.desde}
-                                    onChange={(date) => setFiltros({ ...filtros, desde: date })}
-                                    showTimeSelect
-                                    dateFormat="Pp"
-                                />
-                            </Col>
-                            <Col>
-                                <DatePicker
-                                    className="form-control"
-                                    placeholderText="Hasta"
-                                    selected={filtros.hasta}
-                                    onChange={(date) => setFiltros({ ...filtros, hasta: date })}
-                                    showTimeSelect
-                                    dateFormat="Pp"
-                                />
-                            </Col>
-                            <Col>
-                                <Form.Select value={filtros.pagado} onChange={(e) => setFiltros({ ...filtros, pagado: e.target.value })}>
-                                    <option value="">Todos (pagado/no pagado)</option>
-                                    <option value="true">SI (Pagado)</option>
-                                    <option value="false">NO (No pagado)</option>
-                                </Form.Select>
-                            </Col>
-                            <Col>
-                                <Form.Control
-                                    type="number"
-                                    placeholder="ID Pedido"
-                                    value={filtros.idPedido || ""}
-                                    onChange={(e) => setFiltros({ ...filtros, idPedido: e.target.value ? parseInt(e.target.value) : undefined })}
-                                />
-                            </Col>
-                            <Col>
-                                <Button variant="outline-secondary" onClick={handleVerTodos}>Ver Todos</Button>
+                            <Col xs={12} md={4} lg={3} className="d-flex flex-column align-items-end justify-content-center">
+                                <Button
+                                    variant="outline-secondary"
+                                    onClick={handleVerTodos}
+                                    style={{ minWidth: 140, marginBottom: 6, height: 38 }}
+                                >
+                                    Limpiar
+                                </Button>
+                                <Button
+                                    variant={sortDesc ? "outline-primary" : "outline-dark"}
+                                    onClick={() => setSortDesc((prev) => !prev)}
+                                    title="Alternar orden de fecha"
+                                    style={{ minWidth: 140, height: 38 }}
+                                >
+                                    {sortDesc ? "⬇ Más nuevos" : "⬆ Más viejos"}
+                                </Button>
                             </Col>
                         </Row>
                     </Form>

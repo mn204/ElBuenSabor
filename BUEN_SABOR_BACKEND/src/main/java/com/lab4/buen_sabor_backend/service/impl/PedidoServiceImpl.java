@@ -4,6 +4,7 @@ import com.lab4.buen_sabor_backend.dto.PedidoDTO;
 import com.lab4.buen_sabor_backend.exceptions.EntityNotFoundException;
 import com.lab4.buen_sabor_backend.model.*;
 import com.lab4.buen_sabor_backend.model.enums.Rol;
+import com.lab4.buen_sabor_backend.model.enums.TipoEnvio;
 import com.lab4.buen_sabor_backend.repository.ClienteRepository;
 import com.lab4.buen_sabor_backend.repository.EmpleadoRepository;
 import com.lab4.buen_sabor_backend.service.*;
@@ -25,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.*;
 
 @Service
@@ -81,15 +83,15 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
             Long clienteId,
             String sucursalNombre,
             Estado estado,
-            LocalDateTime desde,
-            LocalDateTime hasta,
+            OffsetDateTime fechaDesde,
+            OffsetDateTime fechaHasta,
             String nombreArticulo,
             Pageable pageable
     ) {
         Specification<Pedido> spec = Specification.where(clienteIdEquals(clienteId))
                 .and(sucursalNombreContains(sucursalNombre))
                 .and(estadoEquals(estado))
-                .and(fechaBetween(desde, hasta))
+                .and(fechaBetween(fechaDesde, fechaHasta))
                 .and(contieneArticulo(nombreArticulo));
 
         return pedidoRepository.findAll(spec, pageable);
@@ -99,23 +101,25 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
     @Override
     public Page<Pedido> buscarPedidosFiltrados(
             Long idSucursal,
-            Estado estado,
+            List<Estado> estados,
             String clienteNombre,
             Long idPedido,
             Long idEmpleado,
             Boolean pagado,
-            LocalDateTime fechaDesde,
-            LocalDateTime fechaHasta,
+            OffsetDateTime fechaDesde,
+            OffsetDateTime fechaHasta,
+            TipoEnvio tipoEnvio,
             Pageable pageable
     ) {
         Specification<Pedido> spec = Specification
                 .where(PedidoSpecification.sucursalIdEquals(idSucursal))
-                .and(PedidoSpecification.estadoEquals(estado))
+                .and(PedidoSpecification.estadoIn(estados))
                 .and(PedidoSpecification.clienteNombreContains(clienteNombre))
                 .and(PedidoSpecification.idEquals(idPedido))
                 .and(PedidoSpecification.empleadoIdEquals(idEmpleado))
                 .and(PedidoSpecification.pagadoEquals(pagado))
-                .and(PedidoSpecification.fechaBetween(fechaDesde, fechaHasta));
+                .and(PedidoSpecification.fechaBetween(fechaDesde, fechaHasta))
+                .and(PedidoSpecification.tipoEnvioEquals(tipoEnvio));
         return pedidoRepository.findAll(spec, pageable);
     }
 
@@ -684,13 +688,13 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
     }
 
     @Override
-    public byte[] exportarPedidosFiltradosExcel(Long idSucursal, Estado estado, String clienteNombre,
+    public byte[] exportarPedidosFiltradosExcel(Long idSucursal, List<Estado> estados, String clienteNombre,
                                                 Long idPedido, Long idEmpleado,
-                                                LocalDateTime fechaDesde, LocalDateTime fechaHasta,
-                                                Boolean pagado) {
+                                                OffsetDateTime fechaDesde, OffsetDateTime fechaHasta,
+                                                Boolean pagado, TipoEnvio tipoEnvio) {
 
         List<Pedido> pedidosFiltrados = pedidoRepository.exportarPedidosFiltrados(
-                idSucursal, estado, clienteNombre, idPedido, idEmpleado, fechaDesde, fechaHasta, pagado
+                idSucursal, estados, clienteNombre, idPedido, idEmpleado, fechaDesde, fechaHasta, tipoEnvio, pagado
         );
 
         return excelService.exportarPedidosAExcel(pedidosFiltrados);

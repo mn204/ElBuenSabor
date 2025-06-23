@@ -4,28 +4,31 @@ import com.lab4.buen_sabor_backend.model.Pedido;
 import com.lab4.buen_sabor_backend.model.Promocion;
 import com.lab4.buen_sabor_backend.model.Sucursal;
 import com.lab4.buen_sabor_backend.model.enums.Estado;
+import com.lab4.buen_sabor_backend.model.enums.TipoEnvio;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.*;
 
 public interface PedidoService extends MasterService<Pedido, Long> {
 
     //Esto es para los Pedidos del Cliente
     Page<Pedido> findPedidosByClienteWithFilters(Long clienteId, String sucursalNombre, Estado estado,
-                                                 LocalDateTime desde, LocalDateTime hasta, String nombreArticulo,
+                                                 OffsetDateTime fechaDesde, OffsetDateTime fechaHasta, String nombreArticulo,
                                                  Pageable pageable);
     public boolean verificarStockArticulo(Long articuloId, int cantidad, Long sucursalId);
     //Esto es para los Pedidos filtrados para delivery y cocina
     Page<Pedido> buscarPedidosFiltrados(Long idSucursal,
-                                        Estado estado,
+                                        List<Estado> estados,
                                         String nombreCliente,
                                         Long idPedido,
                                         Long idEmpleado,
                                         Boolean pagado,
-                                        LocalDateTime fechaDesde,
-                                        LocalDateTime fechaHasta,
+                                        OffsetDateTime fechaDesde,
+                                        OffsetDateTime fechaHasta,
+                                        TipoEnvio tipoEnvio,
                                         Pageable pageable);
 
     //Cambiar pagado del pedido
@@ -53,13 +56,14 @@ public interface PedidoService extends MasterService<Pedido, Long> {
 
     byte[] exportarPedidosFiltradosExcel(
             Long idSucursal,
-            Estado estado,
+            List<Estado> estados,
             String clienteNombre,
             Long idPedido,
             Long idEmpleado,
-            LocalDateTime fechaDesde,
-            LocalDateTime fechaHasta,
-            Boolean pagado
+            OffsetDateTime fechaDesde,
+            OffsetDateTime fechaHasta,
+            Boolean pagado,
+            TipoEnvio tipoEnvio
     );
 
 }
