@@ -185,7 +185,7 @@ public class ArticuloInsumoServiceImpl extends MasterServiceImpl<ArticuloInsumo,
             double total = 0;
 
             for (DetalleArticuloManufacturado det : manufacturado.getDetalles()) {
-                total += det.getCantidad() * det.getArticuloInsumo().getPrecioVenta();
+                total += det.getCantidad() * det.getArticuloInsumo().getPrecioCompra();
 
                 if (det.getArticuloInsumo().getId().equals(id)) {
                     det.setArticuloInsumo(entity); // Actualiza el insumo si es el editado

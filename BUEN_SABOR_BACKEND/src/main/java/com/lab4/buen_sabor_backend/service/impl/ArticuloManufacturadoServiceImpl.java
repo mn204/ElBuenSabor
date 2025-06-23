@@ -74,8 +74,7 @@ public class ArticuloManufacturadoServiceImpl extends MasterServiceImpl<Articulo
 
         double total=0;
         for(DetalleArticuloManufacturado detalle : entity.getDetalles()) {
-            ArticuloInsumo insumo =conseguirInsumo(detalle.getArticuloInsumo().getId());
-            total += detalle.getCantidad()*insumo.getPrecioCompra();
+            total += detalle.getCantidad()*detalle.getArticuloInsumo().getPrecioCompra();
             detalle.setArticuloManufacturado(entity);
         }
         entity.setPrecioVenta(total + (total*(entity.getGanancia()/100)));
