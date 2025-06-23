@@ -41,16 +41,6 @@ const PedidoCliente: React.FC = () => {
         articulo: "",
     });
 
-
-
-    const sucursalesUnicas = Array.from(
-        new Set(
-            pedidos.content
-                .filter(p => p.sucursal && p.sucursal.nombre)
-                .map(p => p.sucursal.nombre)
-        )
-    );
-
     // Paginación
     const [page, setPage] = useState(0);
     const [size] = useState(10);

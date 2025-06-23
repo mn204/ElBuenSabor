@@ -306,7 +306,13 @@ function FormArticuloManufacturado() {
                   min={0}
                   step="0.1"
                   value={porcentajeGanancia}
-                  onChange={e => setPorcentajeGanancia(Number(e.target.value.replace(",", ".")))}
+                  onChange={e => {
+                    const valor = Number(e.target.value.replace(",", "."));
+                    if (valor >= 0) setPorcentajeGanancia(valor);
+                  }}
+                  onKeyDown={e => {
+                    if (e.key === "-") e.preventDefault();
+                  }}
                   className="form-control form-control-sm"
                   style={{ maxWidth: '100px' }}
                 />

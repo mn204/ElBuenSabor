@@ -9,11 +9,11 @@ type Props = {
 };
 
 const DetalleInsumosTable = ({
-                               detalles,
-                               onEliminar,
-                               onCantidadChange,
-                               totalInsumos,
-                             }: Props) => {
+  detalles,
+  onEliminar,
+  onCantidadChange,
+  totalInsumos,
+}: Props) => {
   // Calcular el total de todos los insumos
   const calcularTotalGeneral = () => {
     return detalles.reduce((total, det) => {
@@ -24,99 +24,105 @@ const DetalleInsumosTable = ({
   };
 
   return (
-      <div style={{ maxWidth: 800, margin: "0 auto" }}>
-        <Table responsive bordered hover size="sm">
-          <thead>
+    <div style={{ maxWidth: 800, margin: "0 auto" }}>
+      <Table responsive bordered hover size="sm">
+        <thead>
           <tr>
             <th className="text-center align-middle" style={{ width: "8%" }}>Imagen</th>
-            <th className="text-center align-middle" style={{ width: "28%" }}>Articulo</th>
+            <th className="text-center align-middle" style={{ width: "28%" }}>Insumo</th>
             <th className="text-center align-middle" style={{ width: "18%" }}>Cantidad</th>
             <th className="text-center align-middle" style={{ width: "16%" }}>Precio Compra</th>
-            <th className="text-center align-middle" style={{ width: "16%" }}>Total</th>
+            <th className="text-center align-middle" style={{ width: "16%" }}>Costo Total</th>
             <th className="text-center align-middle" style={{ width: "14%" }}>Acciones</th>
           </tr>
-          </thead>
-          <tbody>
+        </thead>
+        <tbody>
           {detalles.map((det, idx) => {
             const precioCompra = det.articuloInsumo?.precioCompra ?? 0;
             const cantidad = det.cantidad || 0;
             const totalItem = precioCompra * cantidad;
 
             return (
-                <tr key={idx}>
-                  <td className="text-center align-middle">
-                    {det.articuloInsumo?.imagenes?.[0]?.denominacion ? (
-                        <Image
-                            src={det.articuloInsumo.imagenes[0].denominacion}
-                            rounded
-                            style={{ width: 40, height: 40, objectFit: "cover" }}
-                        />
-                    ) : (
-                        <div
-                            style={{
-                              width: 40,
-                              height: 40,
-                              backgroundColor: "#eee",
-                              borderRadius: 4,
-                            }}
-                        />
-                    )}
-                  </td>
-                  <td
-                      className="text-center align-middle"
+              <tr key={idx}>
+                <td className="text-center align-middle">
+                  {det.articuloInsumo?.imagenes?.[0]?.denominacion ? (
+                    <Image
+                      src={det.articuloInsumo.imagenes[0].denominacion}
+                      rounded
+                      style={{ width: 40, height: 40, objectFit: "cover" }}
+                    />
+                  ) : (
+                    <div
                       style={{
-                        maxWidth: 150,
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
+                        width: 40,
+                        height: 40,
+                        backgroundColor: "#eee",
+                        borderRadius: 4,
                       }}
+                    />
+                  )}
+                </td>
+                <td
+                  className="text-center align-middle"
+                  style={{
+                    maxWidth: 150,
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
+                  {det.articuloInsumo?.denominacion}
+                </td>
+                <td className="text-center align-middle">
+                  <div className="d-flex align-items-center justify-content-center gap-2">
+                    <Form.Control
+                      type="number"
+                      size="sm"
+                      min={0.01}
+                      step={0.1}
+                      inputMode="decimal"
+                      value={det.cantidad}
+                      onChange={(e) => onCantidadChange(idx, parseFloat(e.target.value))}
+                      onKeyDown={(e) => {
+                        if (e.key === "-" || e.key === "e") {
+                          e.preventDefault();
+                        }
+                      }}
+                      style={{
+                        width: "55px",
+                        textAlign: "right",
+                        borderRadius: "10px",
+                        padding: "2px 6px",
+                        fontSize: "0.8rem",
+                        lineHeight: "1.2",
+                        height: "28px",
+                        border: "1px solid #ccc",
+                        backgroundColor: "#fafafa",
+                      }}
+                    />
+                    <small>{det.articuloInsumo?.unidadMedida?.denominacion}</small>
+                  </div>
+                </td>
+                <td className="text-center align-middle">
+                  ${precioCompra.toFixed(2)}
+                </td>
+                <td className="text-center align-middle fw-bold">
+                  ${totalItem.toFixed(2)}
+                </td>
+                <td className="text-center align-middle">
+                  <Button
+                    variant="outline-danger"
+                    size="sm"
+                    onClick={() => onEliminar(idx)}
                   >
-                    {det.articuloInsumo?.denominacion}
-                  </td>
-                  <td className="text-center align-middle">
-                    <div className="d-flex align-items-center justify-content-center gap-2">
-                      <Form.Control
-                          type="number"
-                          size="sm"
-                          min={0}
-                          step={0.1}
-                          value={det.cantidad}
-                          onChange={(e) => onCantidadChange(idx, parseFloat(e.target.value))}
-                          style={{
-                            width: "55px",
-                            textAlign: "right",
-                            borderRadius: "10px",
-                            padding: "2px 6px",
-                            fontSize: "0.8rem",
-                            lineHeight: "1.2",
-                            height: "28px",
-                            border: "1px solid #ccc",
-                            backgroundColor: "#fafafa",
-                          }}
-                      />
-                      <small>{det.articuloInsumo?.unidadMedida?.denominacion}</small>
-                    </div>
-                  </td>
-                  <td className="text-center align-middle">
-                    ${precioCompra.toFixed(2)}
-                  </td>
-                  <td className="text-center align-middle fw-bold">
-                    ${totalItem.toFixed(2)}
-                  </td>
-                  <td className="text-center align-middle">
-                    <Button
-                        variant="outline-danger"
-                        size="sm"
-                        onClick={() => onEliminar(idx)}
-                    >
-                      Eliminar
-                    </Button>
-                  </td>
-                </tr>
+                    Eliminar
+                  </Button>
+                </td>
+              </tr>
             );
           })}
-          </tbody>
-          <tfoot>
+        </tbody>
+        <tfoot>
           <tr>
             <td colSpan={4} className="text-end fw-bold align-middle">
               Total General:
@@ -126,9 +132,9 @@ const DetalleInsumosTable = ({
             </td>
             <td />
           </tr>
-          </tfoot>
-        </Table>
-      </div>
+        </tfoot>
+      </Table>
+    </div>
   );
 };
 
