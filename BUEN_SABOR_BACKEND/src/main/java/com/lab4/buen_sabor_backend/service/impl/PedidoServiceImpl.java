@@ -409,7 +409,12 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
         // Envío de emails
         try {
             if (nuevoEstado == Estado.CANCELADO) {
-                emailService.enviarNotaCredito(pedido);
+                // Solo enviar nota de crédito si pagado y forma de pago es MERCADOPAGO
+                if (pedido.isPagado() && pedido.getFormaPago() != null && pedido.getFormaPago().name().equals("MERCADOPAGO")) {
+                    emailService.enviarNotaCredito(pedido);
+                } else {
+                    emailService.enviarAvisoCancelacionEfectivo(pedido);
+                    }
             } else if (nuevoEstado == Estado.ENTREGADO) {
                 emailService.enviarFactura(pedido);
             }

@@ -29,6 +29,12 @@ public class EmailServiceImpl implements EmailService {
         enviarEmailConPdf(pedido, "Factura", "Adjunto encontrará la factura.", pdf);
     }
 
+    @Override
+    public void enviarAvisoCancelacionEfectivo(Pedido pedido) {
+        byte[] pdf = pdfService.generarAvisoCancelacionEfectivo(pedido);
+        enviarEmailConPdf(pedido, "Cancelación de Pedido", "Adjunto encontrarás el aviso de cancelación de tu pedido. Si abonaste en efectivo y tenés dudas, comunicate con la sucursal.", pdf);
+    }
+
     private void enviarEmailConPdf(Pedido pedido, String asunto, String mensaje, byte[] pdfAdjunto) {
         String email = pedido.getCliente().getUsuario().getEmail();
         if (email == null || !email.contains("@")) return;
