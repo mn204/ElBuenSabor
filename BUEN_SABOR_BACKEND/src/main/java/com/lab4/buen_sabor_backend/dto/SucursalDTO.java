@@ -16,5 +16,6 @@ public class SucursalDTO extends MasterDTO {
     private Boolean casaMatriz;
     private EmpresaDTO empresa;
     private DomicilioDTO domicilio;
+    private boolean eliminado;
 }
 

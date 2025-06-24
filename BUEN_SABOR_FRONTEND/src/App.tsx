@@ -29,6 +29,7 @@ import PedidoConfirmado from './components/articulos/PedidoConfirmado.tsx';
 import PromocionDetalle from './components/articulos/PromocionDetalle.tsx';
 import BusquedaCategoria from './components/articulos/BusquedaCategoria.tsx';
 import CarritoProtegido from './context/CarritoProtected.tsx';
+import GrillaSucursal from "./components/empleados/grillas/GrillaSucursal.tsx";
 
 
 function AppContent() {
@@ -132,6 +133,14 @@ function AppContent() {
             <RegisterEmpleado />
           </ProtectedRoute>
         } />
+
+        <Route path="/empleado/sucursal" element={
+          <ProtectedRoute requiredRoles={[Rol.ADMIN]}>
+            <PanelAdmin />
+          </ProtectedRoute>
+        } />
+
+
       </Routes>
       {(!isAuthenticated || usuario?.rol === "CLIENTE") && (
         <Footer />)}

@@ -25,11 +25,11 @@ public class Sucursal extends Master {
     @JsonBackReference
     private Empresa empresa;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "domicilio_id")
     private Domicilio domicilio;
 
-    @OneToMany(mappedBy = "sucursal", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "sucursal")
     private Set<Pedido> pedidos = new HashSet<>();
 
     @ManyToMany(mappedBy = "sucursales")
