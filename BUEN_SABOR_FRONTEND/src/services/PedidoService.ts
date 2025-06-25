@@ -381,6 +381,29 @@ class PedidoService {
         return await response.blob();
     }
 
+    async verificarStockPorSucursal(pedido: Pedido): Promise<boolean> {
+        try {
+            const response = await fetch(`${API_URL}/verificar-stock`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(pedido)
+            });
+
+            if (!response.ok) {
+                console.error(`Error al verificar stock para sucursal ${pedido.sucursal?.id}:`, response.statusText);
+                return false;
+            }
+
+            const resultado = await response.json();
+            return resultado;
+        } catch (error) {
+            console.error(`Error al verificar stock para sucursal ${pedido.sucursal?.id}:`, error);
+            return false;
+        }
+    }
+
     async verificarStockArticulo(articuloId: number, cantidad: number, sucursalId: number): Promise<boolean> {
         try {
             const res = await fetch(`${API_URL}/verificar-stock-articulo/${articuloId}/${cantidad}/${sucursalId}`, {

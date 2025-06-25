@@ -72,8 +72,9 @@ const GrillaDelivery: React.FC = () => {
                 return;
             }
 
+            // ✅ CORRECCIÓN: Cambiar 'estado' por 'estados' y usar array de strings
             const filtrosAPI = {
-                estado: Estado.EN_DELIVERY,
+                estados: [Estado.EN_DELIVERY] as string[], // Asegurar que sea array de strings
                 idEmpleado: idEmpleado
             };
 

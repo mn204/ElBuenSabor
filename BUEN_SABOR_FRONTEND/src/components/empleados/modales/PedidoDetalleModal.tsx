@@ -25,6 +25,7 @@ const PedidoDetalleModal: React.FC<Props> = ({ show, onHide, pedido, onEstadoCha
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showResultModal, setShowResultModal] = useState(false);
   const [resultMessage, setResultMessage] = useState({ title: '', message: '', type: 'success' });
+  const [loadingFactura, setLoadingFactura] = useState(false); // Nuevo estado para la descarga
 
   const getColorEstado = (estado: Estado): string => {
     switch (estado) {
@@ -80,7 +81,55 @@ const PedidoDetalleModal: React.FC<Props> = ({ show, onHide, pedido, onEstadoCha
         return [];
     }
   };
+  // Función para descargar la factura usando el PedidoService
+  const handleDescargarFactura = async () => {
+    if (!pedido.cliente?.id || !pedido.id) {
+      setResultMessage({
+        title: 'Error',
+        message: 'No se pudo obtener la información necesaria para descargar la factura.',
+        type: 'error'
+      });
+      setShowResultModal(true);
+      return;
+    }
 
+    setLoadingFactura(true);
+
+    try {
+      // Usar el método del PedidoService
+      const facturaBlob = await PedidoService.descargarFactura(pedido.cliente.id, pedido.id);
+
+      // Crear URL del blob y descargar el archivo
+      const url = window.URL.createObjectURL(facturaBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `factura_pedido_${pedido.id}.pdf`; // Nombre del archivo
+      document.body.appendChild(link);
+      link.click();
+
+      // Limpiar
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      setResultMessage({
+        title: 'Éxito',
+        message: 'Factura descargada correctamente.',
+        type: 'success'
+      });
+      setShowResultModal(true);
+
+    } catch (error) {
+      console.error('Error al descargar la factura:', error);
+      setResultMessage({
+        title: 'Error',
+        message: 'No se pudo descargar la factura. Por favor, intenta nuevamente.',
+        type: 'error'
+      });
+      setShowResultModal(true);
+    } finally {
+      setLoadingFactura(false);
+    }
+  };
   const handleCambiarEstado = async () => {
     if (estadoSeleccionado !== pedido.estado && pedido.id) {
       if (estadoSeleccionado === Estado.CANCELADO) {
@@ -374,10 +423,18 @@ const PedidoDetalleModal: React.FC<Props> = ({ show, onHide, pedido, onEstadoCha
               Cerrar
             </Button>
             <Button
-              variant="primary"
-              onClick={() => window.open(`http://localhost:8080/api/pedidos/cliente/${pedido.cliente?.id}/pedido/${pedido.id}/factura`, '_blank')}
+                variant="primary"
+                onClick={handleDescargarFactura}
+                disabled={loadingFactura}
             >
-              Descargar Factura
+              {loadingFactura ? (
+                  <>
+                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    Descargando...
+                  </>
+              ) : (
+                  'Descargar Factura'
+              )}
             </Button>
           </div>
         </Modal.Footer>

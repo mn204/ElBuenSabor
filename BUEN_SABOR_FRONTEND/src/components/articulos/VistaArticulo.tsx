@@ -3,10 +3,9 @@ import { useParams, useNavigate } from "react-router-dom";
 import Articulo from "../../models/Articulo";
 import { useCarrito } from "../../hooks/useCarrito";
 import ArticuloInsumoService from "../../services/ArticuloInsumoService";
+import ArticuloManufacturadoService from "../../services/ArticuloManufacturadoService";
 import { useSucursalUsuario } from "../../context/SucursalContext";
 import ArticuloService from "../../services/ArticuloService";
-
-const API_URL = "http://localhost:8080/api/productos";
 
 const VistaArticulo: React.FC = () => {
   const { id } = useParams();
@@ -23,36 +22,51 @@ const VistaArticulo: React.FC = () => {
 
   useEffect(() => {
     if (!id) return;
-    setLoading(true);
-    setError(null);
-    fetch(`${API_URL}/${id}`)
-      .then((res) => {
-        if (!res.ok) {
-          ArticuloInsumoService.getById(Number(id))
-            .then((articulo: Articulo) => {
-              const stock = ArticuloService.consultarStock(articulo, sucursalActualUsuario?.id!);
-              if (!stock) {
-                throw new Error("El artículo no está disponible en la sucursal actual.");
-              }
-              setArticulo(articulo);
-              setLoading(false);
-            })
-            .catch((err) => {
-              setError(err.message);
-              setLoading(false);
-            });
+
+    const obtenerArticulo = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        // Primero intentamos obtener como ArticuloManufacturado
+        try {
+          const articuloManufacturado = await ArticuloManufacturadoService.getById(Number(id));
+
+          // Verificar stock en la sucursal actual
+          const stock = ArticuloService.consultarStock(articuloManufacturado, sucursalActualUsuario?.id!);
+          if (!stock) {
+            throw new Error("El artículo no está disponible en la sucursal actual.");
+          }
+
+          setArticulo(articuloManufacturado);
+          setLoading(false);
+          return;
+        } catch (manufacturadoError) {
+          // Si falla, intentamos con ArticuloInsumo
+          try {
+            const articuloInsumo = await ArticuloInsumoService.getById(Number(id));
+
+            // Verificar stock en la sucursal actual
+            const stock = ArticuloService.consultarStock(articuloInsumo, sucursalActualUsuario?.id!);
+            if (!stock) {
+              throw new Error("El artículo no está disponible en la sucursal actual.");
+            }
+
+            setArticulo(articuloInsumo);
+            setLoading(false);
+            return;
+          } catch (insumoError) {
+            throw new Error("No se pudo encontrar el artículo solicitado.");
+          }
         }
-        return res.json();
-      })
-      .then((data: Articulo) => {
-        setArticulo(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Error desconocido");
         setLoading(false);
-      })
-      .catch((err) => {
-        setError(err.message);
-        setLoading(false);
-      });
-  }, [id]);
+      }
+    };
+
+    obtenerArticulo();
+  }, [id, sucursalActualUsuario?.id]);
 
   const handleAgregarAlCarrito = async () => {
     if (carritoCtx && articulo) {

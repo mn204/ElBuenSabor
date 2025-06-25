@@ -86,31 +86,24 @@ const GrillaCocina: React.FC = () => {
                 return;
             }
 
+            // ✅ CORRECCIÓN: Cambiar 'estado' por 'estados' y usar array de strings
             const filtrosAPI = {
-                estado: Estado.PREPARACION
+                estados: [Estado.PREPARACION] as string[] // Asegurar que sea array de strings
             };
+
+            // ✅ CORRECCIÓN: Agregar parámetro de ordenamiento
+            const sortParam = filtros.ordenHora === "ASC" ? "fechaPedido,ASC" : "fechaPedido,DESC";
 
             const result = await pedidoService.getPedidosFiltrados(
                 sucursalId,
                 filtrosAPI,
                 page,
-                size
+                size,
+                sortParam // ✅ Pasar el parámetro de ordenamiento al servicio
             );
 
-            // Ordenar por hora según el filtro
-            let pedidosOrdenados = [...result.content];
-            pedidosOrdenados.sort((a, b) => {
-                const horaA = new Date(a.fechaPedido).getTime();
-                const horaB = new Date(b.fechaPedido).getTime();
-
-                if (filtros.ordenHora === "ASC") {
-                    return horaA - horaB;
-                } else {
-                    return horaB - horaA;
-                }
-            });
-
-            setPedidos(pedidosOrdenados);
+            // ✅ Ya no necesitas ordenar manualmente aquí, el backend lo hace
+            setPedidos(result.content);
             setTotalPages(result.totalPages);
         } catch (error) {
             console.error("Error al obtener pedidos en preparación:", error);
