@@ -49,6 +49,17 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
     const guardadas = localStorage.getItem("promocionesPorSucursal");
     return guardadas ? JSON.parse(guardadas) : [];
   });
+  // Agregar después de la línea de promocionesPorSucursal
+  const [showModalCambioSucursal, setShowModalCambioSucursal] = useState(false);
+  const [datosModalCambioSucursal, setDatosModalCambioSucursal] = useState<{
+    promocionesEliminadas: Promocion[],
+    promocionesRestauradas: Promocion[],
+    mensaje: string
+  }>({
+    promocionesEliminadas: [],
+    promocionesRestauradas: [],
+    mensaje: ""
+  });
 
   const [pedido, setPedido] = useState<Pedido>(() => {
     const pedidoGuardado = localStorage.getItem("carritoPedido");
@@ -186,13 +197,30 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
       mensaje = `Se restauraron ${promocionesRestauradas.length} promoción(es) anterior(es) de esta sucursal.`;
     }
 
-    return {
+    // Crear el objeto resultado
+    const resultado = {
       promocionesEliminadas,
       promocionesRestauradas,
       mensaje
     };
+
+    // Si hay cambios, mostrar el modal
+    if (promocionesEliminadas.length > 0 || promocionesRestauradas.length > 0) {
+      setDatosModalCambioSucursal(resultado);
+      setShowModalCambioSucursal(true);
+    }
+
+    return resultado;
   };
 
+  const cerrarModalCambioSucursal = () => {
+    setShowModalCambioSucursal(false);
+    setDatosModalCambioSucursal({
+      promocionesEliminadas: [],
+      promocionesRestauradas: [],
+      mensaje: ""
+    });
+  };
   const agregarAlCarrito = (articulo: Articulo, cantidad: number) => {
     if (!articulo.id) {
       console.warn("El artículo no tiene ID");
@@ -475,6 +503,9 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
             AgregarPreferenceId,
             guardarPedidoYObtener,
             cambiarSucursal,
+            showModalCambioSucursal,
+            datosModalCambioSucursal,
+            cerrarModalCambioSucursal,
           }}
       >
         {children}

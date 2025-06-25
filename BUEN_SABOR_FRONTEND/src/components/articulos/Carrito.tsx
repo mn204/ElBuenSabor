@@ -14,6 +14,7 @@ import { FaPlus } from "react-icons/fa6";
 import ModalDomicilio from "../clientes/ModalDomicilio";
 import SucursalService from "../../services/SucursalService";
 import { useNavigate } from "react-router-dom";
+import ModalCambioSucursal from './ModalCambioSucursal';
 
 export function Carrito() {
   const { cliente, setCliente } = useAuth();
@@ -51,30 +52,11 @@ export function Carrito() {
 
     const manejarCambioSucursal = async () => {
       try {
-        // Obtener promociones disponibles en la nueva sucursal
         const promosSucursal = await SucursalService.getAllBySucursalId(sucursalActualUsuario.id!);
-
-        // Usar la función cambiarSucursal del contexto
-        const resultado = await cambiarSucursal(sucursalActualUsuario.id!, promosSucursal);
-
-        // Mostrar mensaje si hay cambios
-        if (resultado.mensaje) {
-          setMensajeCambioSucursal(resultado.mensaje);
-          // Limpiar el mensaje después de 5 segundos
-          setTimeout(() => {
-            setMensajeCambioSucursal("");
-          }, 5000);
-        }
-
-        // Actualizar la sucursal en el pedido
+        await cambiarSucursal(sucursalActualUsuario.id!, promosSucursal);
         pedido.sucursal = sucursalActualUsuario;
-
       } catch (error) {
         console.error("Error al cambiar sucursal:", error);
-        setMensajeCambioSucursal("Error al cambiar de sucursal. Intente nuevamente.");
-        setTimeout(() => {
-          setMensajeCambioSucursal("");
-        }, 5000);
       }
     };
 
@@ -105,7 +87,10 @@ export function Carrito() {
     limpiarCarrito,
     guardarPedidoYObtener,
     agregarPromocionAlCarrito,
-    cambiarSucursal, // Agregar la función cambiarSucursal del contexto
+    cambiarSucursal,
+    showModalCambioSucursal,
+    datosModalCambioSucursal,
+    cerrarModalCambioSucursal,// Agregar la función cambiarSucursal del contexto
   } = carritoCtx;
 
   const handleAgregar = () => {
@@ -694,7 +679,7 @@ export function Carrito() {
                 {(carrito && carrito.length > 0 ? carrito : pedidoGuardado?.detalles || []).map((item) => (
                   <div key={item.articulo?.id || item.id} className="d-flex justify-content-between mb-2">
                     <span>
-                      {item.cantidad}x {item.articulo?.denominacion}
+                      {item.cantidad}x {item.articulo?.denominacion || item.promocion?.denominacion}
                     </span>
                     <span>
                       ${(item.subTotal || (item.cantidad * item.articulo!.precioVenta!)).toFixed(2)}
@@ -954,6 +939,13 @@ export function Carrito() {
           </div>
         </div>
       )}
+      <ModalCambioSucursal
+          show={showModalCambioSucursal}
+          onHide={cerrarModalCambioSucursal}
+          promocionesEliminadas={datosModalCambioSucursal.promocionesEliminadas}
+          promocionesRestauradas={datosModalCambioSucursal.promocionesRestauradas}
+          mensaje={datosModalCambioSucursal.mensaje}
+      />
     </>
   );
 }
