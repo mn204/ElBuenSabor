@@ -142,7 +142,7 @@ const BusquedaCategoria: React.FC = () => {
             )
         );
     };
-    if (!categoria || categoria.eliminado) {
+    if (!categoria || categoria.eliminado || categoria.categoriaPadre?.eliminado) {
         return (
             <div className="container mt-5">
                 <div className="alert alert-warning text-center" role="alert">

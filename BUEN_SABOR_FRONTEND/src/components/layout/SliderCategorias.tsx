@@ -240,7 +240,7 @@ function Slider() {
                 {isMobile ? (
                     // En móvil: mostrar todas las categorías en scroll horizontal
                     categorias.map((cat, index) => (
-                        cat && (
+                        cat && !(cat.categoriaPadre?.eliminado) &&(
                             <div key={cat?.id ? cat.id : `cat-mobile-${index}`} style={cardWrapperStyles}>
                                 <CategoriaCard categoria={cat} />
                             </div>
@@ -249,7 +249,7 @@ function Slider() {
                 ) : (
                     // En desktop: mostrar solo las visibles con navegación por botones
                     visibleCategorias.map((cat, index) => (
-                        cat && (
+                        cat && !(cat.categoriaPadre?.eliminado) &&(
                             <CategoriaCard
                                 key={cat?.id ? cat.id : `cat-desktop-${start}-${index}`}
                                 categoria={cat}
