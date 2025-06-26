@@ -2,15 +2,20 @@ package com.lab4.buen_sabor_backend.service.impl;
 
 import com.lab4.buen_sabor_backend.model.*;
 import com.lab4.buen_sabor_backend.repository.ArticuloInsumoRepository;
+import com.lab4.buen_sabor_backend.repository.CategoriaRepository;
 import com.lab4.buen_sabor_backend.repository.DetalleArticuloManufacturadoRepository;
 import com.lab4.buen_sabor_backend.service.PromocionService;
 import com.lab4.buen_sabor_backend.repository.SucursalInsumoRepository;
 import com.lab4.buen_sabor_backend.service.ArticuloInsumoService;
 import com.lab4.buen_sabor_backend.service.ArticuloManufacturadoService;
+import com.lab4.buen_sabor_backend.service.impl.specification.ArticuloInsumoSpecification;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -26,16 +31,50 @@ public class ArticuloInsumoServiceImpl extends MasterServiceImpl<ArticuloInsumo,
     private final DetalleArticuloManufacturadoRepository detalleArticuloManufacturadoRepository;
     private final SucursalInsumoRepository sucursalInsumoRepository;
     private final ArticuloManufacturadoService articuloManufacturadoService;
+    private final CategoriaRepository categoriaRepository;
     private final PromocionService promocionService;
 
     @Autowired
-    public ArticuloInsumoServiceImpl(ArticuloInsumoRepository articuloInsumoRepository, DetalleArticuloManufacturadoRepository detalleArticuloManufacturadoRepository, SucursalInsumoRepository sucursalInsumoRepository, ArticuloManufacturadoService articuloManufacturadoService, PromocionService promocionService) {
+    public ArticuloInsumoServiceImpl(ArticuloInsumoRepository articuloInsumoRepository, DetalleArticuloManufacturadoRepository detalleArticuloManufacturadoRepository,
+                                     SucursalInsumoRepository sucursalInsumoRepository, ArticuloManufacturadoService articuloManufacturadoService,
+                                     PromocionService promocionService, CategoriaRepository categoriaRepository) {
         super(articuloInsumoRepository);
         this.articuloInsumoRepository = articuloInsumoRepository;
         this.detalleArticuloManufacturadoRepository = detalleArticuloManufacturadoRepository;
         this.sucursalInsumoRepository = sucursalInsumoRepository;
         this.articuloManufacturadoService = articuloManufacturadoService;
         this.promocionService = promocionService;
+        this.categoriaRepository = categoriaRepository;
+    }
+
+    @Override
+    public Page<ArticuloInsumo> filtrar(String denominacion, Long categoriaId, Long unidadMedidaId, Boolean eliminado,
+                                        Double precioCompraMin, Double precioCompraMax,
+                                        Double precioVentaMin, Double precioVentaMax,
+                                        Pageable pageable) {
+
+        Set<Long> categoriaIds = new HashSet<>();
+        if (categoriaId != null) {
+            Categoria categoria = categoriaRepository.findById(categoriaId).orElse(null);
+            if (categoria != null) {
+                obtenerSubcategoriasRecursivo(categoria, categoriaIds);
+                categoriaIds.add(categoriaId);
+            }
+        }
+
+        Specification<ArticuloInsumo> spec = ArticuloInsumoSpecification.filtrar(
+                denominacion, categoriaIds, unidadMedidaId, eliminado,
+                precioCompraMin, precioCompraMax, precioVentaMin, precioVentaMax
+        );
+
+        return articuloInsumoRepository.findAll(spec, pageable);
+    }
+
+    private void obtenerSubcategoriasRecursivo(Categoria categoria, Set<Long> ids) {
+        for (Categoria sub : categoria.getSubcategorias()) {
+            ids.add(sub.getId());
+            obtenerSubcategoriasRecursivo(sub, ids);
+        }
     }
 
     @Override

@@ -9,6 +9,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,6 +43,20 @@ public class ArticuloManufacturadoController extends MasterControllerImpl<Articu
     @Override
     protected ArticuloManufacturadoDTO toDTO(ArticuloManufacturado entity) {
         return articuloManufacturadoMapper.toDTO(entity);
+    }
+
+    @GetMapping("/filtrados")
+    public ResponseEntity<Page<ArticuloManufacturadoDTO>> filtrarArticulos(
+            @RequestParam(required = false) String denominacion,
+            @RequestParam(required = false) Long categoriaId,
+            @RequestParam(required = false) Boolean eliminado,
+            @RequestParam(required = false) Double precioMin,
+            @RequestParam(required = false) Double precioMax,
+            @PageableDefault(sort = "denominacion", direction = Sort.Direction.ASC) Pageable pageable
+    ) {
+        Page<ArticuloManufacturado> articulos = articuloManufacturadoService.filtrarArticulosManufacturados(denominacion, categoriaId, eliminado, precioMin, precioMax, pageable);
+        Page<ArticuloManufacturadoDTO> dtoPage = articulos.map(articuloManufacturadoMapper::toDTO);
+        return ResponseEntity.ok(dtoPage);
     }
 
     @GetMapping("/buscar/denominacion")

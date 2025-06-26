@@ -1,6 +1,8 @@
 package com.lab4.buen_sabor_backend.repository;
 
 import com.lab4.buen_sabor_backend.model.SucursalInsumo;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -26,4 +28,16 @@ public interface SucursalInsumoRepository extends MasterRepository<SucursalInsum
 
     List<SucursalInsumo> findBySucursalId(Long sucursalId);
 
+    @Query("""
+        SELECT si FROM SucursalInsumo si
+        WHERE (:idSucursal IS NULL OR si.sucursal.id = :idSucursal)
+        AND (:nombreInsumo IS NULL OR LOWER(si.articuloInsumo.denominacion) LIKE %:nombreInsumo%)
+        AND (:stockMin IS FALSE OR si.stockActual < si.stockMinimo)
+        AND (:stockMax IS FALSE OR si.stockActual > si.stockMaximo)
+    """)
+    Page<SucursalInsumo> filtrarStock(@Param("idSucursal") Long idSucursal,
+                                      @Param("nombreInsumo") String nombreInsumo,
+                                      @Param("stockMin") boolean stockActualMenorAStockMinimo,
+                                      @Param("stockMax") boolean stockActualMayorAStockMaximo,
+                                      Pageable pageable);
 }

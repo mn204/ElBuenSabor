@@ -13,7 +13,7 @@ public interface MasterController<DTO, ID extends Serializable> {
     @PostMapping
     ResponseEntity<DTO> create(@RequestBody DTO dto);
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id:[0-9]+}")
     ResponseEntity<DTO> getById(@PathVariable ID id);
 
     @GetMapping

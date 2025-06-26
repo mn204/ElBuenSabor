@@ -174,6 +174,16 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
         const pedido = pedidos.find(p => p.id === pedidoId);
         if (!pedido) return;
 
+        // Validación frontend: no permitir EN_DELIVERY si es TAKEAWAY
+        if (nuevoEstado === Estado.EN_DELIVERY && pedido.tipoEnvio === "TAKEAWAY") {
+            alert("No se puede cambiar a EN_DELIVERY un pedido con tipo de envío TAKEAWAY.");
+            return;
+        }
+        // Validación frontend: no permitir ENTREGADO si no está pagado
+        if (nuevoEstado === Estado.ENTREGADO && !pedido.pagado) {
+            alert("No se puede marcar como ENTREGADO un pedido que no está pagado.");
+            return;
+        }
         // Verificar si el cambio es a EN_DELIVERY
         if (nuevoEstado === Estado.EN_DELIVERY) {
             // Para ADMIN: puede cambiar desde cualquier estado
@@ -198,8 +208,14 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
                     setPedidoEnProceso(pedido);
                     setShowDeliveryModal(true);
                 } catch (error: any) {
-                    console.error('Error al cargar empleados delivery:', error);
-                    alert(error.message || 'Error al cargar lista de deliverys disponibles');
+                    let mensaje = "Error al cambiar el estado del pedido";
+                    if (error?.response && error.response.data?.errorMsg) {
+                        mensaje = error.response.data.errorMsg;
+                    } else if (error?.message) {
+                        mensaje = error.message;
+                    }
+                    alert(mensaje);
+                    console.error('Error al cambiar estado:', error);
                 }
                 return;
             } else {
@@ -266,9 +282,15 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
             setShowDeliveryModal(false);
             setPedidoEnProceso(null);
 
-        } catch (error) {
-            console.error('Error al asignar delivery:', error);
-            alert('Error al asignar el delivery al pedido');
+        } catch (error: any) {
+            let mensaje = "Error al cambiar el estado del pedido";
+            if (error?.response && error.response.data?.errorMsg) {
+                mensaje = error.response.data.errorMsg;
+            } else if (error?.message) {
+                mensaje = error.message;
+            }
+            alert(mensaje);
+            console.error('Error al cambiar estado:', error);
         } finally {
             setLoadingEstados(prev => ({
                 ...prev,
@@ -398,29 +420,50 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
         setModoSeleccion(false);
     };
     */
-    const getEstadosDisponibles = (estadoActual: Estado): Estado[] => {
+    const getEstadosDisponibles = (estadoActual: Estado, pedido: Pedido): Estado[] => {
+        let disponibles = Object.values(Estado);
+
+        // No permitir EN_DELIVERY si es TAKEAWAY
+        const filtrarEnDelivery = (arr: Estado[]) =>
+            pedido.tipoEnvio === "TAKEAWAY" ? arr.filter(e => e !== Estado.EN_DELIVERY) : arr;
+        // No permitir ENTREGADO si no está pagado
+        const filtrarEntregado = (arr: Estado[]) =>
+            !pedido.pagado ? arr.filter(e => e !== Estado.ENTREGADO) : arr;
+
         if (usuario?.rol === 'ADMINISTRADOR') {
-            return Object.values(Estado);
+            disponibles = filtrarEnDelivery(disponibles);
+            disponibles = filtrarEntregado(disponibles);
+            return disponibles;
         }
 
         if (usuario?.rol === 'CAJERO') {
+            let arr: Estado[] = [];
             switch (estadoActual) {
                 case Estado.PENDIENTE:
-                    return [Estado.PENDIENTE, Estado.CANCELADO, Estado.PREPARACION, Estado.LISTO, Estado.EN_DELIVERY, Estado.ENTREGADO];
+                    arr = [Estado.PENDIENTE, Estado.CANCELADO, Estado.PREPARACION, Estado.LISTO, Estado.EN_DELIVERY, Estado.ENTREGADO];
+                    break;
                 case Estado.PREPARACION:
-                    return [Estado.PREPARACION, Estado.LISTO];
+                    arr = [Estado.PREPARACION, Estado.LISTO];
+                    break;
                 case Estado.LISTO:
-                    return [Estado.LISTO, Estado.EN_DELIVERY, Estado.ENTREGADO];
+                    arr = [Estado.LISTO, Estado.EN_DELIVERY, Estado.ENTREGADO];
+                    break;
                 case Estado.EN_DELIVERY:
-                    return [Estado.EN_DELIVERY, Estado.ENTREGADO];
+                    arr = [Estado.EN_DELIVERY, Estado.ENTREGADO];
+                    break;
                 case Estado.ENTREGADO:
                 case Estado.CANCELADO:
                 default:
-                    return [estadoActual]; // Solo puede ver el estado actual
+                    arr = [estadoActual];
             }
+            arr = filtrarEnDelivery(arr);
+            arr = filtrarEntregado(arr);
+            return arr;
         }
 
-        return [estadoActual]; // Por defecto, solo el estado actual
+        disponibles = filtrarEnDelivery(disponibles);
+        disponibles = filtrarEntregado(disponibles);
+        return disponibles.filter(e => e === estadoActual);
     };
     const isBotonCambioDeshabilitado = (estadoActual: Estado): boolean => {
         if (usuario?.rol === 'ADMINISTRADOR') {
@@ -459,7 +502,9 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
             key: "acciones",
             label: "Acciones",
             render: (_: any, row: Pedido) => {
-                const estadosDisponibles = getEstadosDisponibles(row.estado);
+
+                const estadosDisponibles = getEstadosDisponibles(row.estado, row);
+                const estadoSeleccionadoValido = estadosDisponibles.includes(estadoSeleccionado[row.id!] || row.estado);
                 const botonDeshabilitado = isBotonCambioDeshabilitado(row.estado);
                 const isLoadingEstado = loadingEstados[row.id!] || false;
                 return (
@@ -470,7 +515,7 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
                                 className={`border-${getColorEstado(row.estado)}`}
                                 value={estadoSeleccionado[row.id!] || row.estado}
                                 onChange={(e) => setEstadoSeleccionado({ ...estadoSeleccionado, [row.id!]: e.target.value as Estado })}
-                                disabled={botonDeshabilitado || isLoadingEstado}
+                                disabled={botonDeshabilitado || !estadoSeleccionadoValido || estadoSeleccionado[row.id!] === row.estado || isLoadingEstado}
                             >
                                 {estadosDisponibles.map((estado) => (
                                     <option key={estado} value={estado}>{estado}</option>
@@ -509,6 +554,7 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
 
     return (
         <>
+            {/* Caja de filtros y gestión */}
             <Card className="mb-4 shadow-sm">
                 <Card.Header>
                     <div className="d-flex justify-content-between align-items-center">
@@ -529,7 +575,7 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
                     </div>
                 </Card.Header>
                 <Card.Body>
-                    <Form className="mb-5">
+                    <Form className="mb-0"> {/* Quitamos mb-5 para que no haya tanto espacio */}
                         <Row className="gy-2 align-items-center">
                             <Col xs={12} md={8} lg={9} className="d-flex flex-wrap align-items-center gap-3">
                                 <div>
@@ -659,7 +705,17 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
                             </Col>
                         </Row>
                     </Form>
+                </Card.Body>
+            </Card>
 
+            {/* Caja de pedidos */}
+            <Card className="mb-4 shadow-sm">
+                <Card.Header>
+                    <div className="d-flex justify-content-between align-items-center">
+                        <Card.Title className="mb-0">Pedidos</Card.Title>
+                    </div>
+                </Card.Header>
+                <Card.Body>
                     {loading ? (
                         <div className="text-center">
                             <Spinner animation="border" />

@@ -4,6 +4,7 @@ import com.lab4.buen_sabor_backend.model.ArticuloInsumo;
 import com.lab4.buen_sabor_backend.model.ArticuloManufacturado;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -11,7 +12,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface ArticuloManufacturadoRepository extends MasterRepository<ArticuloManufacturado, Long> {
+public interface ArticuloManufacturadoRepository extends MasterRepository<ArticuloManufacturado, Long>, JpaSpecificationExecutor<ArticuloManufacturado> {
 
     // Buscar por denominación (nombre del producto)
     List<ArticuloManufacturado> findByDenominacionContainingIgnoreCaseAndEliminadoFalse(String denominacion);

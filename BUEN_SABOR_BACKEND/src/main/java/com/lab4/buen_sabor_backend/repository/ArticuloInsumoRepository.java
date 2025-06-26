@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface ArticuloInsumoRepository extends MasterRepository<ArticuloInsumo, Long> {
+public interface ArticuloInsumoRepository extends MasterRepository<ArticuloInsumo, Long>, JpaSpecificationExecutor<ArticuloInsumo> {
     /*
     Optional<ArticuloInsumo> obtenerRecetaCompleta(@Param("id") Long id);
      */

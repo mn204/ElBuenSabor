@@ -15,8 +15,6 @@ import java.text.NumberFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
-//TODO corregir calculo de subtotales y precios en la factura ya sea de promocion o de articulo,
-// no utilizar los datos de los precios de articulos o de  promociones
 @Service
 public class PdfServiceImpl implements PdfService {
 
@@ -318,11 +316,12 @@ public class PdfServiceImpl implements PdfService {
         PdfPCell celdaCant = crearCeldaProducto(detalle.getCantidad().toString(), fuenteNormal, colorFondo, Element.ALIGN_CENTER);
         tabla.addCell(celdaCant);
 
-        // Precio
-        PdfPCell celdaPrecio = crearCeldaProducto(formatCurrency(detalle.getArticulo().getPrecioVenta()), fuenteNormal, colorFondo, Element.ALIGN_RIGHT);
+        // Precio unitario histórico (subTotal / cantidad)
+        double precioUnitario = detalle.getCantidad() != null && detalle.getCantidad() > 0 ? detalle.getSubTotal() / detalle.getCantidad() : 0.0;
+        PdfPCell celdaPrecio = crearCeldaProducto(formatCurrency(precioUnitario), fuenteNormal, colorFondo, Element.ALIGN_RIGHT);
         tabla.addCell(celdaPrecio);
 
-        // Subtotal
+        // Subtotal histórico
         PdfPCell celdaSubtotal = crearCeldaProducto(formatCurrency(detalle.getSubTotal()), fuenteNormal, colorFondo, Element.ALIGN_RIGHT);
         tabla.addCell(celdaSubtotal);
     }
@@ -346,12 +345,10 @@ public class PdfServiceImpl implements PdfService {
         if (promocion.getDetalles() != null && !promocion.getDetalles().isEmpty()) {
             descripcionPromocion.append("\n   Incluye:");
             for (DetallePromocion detallePromo : promocion.getDetalles()) {
-                if (detallePromo.getArticulo() != null) {
-                    descripcionPromocion.append("\n   • ")
-                            .append(detallePromo.getCantidad())
-                            .append("x ")
-                            .append(detallePromo.getArticulo().getDenominacion());
-                }
+                descripcionPromocion.append("\n      - ")
+                        .append(detallePromo.getCantidad())
+                        .append(" x ")
+                        .append(detallePromo.getArticulo().getDenominacion());
             }
         }
 
@@ -363,12 +360,12 @@ public class PdfServiceImpl implements PdfService {
         PdfPCell celdaCant = crearCeldaProducto(detalle.getCantidad().toString(), fuenteNormal, colorFondo, Element.ALIGN_CENTER);
         tabla.addCell(celdaCant);
 
-        // Precio promocional
-        Double precioUnitario = promocion.getPrecioPromocional() != null ? promocion.getPrecioPromocional() : 0.0;
+        // Precio unitario histórico (subTotal / cantidad)
+        double precioUnitario = detalle.getCantidad() != null && detalle.getCantidad() > 0 ? detalle.getSubTotal() / detalle.getCantidad() : 0.0;
         PdfPCell celdaPrecio = crearCeldaProducto(formatCurrency(precioUnitario), fuenteNormal, colorFondo, Element.ALIGN_RIGHT);
         tabla.addCell(celdaPrecio);
 
-        // Subtotal
+        // Subtotal histórico
         PdfPCell celdaSubtotal = crearCeldaProducto(formatCurrency(detalle.getSubTotal()), fuenteNormal, colorFondo, Element.ALIGN_RIGHT);
         tabla.addCell(celdaSubtotal);
     }
@@ -386,37 +383,50 @@ public class PdfServiceImpl implements PdfService {
     }
 
     private void crearSeccionTotales(Document document, Pedido pedido, Font fuenteTotal, Font fuenteNormal, Font fuenteAcento) throws DocumentException {
-        // Tabla de totales con diseño atractivo
+        // Tabla de totales (solo TOTAL, sin subtotal)
         PdfPTable tablaTotales = new PdfPTable(2);
         tablaTotales.setWidthPercentage(40);
         tablaTotales.setHorizontalAlignment(Element.ALIGN_RIGHT);
-        tablaTotales.setSpacingAfter(5);
+        tablaTotales.setWidths(new float[]{60, 40});
+        tablaTotales.setSpacingBefore(10);
 
-        // Celda TOTAL
-        PdfPCell celdaTextoTotal = new PdfPCell(new Phrase("TOTAL:", fuenteTotal));
-        celdaTextoTotal.setBorder(Rectangle.NO_BORDER);
-        celdaTextoTotal.setBackgroundColor(Color.WHITE);
-        celdaTextoTotal.setPadding(8);
-        celdaTextoTotal.setHorizontalAlignment(Element.ALIGN_CENTER);
+        // Calcular total (suma de subtotales de los detalles)
+        double total = 0.0;
+        if (pedido.getDetalles() != null) {
+            for (DetallePedido detalle : pedido.getDetalles()) {
+                total += detalle.getSubTotal() != null ? detalle.getSubTotal() : 0.0;
+            }
+        }
 
-        // Celda con el monto
-        PdfPCell celdaMontoTotal = new PdfPCell(new Phrase(formatCurrency(pedido.getTotal()),
-                new Font(Font.HELVETICA, 16, Font.BOLD, COLOR_BLANCO)));
-        celdaMontoTotal.setBorder(Rectangle.NO_BORDER);
-        celdaMontoTotal.setBackgroundColor(COLOR_ACENTO);
-        celdaMontoTotal.setPadding(8);
-        celdaMontoTotal.setHorizontalAlignment(Element.ALIGN_CENTER);
+        // Solo fila de TOTAL
+        PdfPCell celdaLabelTotal = new PdfPCell(new Phrase("TOTAL:", fuenteAcento));
+        celdaLabelTotal.setBorder(Rectangle.NO_BORDER);
+        celdaLabelTotal.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        celdaLabelTotal.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        tablaTotales.addCell(celdaLabelTotal);
+        PdfPCell celdaTotal = new PdfPCell(new Phrase(formatCurrencySinDecimales(total), fuenteTotal));
+        celdaTotal.setBorder(Rectangle.NO_BORDER);
+        celdaTotal.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        celdaTotal.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        tablaTotales.addCell(celdaTotal);
 
-        tablaTotales.addCell(celdaTextoTotal);
-        tablaTotales.addCell(celdaMontoTotal);
         document.add(tablaTotales);
 
         // Total en letras con estilo
-        Paragraph totalLetras = new Paragraph("Son: " + convertirNumeroALetras(pedido.getTotal().intValue()) + " pesos",
+        Paragraph totalLetras = new Paragraph("Son: " + convertirNumeroALetras((int) total) + " pesos",
                 new Font(Font.HELVETICA, 9, Font.ITALIC, COLOR_TEXTO_SECUNDARIO));
         totalLetras.setAlignment(Element.ALIGN_RIGHT);
         totalLetras.setSpacingAfter(10);
         document.add(totalLetras);
+    }
+
+    // Formato de moneda sin decimales extra ni saltos de línea
+    private String formatCurrencySinDecimales(Double value) {
+        if (value == null) return "$0";
+        NumberFormat nf = NumberFormat.getCurrencyInstance(new Locale("es", "AR"));
+        nf.setMaximumFractionDigits(0);
+        nf.setMinimumFractionDigits(0);
+        return nf.format(value);
     }
 
     // Métodos auxiliares
@@ -461,5 +471,49 @@ public class PdfServiceImpl implements PdfService {
         }
 
         return String.valueOf(numero);
+    }
+
+    // Generación de aviso de cancelación para pagos en efectivo u otros métodos no electrónicos
+    public byte[] generarAvisoCancelacionEfectivo(Pedido pedido) {
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            Document document = new Document(PageSize.A4, 40, 40, 40, 40);
+            PdfWriter writer = PdfWriter.getInstance(document, out);
+            document.open();
+
+            Font fuenteTitulo = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18, COLOR_PRIMARIO);
+            Font fuenteNormal = FontFactory.getFont(FontFactory.HELVETICA, 11, COLOR_PRIMARIO);
+            Font fuentePequena = FontFactory.getFont(FontFactory.HELVETICA, 9, COLOR_TEXTO_SECUNDARIO);
+
+            // Header simple
+            Paragraph titulo = new Paragraph("AVISO DE CANCELACIÓN DE PEDIDO", fuenteTitulo);
+            titulo.setAlignment(Element.ALIGN_CENTER);
+            titulo.setSpacingAfter(20);
+            document.add(titulo);
+
+            // Info cliente
+            Paragraph cliente = new Paragraph();
+            cliente.add(new Chunk("Cliente: ", fuenteNormal));
+            cliente.add(new Chunk(pedido.getCliente().getNombre() + " " + pedido.getCliente().getApellido() + "\n", fuenteNormal));
+            cliente.add(new Chunk("Email: ", fuenteNormal));
+            cliente.add(new Chunk(pedido.getCliente().getUsuario().getEmail() + "\n", fuenteNormal));
+            cliente.add(new Chunk("Pedido N°: ", fuenteNormal));
+            cliente.add(new Chunk(String.valueOf(pedido.getId()), fuenteNormal));
+            cliente.setSpacingAfter(15);
+            document.add(cliente);
+
+            // Mensaje principal
+            Paragraph mensaje = new Paragraph();
+            mensaje.add(new Chunk("Lamentamos informarte que tu pedido ha sido cancelado.\n\n", fuenteNormal));
+            mensaje.add(new Chunk("Como tu pedido no fue abonado electrónicamente, no se genera nota de crédito.\n", fuenteNormal));
+            mensaje.add(new Chunk("Si abonaste en efectivo y tenés dudas, por favor comunicate con la sucursal.\n\n", fuenteNormal));
+            mensaje.add(new Chunk("Gracias por confiar en El Buen Sabor.", fuentePequena));
+            mensaje.setSpacingAfter(20);
+            document.add(mensaje);
+
+            document.close();
+            return out.toByteArray();
+        } catch (Exception e) {
+            throw new RuntimeException("Error al generar el aviso de cancelación: " + e.getMessage(), e);
+        }
     }
 }

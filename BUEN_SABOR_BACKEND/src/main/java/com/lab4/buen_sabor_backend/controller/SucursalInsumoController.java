@@ -7,6 +7,10 @@ import com.lab4.buen_sabor_backend.service.SucursalInsumoService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -56,5 +60,33 @@ public class SucursalInsumoController extends MasterControllerImpl<SucursalInsum
     @PutMapping("/agregarStock")
     public void agregarStock(@RequestBody SucursalInsumo surcursalInsumo) {
         sucursalInsumoService.agregarStock(surcursalInsumo);
+    }
+
+    @GetMapping("/filtrados")
+    public ResponseEntity<Page<SucursalInsumoDTO>> obtenerStockFiltrado(
+            @RequestParam(required = false) Long idSucursal,
+            @RequestParam(required = false) String nombreInsumo,
+            @RequestParam(required = false) Boolean stockActualMenorAStockMinimo,
+            @RequestParam(required = false) Boolean stockActualMayorAStockMaximo,
+            @PageableDefault(sort = "articuloInsumo.denominacion", direction = Sort.Direction.ASC) Pageable pageable
+    ) {
+        // Default false si es null
+        boolean filtrarMenorStockMinimo = Boolean.TRUE.equals(stockActualMenorAStockMinimo);
+        boolean filtrarMayorStockMaximo = Boolean.TRUE.equals(stockActualMayorAStockMaximo);
+
+        // Obtener resultados desde el servicio
+        Page<SucursalInsumo> entidadPaginada = sucursalInsumoService.buscarFiltrado(
+                idSucursal,
+                nombreInsumo,
+                filtrarMenorStockMinimo,
+                filtrarMayorStockMaximo,
+                pageable
+        );
+
+        // Mapear a DTOs
+        Page<SucursalInsumoDTO> dtoPaginado = entidadPaginada.map(sucursalInsumoMapper::toDTO);
+
+        // Devolver respuesta
+        return ResponseEntity.ok(dtoPaginado);
     }
 }

@@ -9,6 +9,7 @@ import java.util.List;
 @Repository
 public interface CategoriaRepository extends MasterRepository<Categoria, Long> {
 
+    List<Categoria> findByCategoriaPadreId(Long id);
     // Buscar rubro por nombre exacto (para evitar duplicados)
     boolean existsByDenominacionIgnoreCaseAndEliminadoFalse(String denominacion);
     List<Categoria> findAllByCategoriaPadreNotNull();
