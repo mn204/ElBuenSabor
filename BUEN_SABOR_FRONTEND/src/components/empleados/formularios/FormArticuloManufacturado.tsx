@@ -147,9 +147,7 @@ function FormArticuloManufacturado() {
     manufacturado.detalles = detalles.map(det => ({
       id: det.id ?? undefined,
       cantidad: det.cantidad,
-      articuloInsumo: det.articuloInsumo?.id
-        ? { id: det.articuloInsumo.id } as ArticuloInsumo
-        : undefined,
+      articuloInsumo: det.articuloInsumo!,
       eliminado: false,
     }));
 
