@@ -367,6 +367,16 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
         Estado nuevoEstado = pedidoRequest.getEstado();
         Rol rol;
 
+        // Validación: no permitir pasar a EN_DELIVERY si el tipo de envío es TAKEAWAY
+        if (nuevoEstado == Estado.EN_DELIVERY && pedido.getTipoEnvio() != null && pedido.getTipoEnvio().name().equals("TAKEAWAY")) {
+            throw new RuntimeException("No se puede cambiar a EN_DELIVERY un pedido con tipo de envío TAKEAWAY.");
+        }
+
+        // Validación: no permitir pasar a ENTREGADO si el pedido no está pagado
+        if (nuevoEstado == Estado.ENTREGADO && !pedido.isPagado()) {
+            throw new RuntimeException("No se puede marcar como ENTREGADO un pedido que no está pagado.");
+        }
+
         // Determinar si fue un empleado o cliente quien hizo la solicitud
         Empleado empleado = null;
         if (pedidoRequest.getEmpleado() != null) {
@@ -414,7 +424,7 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
                     emailService.enviarNotaCredito(pedido);
                 } else {
                     emailService.enviarAvisoCancelacionEfectivo(pedido);
-                    }
+                }
             } else if (nuevoEstado == Estado.ENTREGADO) {
                 emailService.enviarFactura(pedido);
             }

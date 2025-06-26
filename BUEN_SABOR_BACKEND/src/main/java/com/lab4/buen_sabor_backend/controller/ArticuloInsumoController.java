@@ -9,7 +9,10 @@ import com.lab4.buen_sabor_backend.service.CategoriaService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -57,6 +60,23 @@ public class ArticuloInsumoController extends MasterControllerImpl<ArticuloInsum
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/filtrados")
+    public ResponseEntity<Page<ArticuloInsumoDTO>> filtrarArticuloInsumos(
+            @RequestParam(required = false) String denominacion,
+            @RequestParam(required = false) Long categoriaId,
+            @RequestParam(required = false) Long unidadMedidaId,
+            @RequestParam(required = false) Boolean eliminado,
+            @RequestParam(required = false) Double precioCompraMin,
+            @RequestParam(required = false) Double precioCompraMax,
+            @RequestParam(required = false) Double precioVentaMin,
+            @RequestParam(required = false) Double precioVentaMax,
+            @PageableDefault(sort = "denominacion", direction = Sort.Direction.ASC) Pageable pageable
+    ) {
+        Page<ArticuloInsumo> insumos = articuloInsumoService.filtrar(denominacion, categoriaId, unidadMedidaId, eliminado,
+                precioCompraMin, precioCompraMax, precioVentaMin, precioVentaMax, pageable);
+        return ResponseEntity.ok(insumos.map(articuloInsumoMapper::toDTO));
+    }
+
     /**
      * Obtiene todos los ingredientes con información completa para la grilla
      */
@@ -98,23 +118,7 @@ public class ArticuloInsumoController extends MasterControllerImpl<ArticuloInsum
         return ResponseEntity.ok(ingredientesDTO);
     }
 
-    /**
-     * Obtiene ingredientes por categoría/rubro
-     */
-    /*
-    @GetMapping("/categoria/{categoriaId}")
-    public ResponseEntity<List<ArticuloInsumoDTO>> obtenerPorCategoria(@PathVariable Long categoriaId) {
-        logger.info("Obteniendo ingredientes de la categoría id: {}", categoriaId);
-        Categoria categoria = categoriaService.getById(categoriaId);
-        List<ArticuloInsumo> ingredientes = articuloInsumoService.findByCategoria(categoria);
-        List<ArticuloInsumoDTO> ingredientesDTO = articuloInsumoMapper.toDTOsList(ingredientes);
-        return ResponseEntity.ok(ingredientesDTO);
-    }
-    */
-
-    /**
-     * Obtiene ingredientes que son para elaborar
-     */
+     // Obtiene ingredientes que son para elaborar
     @GetMapping("/para-elaborar")
     public ResponseEntity<List<ArticuloInsumoDTO>> obtenerParaElaborar() {
         logger.info("Obteniendo ingredientes para elaborar");
@@ -139,56 +143,7 @@ public class ArticuloInsumoController extends MasterControllerImpl<ArticuloInsum
         return ResponseEntity.ok(ingredientesDTO);
     }
 
-    /**
-     * Cambia el estado de alta/baja de un ingrediente
-     */
-    /*
-    @PatchMapping("/{id}/estado-alta")
-    public ResponseEntity<ArticuloInsumoDTO> cambiarEstadoAlta(@PathVariable Long id,
-                                                               @RequestBody Map<String, Boolean> request) {
-        logger.info("Cambiando estado de alta para ingrediente id: {}", id);
-        Boolean alta = request.get("alta");
-        if (alta == null) {
-            return ResponseEntity.badRequest().build();
-        }
-
-        ArticuloInsumo actualizado = articuloInsumoService.cambiarEstadoAlta(id, alta);
-        ArticuloInsumoDTO dto = articuloInsumoMapper.toDTO(actualizado);
-        return ResponseEntity.ok(dto);
-    }
-    */
-
-
-    /**
-     * Obtiene la receta completa de un ingrediente (con sucursales y existencias)
-     *//*
-    @GetMapping("/{id}/receta-completa")
-    public ResponseEntity<ArticuloInsumoDTO> obtenerRecetaCompleta(@PathVariable Long id) {
-        logger.info("Obteniendo receta completa para ingrediente id: {}", id);
-        Optional<ArticuloInsumo> ingrediente = articuloInsumoService.obtenerRecetaCompleta(id);
-
-        if (ingrediente.isPresent()) {
-            ArticuloInsumoDTO dto = articuloInsumoMapper.toDTO(ingrediente.get());
-            return ResponseEntity.ok(dto);
-        } else {
-            return ResponseEntity.notFound().build();
-        }
-    }
-*/
-    /**
-     * Consulta el stock actual de todos los insumos
-     */
-    /*
-    @GetMapping("/stock")
-    public ResponseEntity<List<Object[]>> consultarStockInsumos() {
-        logger.info("Consultando stock de insumos");
-        List<Object[]> stockInfo = articuloInsumoService.consultarStockInsumos();
-        return ResponseEntity.ok(stockInfo);
-    }
-*/
-    /**
-     * Verifica si existe un ingrediente con la denominación dada
-     */
+     // Verifica si existe un ingrediente con la denominación dada
     @GetMapping("/existe-denominacion")
     public ResponseEntity<Boolean> existeDenominacion(@RequestParam String denominacion) {
         logger.info("Verificando si existe ingrediente con denominación: {}", denominacion);

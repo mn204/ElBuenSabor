@@ -166,12 +166,14 @@ function PanelAdmin() {
             case 'Stock':
                 return(
                     <div>
+                        <h2>{getTitulo('Stock')}</h2>
                         <GrillaStock/>
                     </div>
                 )
             case 'Promociones':
                 return(
                     <div>
+                        <h2>{getTitulo('Promociones')}</h2>
                         <GrillaPromocion/>
                     </div>
                 )

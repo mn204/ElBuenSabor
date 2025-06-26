@@ -5,6 +5,8 @@ import com.lab4.buen_sabor_backend.repository.SucursalInsumoRepository;
 import com.lab4.buen_sabor_backend.service.SucursalInsumoService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -47,5 +49,20 @@ public class SucursalInsumoServiceImpl extends MasterServiceImpl<SucursalInsumo,
         SucursalInsumo stockActualizado = sucursalInsumoRepository.save(sucursalInsumo);
 
         return stockActualizado;
+    }
+
+    @Override
+    public Page<SucursalInsumo> buscarFiltrado(Long idSucursal,
+                                               String nombreInsumo,
+                                               boolean stockActualMenorAStockMinimo,
+                                               boolean stockActualMayorAStockMaximo,
+                                               Pageable pageable) {
+        return sucursalInsumoRepository.filtrarStock(
+                idSucursal,
+                nombreInsumo != null ? nombreInsumo.toLowerCase() : null,
+                stockActualMenorAStockMinimo,
+                stockActualMayorAStockMaximo,
+                pageable
+        );
     }
 }

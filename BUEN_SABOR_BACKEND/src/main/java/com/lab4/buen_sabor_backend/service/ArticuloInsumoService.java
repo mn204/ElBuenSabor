@@ -2,6 +2,8 @@ package com.lab4.buen_sabor_backend.service;
 
 import com.lab4.buen_sabor_backend.model.ArticuloInsumo;
 import com.lab4.buen_sabor_backend.model.Categoria;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -16,6 +18,11 @@ public interface ArticuloInsumoService extends MasterService<ArticuloInsumo, Lon
     void bajaLogica(Long id);
     //Alta logica
     void altaLogica(Long id);
+
+    Page<ArticuloInsumo> filtrar(String denominacion, Long categoriaId, Long unidadMedidaId, Boolean eliminado,
+                                     Double precioCompraMin, Double precioCompraMax,
+                                     Double precioVentaMin, Double precioVentaMax,
+                                     Pageable pageable);
 
     /**
      * Busca un ingrediente por nombre exacto (case insensitive)

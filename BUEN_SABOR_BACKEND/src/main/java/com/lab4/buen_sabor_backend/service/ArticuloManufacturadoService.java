@@ -11,6 +11,8 @@ public interface ArticuloManufacturadoService extends MasterService<ArticuloManu
     // Métodos específicos para ArticuloManufacturado
     List<ArticuloManufacturado> findAll();
 
+    Page<ArticuloManufacturado> filtrarArticulosManufacturados(String denominacion, Long categoriaId, Boolean eliminado, Double precioMin, Double precioMax, Pageable pageable);
+
     /**
      * Busca productos por denominación (nombre)
      */

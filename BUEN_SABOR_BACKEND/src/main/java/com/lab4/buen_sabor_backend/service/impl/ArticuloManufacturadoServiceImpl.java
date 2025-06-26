@@ -3,17 +3,23 @@ package com.lab4.buen_sabor_backend.service.impl;
 import com.lab4.buen_sabor_backend.model.*;
 import com.lab4.buen_sabor_backend.repository.ArticuloInsumoRepository;
 import com.lab4.buen_sabor_backend.repository.ArticuloManufacturadoRepository;
+import com.lab4.buen_sabor_backend.repository.CategoriaRepository;
 import com.lab4.buen_sabor_backend.service.ArticuloInsumoService;
 import com.lab4.buen_sabor_backend.service.ArticuloManufacturadoService;
 import com.lab4.buen_sabor_backend.service.PromocionService;
+import com.lab4.buen_sabor_backend.service.impl.specification.ArticuloManufacturadoSpecification;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
 
 @Service
@@ -24,13 +30,16 @@ public class ArticuloManufacturadoServiceImpl extends MasterServiceImpl<Articulo
     private final ArticuloManufacturadoRepository articuloManufacturadoRepository;
     private final PromocionService promocionService;
     private final ArticuloInsumoRepository articuloInsumoRepository;
+    private final CategoriaRepository categoriaRepository;
 
     @Autowired
-    public ArticuloManufacturadoServiceImpl(ArticuloManufacturadoRepository articuloManufacturadoRepository, PromocionService promocionService, ArticuloInsumoRepository articuloInsumoRepository) {
+    public ArticuloManufacturadoServiceImpl(ArticuloManufacturadoRepository articuloManufacturadoRepository, PromocionService promocionService,
+                                            ArticuloInsumoRepository articuloInsumoRepository,CategoriaRepository categoriaRepository) {
         super(articuloManufacturadoRepository);
         this.articuloManufacturadoRepository = articuloManufacturadoRepository;
         this.promocionService = promocionService;
         this.articuloInsumoRepository = articuloInsumoRepository;
+        this.categoriaRepository = categoriaRepository;
     }
 
     @Override
@@ -55,6 +64,29 @@ public class ArticuloManufacturadoServiceImpl extends MasterServiceImpl<Articulo
 
         logger.info("Guardando ArticuloManufacturado: {}", entity.getDenominacion());
         return super.save(entity);
+    }
+
+    @Override
+    public Page<ArticuloManufacturado> filtrarArticulosManufacturados(String denominacion, Long categoriaId, Boolean eliminado, Double precioMin, Double precioMax, Pageable pageable) {
+        List<Long> categorias = new ArrayList<>();
+        if (categoriaId != null) {
+            categorias = obtenerCategoriasRecursivas(categoriaId);
+        }
+        Specification<ArticuloManufacturado> spec = ArticuloManufacturadoSpecification.filtrar(denominacion, categorias, eliminado, precioMin, precioMax);
+        return articuloManufacturadoRepository.findAll(spec, pageable);
+    }
+
+    private List<Long> obtenerCategoriasRecursivas(Long categoriaId) {
+        List<Long> ids = new ArrayList<>();
+        Deque<Long> stack = new ArrayDeque<>();
+        stack.push(categoriaId);
+
+        while (!stack.isEmpty()) {
+            Long currentId = stack.pop();
+            ids.add(currentId);
+            categoriaRepository.findByCategoriaPadreId(currentId).forEach(c -> stack.push(c.getId()));
+        }
+        return ids;
     }
     public ArticuloInsumo conseguirInsumo(Long id){
         return articuloInsumoRepository.getById(id);

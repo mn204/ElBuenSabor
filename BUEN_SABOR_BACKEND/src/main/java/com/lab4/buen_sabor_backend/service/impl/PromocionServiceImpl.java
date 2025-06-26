@@ -7,8 +7,6 @@ import com.lab4.buen_sabor_backend.repository.ArticuloInsumoRepository;
 import com.lab4.buen_sabor_backend.repository.ArticuloManufacturadoRepository;
 import com.lab4.buen_sabor_backend.repository.PromocionRepository;
 
-import com.lab4.buen_sabor_backend.service.ArticuloInsumoService;
-import com.lab4.buen_sabor_backend.service.ArticuloManufacturadoService;
 import com.lab4.buen_sabor_backend.service.PromocionService;
 import com.lab4.buen_sabor_backend.service.SucursalInsumoService;
 import com.lab4.buen_sabor_backend.service.impl.specification.PromocionSpecification;
@@ -19,7 +17,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
+
+import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -231,17 +230,27 @@ public class PromocionServiceImpl extends MasterServiceImpl<Promocion, Long> imp
     }
 
     @Override
-    public Page<Promocion> buscarPromocionesFiltradas(Long idSucursal, Boolean activa, TipoPromocion tipoPromocion,
-                                                      LocalDate fechaDesde, LocalDate fechaHasta, Pageable pageable) {
-
-        Specification<Promocion> spec = Specification.where(PromocionSpecification.conSucursal(idSucursal))
-                .and(PromocionSpecification.conActiva(activa))
-                .and(PromocionSpecification.conTipo(tipoPromocion))
-                .and(PromocionSpecification.desdeFecha(fechaDesde))
-                .and(PromocionSpecification.hastaFecha(fechaHasta));
-
+    public Page<Promocion> buscarPromocionesFiltradas(String denominacion,
+                                                      TipoPromocion tipoPromocion,
+                                                      Boolean activa,
+                                                      OffsetDateTime fechaHoraDesde,
+                                                      OffsetDateTime fechaHoraHasta,
+                                                      Double precioMin,
+                                                      Double precioMax,
+                                                      Pageable pageable) {
+        Specification<Promocion> spec = PromocionSpecification.filtrar(
+                denominacion,
+                tipoPromocion,
+                activa,
+                fechaHoraDesde,
+                fechaHoraHasta,
+                precioMin,
+                precioMax,
+                null // o pasá el ID de sucursal si querés filtrar también por eso
+        );
         return promocionRepository.findAll(spec, pageable);
     }
+
 
 
 }
