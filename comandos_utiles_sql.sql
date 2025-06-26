@@ -93,3 +93,60 @@ FROM promocion p
 WHERE p.eliminado = 0 AND dp.eliminado = 0
 GROUP BY p.id, p.denominacion, p.tipo_promocion, p.descuento, p.precio_promocional
 ORDER BY p.id;
+
+-- PROCEDIMIENTO ESTADO DE PROMOCIONES
+/*
+Prompt utilizado:
+yo tengo esta informacion en mi base de datos:
+
+CREATE TABLE `promocion` (
+  `id` BIGINT(20) NOT NULL AUTO_INCREMENT,
+  `eliminado` BIT(1) NOT NULL,
+  `activa` BIT(1) DEFAULT NULL,
+  `denominacion` VARCHAR(255) DEFAULT NULL,
+  `descripcion_descuento` VARCHAR(255) DEFAULT NULL,
+  `descuento` DOUBLE DEFAULT NULL,
+  `fecha_desde` DATE DEFAULT NULL,
+  `fecha_hasta` DATE DEFAULT NULL,
+  `hora_desde` TIME(6) DEFAULT NULL,
+  `hora_hasta` TIME(6) DEFAULT NULL,
+  `precio_promocional` DOUBLE DEFAULT NULL,
+  `tipo_promocion` ENUM('HAPPYHOUR','PROMOCION') DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=INNODB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+
+
+mariadb como hago para que automaticamente la promocion pasa a inactiva o activa dependiendo de las fechas desde y hasta
+
+*/
+
+-- Verificar si está habilitado
+SHOW VARIABLES LIKE 'event_scheduler';
+
+-- Habilitarlo si no está activo
+SET GLOBAL event_scheduler = ON;
+
+    DELIMITER $$
+
+CREATE EVENT actualizar_estado_promociones
+ON SCHEDULE EVERY 1 MINUTE
+DO
+BEGIN
+    -- Activar promociones que están en rango de fechas
+UPDATE promocion
+SET activa = 1
+WHERE eliminado = 0
+  AND (fecha_desde IS NULL OR fecha_desde <= CURDATE())
+  AND (fecha_hasta IS NULL OR fecha_hasta >= CURDATE())
+  AND activa = 0;
+
+-- Desactivar promociones que están fuera del rango de fechas
+UPDATE promocion
+SET activa = 0
+WHERE eliminado = 0
+  AND ((fecha_desde IS NOT NULL AND fecha_desde > CURDATE())
+    OR (fecha_hasta IS NOT NULL AND fecha_hasta < CURDATE()))
+  AND activa = 1;
+END$$
+
+DELIMITER ;
