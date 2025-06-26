@@ -3,6 +3,7 @@ import '../../styles/buscador.css';
 import { Link } from 'react-router-dom';
 import type Articulo from '../../models/Articulo';
 import BuscadorService from '../../services/BuscadorService';
+import { useSucursalUsuario } from '../../context/SucursalContext';
 
 type BuscadorProps = {
   onBuscar: (valor: string) => void;
@@ -15,6 +16,7 @@ function Buscador({ onBuscar, valorInicial = "", setValor }: BuscadorProps) {
   const [results, setResults] = useState<Articulo[]>([]);
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const { sucursalActualUsuario } = useSucursalUsuario();
 
   // Obtener instancia del servicio
   const buscadorService = BuscadorService.getInstance();
@@ -54,7 +56,7 @@ function Buscador({ onBuscar, valorInicial = "", setValor }: BuscadorProps) {
         console.log("Buscando sugerencias para:", query);
 
         // Usar el BuscadorService para obtener sugerencias (limitadas a 3)
-        const articulos = await buscadorService.buscarArticulosParaSugerencias(query, 3);
+        const articulos = await buscadorService.buscarArticulosParaSugerencias(query, 3, sucursalActualUsuario!.id!);
 
         console.log("Sugerencias encontradas:", articulos.length);
         setResults(articulos);
@@ -71,7 +73,7 @@ function Buscador({ onBuscar, valorInicial = "", setValor }: BuscadorProps) {
     const timeoutId = setTimeout(fetchData, 500);
 
     return () => clearTimeout(timeoutId);
-  }, [query, buscadorService]);
+  }, [query, buscadorService, sucursalActualUsuario]);
 
   useEffect(() => {
     // Actualizar el query local si cambia el valorInicial

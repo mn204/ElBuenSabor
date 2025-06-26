@@ -19,25 +19,22 @@ const VistaArticulo: React.FC = () => {
   const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
   const carritoCtx = useCarrito();
   const { esSucursalAbierta, sucursalActualUsuario } = useSucursalUsuario();
-
+  const [stockArticulo, setStockArticulo] = useState<boolean>(true);
   useEffect(() => {
     if (!id) return;
-
     const obtenerArticulo = async () => {
       setLoading(true);
       setError(null);
-
+      
       try {
         // Primero intentamos obtener como ArticuloManufacturado
         try {
           const articuloManufacturado = await ArticuloManufacturadoService.getById(Number(id));
 
-          // Verificar stock en la sucursal actual
           const stock = ArticuloService.consultarStock(articuloManufacturado, sucursalActualUsuario?.id!);
           if (!stock) {
-            throw new Error("El artículo no está disponible en la sucursal actual.");
+            setStockArticulo(false);
           }
-
           setArticulo(articuloManufacturado);
           setLoading(false);
           return;
@@ -47,9 +44,10 @@ const VistaArticulo: React.FC = () => {
             const articuloInsumo = await ArticuloInsumoService.getById(Number(id));
 
             // Verificar stock en la sucursal actual
-            const stock = ArticuloService.consultarStock(articuloInsumo, sucursalActualUsuario?.id!);
+            const stock = await ArticuloService.consultarStock(articuloInsumo, sucursalActualUsuario?.id!);
+            console.log("Stock del artículo manufacturado:", stock);
             if (!stock) {
-              throw new Error("El artículo no está disponible en la sucursal actual.");
+              setStockArticulo(false);
             }
 
             setArticulo(articuloInsumo);
@@ -327,21 +325,30 @@ const VistaArticulo: React.FC = () => {
                     <button
                       className="btn btn-success btn-lg flex-fill d-flex align-items-center justify-content-center gap-2"
                       onClick={handleAgregarAlCarrito}
-                      disabled={agregandoCarrito}
+                      disabled={agregandoCarrito || !stockArticulo}
                     >
-                      {agregandoCarrito ? (
-                        <>
-                          <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                          Agregando...
-                        </>
+                      {stockArticulo ? (
+                        agregandoCarrito ? (
+                          <>
+                            <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                            Agregando...
+                          </>
+                        ) : (
+                          <>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <circle cx="9" cy="21" r="1"></circle>
+                              <circle cx="20" cy="21" r="1"></circle>
+                              <path d="m1 1 4 4 5.8 8.8a2 2 0 0 0 1.7 1.2h9.9a2 2 0 0 0 1.7-1.2L19 8H7"></path>
+                            </svg>
+                            Agregar al carrito
+                          </>
+                        )
                       ) : (
                         <>
                           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <circle cx="9" cy="21" r="1"></circle>
-                            <circle cx="20" cy="21" r="1"></circle>
-                            <path d="m1 1 4 4 5.8 8.8a2 2 0 0 0 1.7 1.2h9.9a2 2 0 0 0 1.7-1.2L19 8H7"></path>
+                            <path d="M3 3h2l.4 2M7 13h10l4-8H5.4m1.6 8L6 5H3m4 8a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm10 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"></path>
                           </svg>
-                          Agregar al carrito
+                          Sin stock
                         </>
                       )}
                     </button>

@@ -1,4 +1,5 @@
 import Articulo from "../models/Articulo";
+import ArticuloService from "./ArticuloService";
 
 class BuscadorService {
     private static instance: BuscadorService;
@@ -81,10 +82,18 @@ class BuscadorService {
     /**
      * Busca artículos con límite para sugerencias (usado en el buscador)
      */
-    async buscarArticulosParaSugerencias(denominacion: string, limite: number = 3): Promise<Articulo[]> {
+    async buscarArticulosParaSugerencias(denominacion: string, limite: number = 3, sucursalId: number): Promise<Articulo[]> {
         try {
             const articulos = await this.buscarTodosLosArticulos(denominacion);
-            return articulos.slice(0, limite);
+            let articulosFiltrados = [];
+            for (const articulo of articulos) {
+                // Verificar si el artículo tiene stock en la sucursal
+                const tieneStock = await ArticuloService.consultarStock(articulo, sucursalId);
+                if (tieneStock) {
+                    articulosFiltrados.push(articulo);
+                }
+            }
+            return articulosFiltrados.slice(0, limite);
         } catch (error) {
             console.error('Error al buscar artículos para sugerencias:', error);
             return [];
