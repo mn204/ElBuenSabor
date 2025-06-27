@@ -53,11 +53,9 @@ public class PromocionSpecification {
 
             // Fecha + hora combinadas
             if (fechaHoraDesde != null && fechaHoraHasta != null) {
-                // Convertimos las fechas del filtro a LocalDateTime con zona corregida
                 LocalDateTime desdeLdt = fechaHoraDesde.withOffsetSameInstant(ZoneOffset.UTC).toLocalDateTime();
                 LocalDateTime hastaLdt = fechaHoraHasta.withOffsetSameInstant(ZoneOffset.UTC).toLocalDateTime();
 
-                // Sumamos fecha + hora de la entidad (ya son LocalDate + LocalTime)
                 Expression<LocalDateTime> inicioPromocion = cb.function(
                         "TIMESTAMP", LocalDateTime.class,
                         root.get("fechaDesde"),
@@ -70,8 +68,24 @@ public class PromocionSpecification {
                         root.get("horaHasta")
                 );
 
-                predicates.add(cb.lessThanOrEqualTo(inicioPromocion, hastaLdt));
-                predicates.add(cb.greaterThanOrEqualTo(finPromocion, desdeLdt));
+                predicates.add(cb.greaterThanOrEqualTo(inicioPromocion, desdeLdt));
+                predicates.add(cb.lessThanOrEqualTo(finPromocion, hastaLdt));
+            } else if (fechaHoraDesde != null) {
+                LocalDateTime desdeLdt = fechaHoraDesde.withOffsetSameInstant(ZoneOffset.UTC).toLocalDateTime();
+                Expression<LocalDateTime> inicioPromocion = cb.function(
+                        "TIMESTAMP", LocalDateTime.class,
+                        root.get("fechaDesde"),
+                        root.get("horaDesde")
+                );
+                predicates.add(cb.greaterThanOrEqualTo(inicioPromocion, desdeLdt));
+            } else if (fechaHoraHasta != null) {
+                LocalDateTime hastaLdt = fechaHoraHasta.withOffsetSameInstant(ZoneOffset.UTC).toLocalDateTime();
+                Expression<LocalDateTime> finPromocion = cb.function(
+                        "TIMESTAMP", LocalDateTime.class,
+                        root.get("fechaHasta"),
+                        root.get("horaHasta")
+                );
+                predicates.add(cb.lessThanOrEqualTo(finPromocion, hastaLdt));
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));

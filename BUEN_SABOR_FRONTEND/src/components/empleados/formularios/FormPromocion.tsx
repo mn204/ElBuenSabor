@@ -536,85 +536,44 @@ function FormPromocion() {
                                 className="form-control mt-2"
                             />
 
-
                             {/* SUCURSALES */}
-                            <div className="d-flex flex-column">
-                                <label>Sucursales donde aplicará la promoción:</label>
-                                <div className="border p-3 rounded text-start" style={{ overflowY: 'auto' }}>
-                                    <div className="text-start">
-                                        <label className="form-check-label fw-bold" htmlFor="selectAllSucursales">
-                                            Seleccionar todas
-                                        </label>
-                                        <input
-                                            className="form-check"
-                                            type="checkbox"
-                                            id="selectAllSucursales"
-                                            checked={sucursalesSeleccionadas.length === todasLasSucursales.length && todasLasSucursales.length > 0}
-                                            onChange={(e) => handleSelectAllSucursales(e.target.checked)}
-                                        />
-                                    </div>
-                                    {todasLasSucursales.map(sucursal => (
-                                        <div key={sucursal.id} className="">
-                                            <label className="form-check-label" htmlFor={`sucursal-${sucursal.id}`}>
-                                                {sucursal.nombre}
+                            {!idFromUrl && (
+                                <div className="d-flex flex-column">
+                                    <label>Sucursales donde aplicará la promoción:</label>
+                                    <div className="border p-3 rounded text-start" style={{ overflowY: 'auto' }}>
+                                        <div className="text-start">
+                                            <label className="form-check-label fw-bold" htmlFor="selectAllSucursales">
+                                                Seleccionar todas
                                             </label>
                                             <input
                                                 className="form-check"
                                                 type="checkbox"
-                                                id={`sucursal-${sucursal.id}`}
-                                                checked={sucursalesSeleccionadas.includes(sucursal.id!)}
-                                                onChange={(e) => handleSucursalChange(sucursal.id!, e.target.checked)}
-                                                disabled={false} // <-- Asegúrate de que nunca esté deshabilitado
+                                                id="selectAllSucursales"
+                                                checked={sucursalesSeleccionadas.length === todasLasSucursales.length && todasLasSucursales.length > 0}
+                                                onChange={(e) => handleSelectAllSucursales(e.target.checked)}
                                             />
                                         </div>
-                                    ))}
-                                </div>
-                                {sucursalesSeleccionadas.length === 0 && (
-                                    <small className="text-danger mt-1">Debe seleccionar al menos una sucursal</small>
-                                )}
-                            </div>
-                            {/* Imágenes nuevas */}
-                            <div className="preview-imagenes mt-2 d-flex gap-2 flex-wrap">
-                                {imagenes.map((img, idx) => (
-                                    <div key={idx} style={{ position: "relative", display: "inline-block" }}>
-                                        <img
-                                            src={URL.createObjectURL(img)}
-                                            alt={`preview-${idx}`}
-                                            style={{ width: 60, height: 60, objectFit: "cover", borderRadius: 8 }}
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => eliminarImagenNueva(idx)}
-                                            style={{
-                                                position: "absolute",
-                                                top: -5,
-                                                right: -5,
-                                                background: "red",
-                                                color: "white",
-                                                border: "none",
-                                                borderRadius: "50%",
-                                                width: 20,
-                                                height: 20,
-                                                cursor: "pointer",
-                                                fontSize: "12px",
-                                                display: "flex",
-                                                alignItems: "center",
-                                                justifyContent: "center"
-                                            }}
-                                        >
-                                            ×
-                                        </button>
+                                        {todasLasSucursales.map(sucursal => (
+                                            <div key={sucursal.id} className="">
+                                                <label className="form-check-label" htmlFor={`sucursal-${sucursal.id}`}>
+                                                    {sucursal.nombre}
+                                                </label>
+                                                <input
+                                                    className="form-check"
+                                                    type="checkbox"
+                                                    id={`sucursal-${sucursal.id}`}
+                                                    checked={sucursalesSeleccionadas.includes(sucursal.id!)}
+                                                    onChange={(e) => handleSucursalChange(sucursal.id!, e.target.checked)}
+                                                    disabled={false}
+                                                />
+                                            </div>
+                                        ))}
                                     </div>
-                                ))}
-                            </div>
-
-                            <input
-                                type="file"
-                                multiple
-                                accept="image/*"
-                                onChange={handleImagenesChange}
-                                className="form-control mt-2"
-                            />
+                                    {sucursalesSeleccionadas.length === 0 && (
+                                        <small className="text-danger mt-1">Debe seleccionar al menos una sucursal</small>
+                                    )}
+                                </div>
+                            )}         
                         </div>
                     </form>
                 </div>

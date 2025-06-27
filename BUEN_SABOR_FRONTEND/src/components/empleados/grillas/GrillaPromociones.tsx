@@ -16,6 +16,8 @@ import { es } from "date-fns/locale";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+import BotonSucursal from "../../layout/botones/BotonSucursal.tsx";
+import { obtenerSucursales } from "../../../services/SucursalService.ts";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -38,6 +40,10 @@ export function GrillaPromocion() {
     const [modalMensaje, setModalMensaje] = useState("");
     const [accionConfirmada, setAccionConfirmada] = useState<(() => void) | null>(null);
 
+    const [showModalSucursal, setShowModalSucursal] = useState(false);
+    const [promoSucursalSeleccionada, setPromoSucursalSeleccionada] = useState<Promocion | null>(null);
+    const [sucursalesSeleccionadas, setSucursalesSeleccionadas] = useState<number[]>([]);
+    const [todasLasSucursales, setTodasLasSucursales] = useState<{ id: number, nombre: string }[]>([]);
     // Filtros
     const [filtroDenominacion, setFiltroDenominacion] = useState("");
     const [filtroTipoPromocion, setFiltroTipoPromocion] = useState<"PROMOCION" | "HAPPYHOUR" | "">("");
@@ -74,6 +80,33 @@ export function GrillaPromocion() {
         }
     }, [filtroDenominacion, filtroTipoPromocion, filtroEstado, filtroFechaDesde, filtroFechaHasta, filtroPrecioMin, filtroPrecioMax]);
 
+    useEffect(() => {
+        const cargarSucursales = async () => {
+            try {
+                const sucursales = await obtenerSucursales();
+                if (Array.isArray(sucursales)) {
+                    setTodasLasSucursales(
+                        sucursales
+                            .filter(s => typeof s.id === "number" && !!s.nombre)
+                            .filter((s): s is { id: number; nombre: string } => s.id !== undefined && s.nombre !== undefined)
+                            .map(s => ({
+                                id: s.id,
+                                nombre: s.nombre
+                            }))
+                    );
+                } else {
+                    setTodasLasSucursales([]);
+                    console.error("La respuesta de sucursales no es un array:", sucursales);
+                }
+            } catch (error) {
+                setTodasLasSucursales([]);
+                console.error("Error al cargar sucursales", error);
+            }
+        };
+
+        cargarSucursales();
+    }, []);
+
     const handleVer = (promo: Promocion) => {
         setPromocionSeleccionada(promo);
         setShowModalDetalle(true);
@@ -83,6 +116,25 @@ export function GrillaPromocion() {
         setModalTitulo(titulo);
         setModalMensaje(mensaje);
         setShowModalInfo(true);
+    };
+
+    const deshabilitarHabilitarSucusal = (promoId: number) => {
+        const promo = promociones.find(p => p.id === promoId);
+        if (!promo) return;
+        setPromoSucursalSeleccionada(promo);
+        // Solo seleccioná las sucursales asociadas a la promo
+        setSucursalesSeleccionadas((promo.sucursales || []).map(s => s.id).filter((id): id is number => id !== undefined));
+        setShowModalSucursal(true);
+    };
+
+    const handleSucursalChange = (id: number, checked: boolean) => {
+        setSucursalesSeleccionadas(prev =>
+            checked ? [...prev, id] : prev.filter(sucId => sucId !== id)
+        );
+    };
+
+    const handleSelectAllSucursales = (checked: boolean) => {
+        setSucursalesSeleccionadas(checked ? todasLasSucursales.map(s => s.id) : []);
     };
 
     // Función para construir filtros para el backend
@@ -190,6 +242,27 @@ export function GrillaPromocion() {
         setModalMensaje("¿Seguro que desea dar de Alta esta promoción?");
         setAccionConfirmada(() => () => activarPromocion(id));
         setShowModalConfirmacion(true);
+    };
+
+    const guardarSucursalesPromo = async () => {
+        if (!promoSucursalSeleccionada) return;
+        try {
+            // Cloná la promo y cambiá solo las sucursales
+            const promoActualizada = {
+                ...promoSucursalSeleccionada,
+                sucursales: todasLasSucursales.filter(s => sucursalesSeleccionadas.includes(s.id))
+            };
+            if (promoSucursalSeleccionada.id !== undefined) {
+                await PromocionService.update(promoSucursalSeleccionada.id, promoActualizada);
+            } else {
+                throw new Error("ID de promoción no definido");
+            }
+            setShowModalSucursal(false);
+            await cargarPromociones();
+            mostrarInfo("¡Listo!", "Sucursales actualizadas correctamente.");
+        } catch (err) {
+            mostrarInfo("Error", "No se pudo actualizar las sucursales.");
+        }
     };
 
     const eliminarPromocion = async (id: number) => {
@@ -309,18 +382,18 @@ export function GrillaPromocion() {
             label: "ID",
             render: (_: any, row: Promocion) => row.id?.toString() || "-",
         },
-        { key: "denominacion", label: "Denominación" },
+        { key: "denominacion", label: "Nombre" },
         {
             key: "fechaDesde",
             label: "Desde",
             render: (_: any, row: Promocion) =>
-                new Date(row.fechaDesde).toLocaleDateString(),
+                dayjs(row.fechaDesde).tz("America/Argentina/Buenos_Aires").format("DD/MM/YYYY"),
         },
         {
             key: "fechaHasta",
             label: "Hasta",
             render: (_: any, row: Promocion) =>
-                new Date(row.fechaHasta).toLocaleDateString(),
+                dayjs(row.fechaHasta).tz("America/Argentina/Buenos_Aires").format("DD/MM/YYYY"),
         },
         {
             key: "tipoPromocion",
@@ -330,7 +403,7 @@ export function GrillaPromocion() {
         },
         {
             key: "precioPromocional",
-            label: "Precio Promocional",
+            label: "Precio",
             render: (value: number) => `$${value.toFixed(2)}`,
         },
         {
@@ -353,6 +426,7 @@ export function GrillaPromocion() {
                     ) : (
                         <BotonAlta onClick={() => pedirConfirmacionAlta(row.id!)} />
                     )}
+                    <BotonSucursal onClick={() => deshabilitarHabilitarSucusal(row.id!)} />
                 </div>
             ),
         },
@@ -383,7 +457,7 @@ export function GrillaPromocion() {
                                     <Form.Control
                                         size="sm"
                                         style={{ width: 160, display: "inline-block" }}
-                                        placeholder="Buscar por nombre"
+                                        placeholder="Buscar por Nombre"
                                         value={filtroDenominacion}
                                         onChange={(e) => handleFiltroChange('denominacion', e.target.value)}
                                     />
@@ -602,6 +676,18 @@ export function GrillaPromocion() {
                                     <p className="mb-2"><strong>📝 Descripción:</strong> {promocionSeleccionada.descripcionDescuento}</p>
                                     <p className="mb-2"><strong>🎯 Tipo:</strong> {promocionSeleccionada.tipoPromocion === "HAPPYHOUR" ? "Happy Hour" : "Promoción"}</p>
                                     <p className="mb-2"><strong>📊 Estado:</strong> {promocionSeleccionada.activa ? "Activa" : "Inactiva"}</p>
+                                    <p className="mb-2">
+                                        <strong>🏢 Sucursal/es:</strong>{" "}
+                                        {Array.isArray(promocionSeleccionada.sucursales) && promocionSeleccionada.sucursales.length > 0
+                                            ? promocionSeleccionada.sucursales.map((suc, idx) =>
+                                                <span key={suc.id}>
+                                                    {suc.nombre || `Sucursal ${suc.id}`}
+                                                    {idx < promocionSeleccionada.sucursales.length - 1 ? ", " : ""}
+                                                </span>
+                                            )
+                                            : <span className="text-muted">Sin sucursales asociadas</span>
+                                        }
+                                    </p>
                                 </Col>
                                 <Col md={6}>
                                     <p className="mb-2"><strong>📅 Fecha Desde:</strong> {new Date(promocionSeleccionada.fechaDesde).toLocaleDateString()}</p>
@@ -689,6 +775,64 @@ export function GrillaPromocion() {
                         }
                     }}>
                         Confirmar
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+
+            <Modal show={showModalSucursal} onHide={() => setShowModalSucursal(false)} centered>
+                <Modal.Header closeButton>
+                    <Modal.Title>
+                        Deshabilitar/Habilitar promoción en sucursales
+                    </Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <div className="d-flex flex-column">
+                        <label className="mb-2">
+                            Sucursales donde se Deshabilitara/Habilitara la promoción:
+                        </label>
+                        <div className="border p-3 rounded text-start" style={{ maxHeight: 220, overflowY: 'auto' }}>
+                            <div className="text-start mb-2 d-flex align-items-center">
+                                <input
+                                    className="form-check-input me-2"
+                                    type="checkbox"
+                                    id="selectAllSucursales"
+                                    checked={sucursalesSeleccionadas.length === todasLasSucursales.length && todasLasSucursales.length > 0}
+                                    onChange={e => handleSelectAllSucursales(e.target.checked)}
+                                />
+                                <label className="form-check-label fw-bold mb-0" htmlFor="selectAllSucursales">
+                                    Seleccionar todas
+                                </label>
+                            </div>
+                            {todasLasSucursales.map(sucursal => (
+                                <div key={sucursal.id} className="mb-1 d-flex align-items-center">
+                                    <input
+                                        className="form-check-input me-2"
+                                        type="checkbox"
+                                        id={`sucursal-${sucursal.id}`}
+                                        checked={sucursalesSeleccionadas.includes(sucursal.id)}
+                                        onChange={e => handleSucursalChange(sucursal.id, e.target.checked)}
+                                    />
+                                    <label className="form-check-label mb-0" htmlFor={`sucursal-${sucursal.id}`}>
+                                        {sucursal.nombre}
+                                    </label>
+                                </div>
+                            ))}
+                        </div>
+                        {sucursalesSeleccionadas.length === 0 && (
+                            <small className="text-danger mt-1">Debe seleccionar al menos una sucursal</small>
+                        )}
+                    </div>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setShowModalSucursal(false)}>
+                        Cancelar
+                    </Button>
+                    <Button
+                        variant="primary"
+                        onClick={guardarSucursalesPromo}
+                        disabled={sucursalesSeleccionadas.length === 0}
+                    >
+                        Guardar cambios
                     </Button>
                 </Modal.Footer>
             </Modal>

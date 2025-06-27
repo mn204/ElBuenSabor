@@ -90,7 +90,7 @@ function FormInsumos() {
         setDenominacion(insumo.denominacion);
         setPrecioCompra(insumo.precioCompra || 0);
         if (insumo.precioCompra) {
-          const ganancia = ((insumo.precioVenta - insumo.precioCompra) / insumo.precioCompra) * 100;
+          const ganancia = (((insumo.precioVenta ?? 0) - insumo.precioCompra) / insumo.precioCompra) * 100;
           setPorcentajeGanancia(Number(ganancia.toFixed(2)));
         }
         setPrecioVenta(insumo.precioVenta || 0);

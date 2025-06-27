@@ -25,6 +25,4 @@ public interface PromocionService extends MasterService<Promocion, Long> {
                                                Double precioMin,
                                                Double precioMax,
                                                Pageable pageable);
-
-
 }
