@@ -31,7 +31,7 @@ public class Empleado extends Master{
     private Usuario usuario;
 
     // Relación ManyToOne con Domicilio
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @JoinColumn(name = "domicilio_id")
     private Domicilio domicilio;
 

@@ -22,14 +22,14 @@ public class Articulo extends Master {
     private Double precioVenta;
 
 
-    @OneToMany(mappedBy = "articulo", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "articulo", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
     private Set<ImagenArticulo> imagenes;
 
     @ManyToOne
     @JoinColumn(name = "unidad_medida_id")
     private UnidadMedida unidadMedida;
 
-    @OneToMany(mappedBy = "articulo", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "articulo", cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     private List<DetallePromocion> detallesPromocion = new ArrayList<>();
 
     @ManyToOne

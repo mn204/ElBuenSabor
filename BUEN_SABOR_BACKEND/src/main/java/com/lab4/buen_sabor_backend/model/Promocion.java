@@ -42,10 +42,10 @@ public class Promocion extends Master {
     @JsonIgnore
     private Set<Sucursal> sucursales = new HashSet<>();
 
-    @OneToMany(mappedBy = "promocion", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "promocion", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
     private Set<ImagenPromocion> imagenes = new HashSet<>();
 
-    @OneToMany(mappedBy = "promocion", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "promocion", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
     private List<DetallePromocion> detalles = new ArrayList<>();
 }
 

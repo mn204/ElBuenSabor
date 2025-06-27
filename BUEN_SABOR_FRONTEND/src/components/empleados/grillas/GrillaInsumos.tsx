@@ -90,16 +90,52 @@ function GrillaInsumos() {
   const cargarCategorias = async () => {
     try {
       const data = await CategoriaService.getAll();
-      // Filtrar solo categorías de insumos (id padre: 3) y bebidas hijas (id padre: 2)
-      const categoriasFiltradas = data.filter(categoria =>
-        categoria.categoriaPadre?.id === 3 || categoria.categoriaPadre?.id === 2
-      );
-      setCategorias(categoriasFiltradas);
+
+      // 1. Buscar la categoría padre "INSUMO"
+      const padreInsumo = data.find(cat => cat.denominacion?.toUpperCase() === "INSUMOS");
+
+      if (!padreInsumo) {
+        setCategorias([]);
+        console.warn('No se encontró la categoría padre "INSUMO"');
+        return;
+      }
+
+      // 2. Función recursiva para armar el árbol de categorías
+      const armarArbol = (padreId: number): Categoria[] => {
+        return data
+          .filter(cat => cat.categoriaPadre?.id === padreId && typeof cat.id === "number")
+          .map(cat => ({
+            ...cat,
+            hijos: armarArbol(cat.id as number)
+          }));
+      };
+
+      // 3. Construir el árbol desde la categoría padre "INSUMO"
+      const categoriasArbol = [{
+        ...padreInsumo,
+        hijos: armarArbol(padreInsumo.id as number)
+      }];
+
+      setCategorias(categoriasArbol);
     } catch (err) {
       console.error("Error al cargar categorías:", err);
+      setCategorias([]);
     }
   };
 
+  function flattenCategorias(categorias: any[], nivel = 0): { id: number, denominacion: string }[] {
+    let result: { id: number, denominacion: string }[] = [];
+    for (const cat of categorias) {
+      result.push({
+        id: cat.id,
+        denominacion: `${"— ".repeat(nivel)}${cat.denominacion}`
+      });
+      if (cat.hijos && cat.hijos.length > 0) {
+        result = result.concat(flattenCategorias(cat.hijos, nivel + 1));
+      }
+    }
+    return result;
+  }
   // Efecto para cargar insumos cuando cambie la página
   useEffect(() => {
     cargarInsumosFiltrados();
@@ -380,7 +416,7 @@ function GrillaInsumos() {
                     onChange={e => setFiltroCategoria(e.target.value)}
                   >
                     <option value="">Todas las categorías</option>
-                    {categorias.map(cat => (
+                    {flattenCategorias(categorias).map(cat => (
                       <option key={cat.id} value={cat.id}>{cat.denominacion}</option>
                     ))}
                   </Form.Select>

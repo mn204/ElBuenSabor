@@ -17,6 +17,6 @@ public class Empresa extends Master {
     private String razonSocial;
     private Long cuil;
 
-    @OneToMany(mappedBy = "empresa", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "empresa", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
     private Set<Sucursal> sucursales;
 }

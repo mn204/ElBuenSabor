@@ -59,17 +59,51 @@ function GrillaArticuloManufacturado() {
         try {
             const todasLasCategorias = await CategoriaService.getAll();
 
-            // Filtrar para obtener solo categorías de comidas
-            // ID 1 corresponde a "Comidas" según los datos proporcionados
-            const categoriasComidas = todasLasCategorias.filter(categoria =>
-                (categoria.categoriaPadre && categoria.categoriaPadre.id === 1) // Subcategorías de comidas
-            );
+            // 1. Buscar la categoría padre "COMIDAS"
+            const padreComidas = todasLasCategorias.find(cat => cat.denominacion?.toUpperCase() === "COMIDAS");
 
-            setCategorias(categoriasComidas);
+            if (!padreComidas) {
+                setCategorias([]);
+                console.warn('No se encontró la categoría padre "COMIDAS"');
+                return;
+            }
+
+            // 2. Función recursiva para armar el árbol de categorías
+            const armarArbol = (padreId: number): Categoria[] => {
+                return todasLasCategorias
+                    .filter(cat => cat.categoriaPadre?.id === padreId && typeof cat.id === "number")
+                    .map(cat => ({
+                        ...cat,
+                        hijos: armarArbol(cat.id as number)
+                    }));
+            };
+
+            // 3. Construir el árbol desde la categoría padre "COMIDAS"
+            const categoriasArbol = [{
+                ...padreComidas,
+                hijos: armarArbol(padreComidas.id!)
+            }];
+
+            setCategorias(categoriasArbol);
         } catch (error) {
             console.error("Error al cargar categorías de comidas:", error);
+            setCategorias([]);
         }
     };
+
+    function flattenCategorias(categorias: any[], nivel = 0): { id: number, denominacion: string }[] {
+        let result: { id: number, denominacion: string }[] = [];
+        for (const cat of categorias) {
+            result.push({
+                id: cat.id,
+                denominacion: `${"— ".repeat(nivel)}${cat.denominacion}`
+            });
+            if (cat.hijos && cat.hijos.length > 0) {
+                result = result.concat(flattenCategorias(cat.hijos, nivel + 1));
+            }
+        }
+        return result;
+    }
 
     useEffect(() => {
         cargarCategoriasComidas();
@@ -326,7 +360,7 @@ function GrillaArticuloManufacturado() {
                                         onChange={e => handleFiltroCategoria(e.target.value)}
                                     >
                                         <option value="">Todas las categorías</option>
-                                        {categorias.map(cat => (
+                                        {flattenCategorias(categorias).map(cat => (
                                             <option key={cat.id} value={cat.id}>{cat.denominacion}</option>
                                         ))}
                                     </Form.Select>
