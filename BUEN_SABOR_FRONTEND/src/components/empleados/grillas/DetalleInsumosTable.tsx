@@ -78,13 +78,26 @@ const DetalleInsumosTable = ({
                     <Form.Control
                       type="number"
                       size="sm"
-                      min={0.01}
-                      step={0.1}
-                      inputMode="decimal"
+                      min={0}
+                      step={det.articuloInsumo?.unidadMedida?.denominacion === "Unidad" ? 1 : 0.1}
+                      inputMode={det.articuloInsumo?.unidadMedida?.denominacion === "Unidad" ? "numeric" : "decimal"}
                       value={det.cantidad}
-                      onChange={(e) => onCantidadChange(idx, parseFloat(e.target.value))}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        const parsed = det.articuloInsumo?.unidadMedida?.denominacion === "Unidad"
+                          ? parseInt(value)
+                          : parseFloat(value);
+                        if (!isNaN(parsed)) {
+                          onCantidadChange(idx, parsed);
+                        }
+                      }}
                       onKeyDown={(e) => {
-                        if (e.key === "-" || e.key === "e") {
+                        const unidadEsEntera = det.articuloInsumo?.unidadMedida?.denominacion === "Unidad";
+                        if (
+                          e.key === "-" ||
+                          e.key === "e" ||
+                          (unidadEsEntera && (e.key === "." || e.key === ",")) // evita decimales si es "Unidad"
+                        ) {
                           e.preventDefault();
                         }
                       }}

@@ -228,6 +228,9 @@ function GrillaStock() {
         setPage(0);
     };
 
+    // Determina si la unidad de medida es "Unidad"
+    const esUnidad = stockParaAgregar?.sucursalInsumo?.articuloInsumo?.unidadMedida?.denominacion?.toLowerCase() === "unidad";
+
     const getStockStatus = (stockActual: number, stockMinimo: number, stockMaximo: number) => {
         if (stockActual <= stockMinimo) {
             return { text: "Stock Bajo", className: "text-danger fw-bold", variant: "danger" };
@@ -650,9 +653,18 @@ function GrillaStock() {
                                     <Form.Control
                                         type="number"
                                         min="1"
-                                        step="1"
+                                        step={esUnidad ? "1" : "any"}
                                         value={cantidadAgregar}
-                                        onChange={e => setCantidadAgregar(Number(e.target.value))}
+                                        onChange={e => {
+                                            let val = e.target.value;
+                                            // Si es Unidad, solo permitir enteros positivos
+                                            if (esUnidad) {
+                                                val = val.replace(/[^0-9]/g, "");
+                                                setCantidadAgregar(val === "" ? 0 : Math.max(1, parseInt(val, 10)));
+                                            } else {
+                                                setCantidadAgregar(val === "" ? 0 : Math.max(1, Number(val)));
+                                            }
+                                        }}
                                         placeholder="Ingrese la cantidad a agregar"
                                         disabled={loadingAgregar}
                                     />
