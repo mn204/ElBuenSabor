@@ -130,7 +130,7 @@ const VistaArticulo: React.FC = () => {
     return isCategoriaEliminada(categoria.categoriaPadre);
   };
 
-  if (!articulo || articulo.eliminado || isCategoriaEliminada(articulo.categoria)) {
+  if (!articulo || articulo.eliminado || isCategoriaEliminada(articulo.categoria) || articulo.precioVenta === null) {
     return (
       <div className="container mt-5">
         <div className="alert alert-warning text-center" role="alert">
