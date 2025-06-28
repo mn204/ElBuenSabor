@@ -6,6 +6,10 @@ import com.lab4.buen_sabor_backend.model.Promocion;
 import com.lab4.buen_sabor_backend.model.enums.TipoPromocion;
 import com.lab4.buen_sabor_backend.service.PromocionService;
 import com.lab4.buen_sabor_backend.service.SucursalService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +27,7 @@ import java.time.OffsetDateTime;
 @RestController
 @RequestMapping("/api/promocion")
 @CrossOrigin(origins = "*")
+@Tag(name = "Promoción", description = "Gestión de promociones")
 public class PromocionController extends MasterControllerImpl<Promocion, PromocionDTO, Long> implements MasterController<PromocionDTO, Long> {
 
     private static final Logger logger = LoggerFactory.getLogger(PromocionController.class);
@@ -47,6 +52,8 @@ public class PromocionController extends MasterControllerImpl<Promocion, Promoci
         return promocionMapper.toDTO(entity);
     }
 
+    @Operation(summary = "Filtrar promociones por múltiples criterios")
+    @ApiResponse(responseCode = "200", description = "Promociones filtradas correctamente")
     @GetMapping("/filtradas")
     public ResponseEntity<Page<PromocionDTO>> obtenerPromocionesFiltradas(
             @RequestParam(required = false) String denominacion,
@@ -66,6 +73,11 @@ public class PromocionController extends MasterControllerImpl<Promocion, Promoci
         return ResponseEntity.ok(result);
     }
 
+    @Operation(summary = "Verificar si hay stock suficiente para la promoción")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Stock verificado exitosamente"),
+            @ApiResponse(responseCode = "500", description = "Error al verificar stock")
+    })
     @PostMapping("/verificar-stock/{cantidad}/{sucursalId}")
     public ResponseEntity<?> verificarStockPromocion(@RequestBody Promocion promocion,@PathVariable int cantidad, @PathVariable Long sucursalId) {
         try {

@@ -15,6 +15,7 @@ import { es } from 'date-fns/locale';
 import dayjs from 'dayjs';
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+import ModalMensaje from "./ModalMensaje";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -44,10 +45,21 @@ const PedidoClienteModal: React.FC<Props> = ({ show, onHide, cliente }) => {
         articulo: ""
     });
 
+    const [modalMensaje, setModalMensaje] = useState({
+        show: false,
+        mensaje: "",
+        titulo: "Mensaje",
+        variante: "danger" as "primary" | "success" | "danger" | "warning" | "info" | "secondary"
+    });
+
     // Cargar sucursales al montar el componente
     useEffect(() => {
         obtenerSucursales().then(setSucursales);
     }, []);
+
+    const mostrarModalMensaje = (mensaje: string, variante: typeof modalMensaje.variante = "danger", titulo = "Error") => {
+        setModalMensaje({ show: true, mensaje, variante, titulo });
+    };
 
     const fetchPedidos = async () => {
         try {
@@ -90,7 +102,7 @@ const PedidoClienteModal: React.FC<Props> = ({ show, onHide, cliente }) => {
             setPedidos(result.content);
             setTotalPages(result.totalPages);
         } catch {
-            alert("Error al obtener pedidos del cliente");
+            mostrarModalMensaje("Error al obtener pedidos del cliente", "danger", "Error");
         } finally {
             setLoading(false);
         }
@@ -106,7 +118,7 @@ const PedidoClienteModal: React.FC<Props> = ({ show, onHide, cliente }) => {
             setDetallePedido(detalle);
             setShowDetalleModal(true);
         } catch {
-            alert("Error al obtener detalle del pedido");
+            mostrarModalMensaje("Error al obtener detalle del pedido", "danger", "Error");
         }
     };
 
@@ -119,7 +131,7 @@ const PedidoClienteModal: React.FC<Props> = ({ show, onHide, cliente }) => {
             a.download = `factura_pedido_${pedidoId}.pdf`;
             a.click();
         } catch {
-            alert("Error al descargar la factura");
+            mostrarModalMensaje("Error al descargar la factura", "danger", "Error");
         }
     };
 
@@ -329,6 +341,14 @@ const PedidoClienteModal: React.FC<Props> = ({ show, onHide, cliente }) => {
                     pedido={detallePedido}
                 />
             )}
+
+            <ModalMensaje
+                show={modalMensaje.show}
+                onHide={() => setModalMensaje({ ...modalMensaje, show: false })}
+                mensaje={modalMensaje.mensaje}
+                titulo={modalMensaje.titulo}
+                variante={modalMensaje.variante}
+            />
         </>
     );
 };

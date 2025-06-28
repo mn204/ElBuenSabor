@@ -29,6 +29,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'com.mercadopago:sdk-java:2.2.0'
 
+    //Swagger/OPENAPI
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0'
+
     //EMAIL
     implementation 'org.springframework.boot:spring-boot-starter-mail'
 

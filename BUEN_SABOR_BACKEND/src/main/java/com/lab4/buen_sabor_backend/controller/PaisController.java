@@ -4,6 +4,7 @@ import com.lab4.buen_sabor_backend.dto.PaisDTO;
 import com.lab4.buen_sabor_backend.mapper.PaisMapper;
 import com.lab4.buen_sabor_backend.model.Pais;
 import com.lab4.buen_sabor_backend.service.PaisService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/pais")
 @CrossOrigin(origins = "*")
+@Tag(name = "País", description = "Operaciones relacionadas con países")
 public class PaisController extends MasterControllerImpl<Pais, PaisDTO, Long> implements MasterController<PaisDTO, Long> {
 
     private static final Logger logger = LoggerFactory.getLogger(PaisController.class);

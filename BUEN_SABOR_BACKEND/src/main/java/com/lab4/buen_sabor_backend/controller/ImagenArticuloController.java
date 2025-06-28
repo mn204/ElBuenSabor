@@ -4,6 +4,7 @@ import com.lab4.buen_sabor_backend.dto.ImagenArticuloDTO;
 import com.lab4.buen_sabor_backend.mapper.ImagenArticuloMapper;
 import com.lab4.buen_sabor_backend.model.ImagenArticulo;
 import com.lab4.buen_sabor_backend.service.ImagenArticuloService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +20,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/imagenArticulo")
 @CrossOrigin(origins = "*")
+@Tag(name = "Imagen Artículo", description = "Operaciones relacionadas con imágenes de artículos")
 public class ImagenArticuloController extends MasterControllerImpl<ImagenArticulo, ImagenArticuloDTO, Long> implements MasterController<ImagenArticuloDTO, Long> {
 
     private static final Logger logger = LoggerFactory.getLogger(ImagenArticuloController.class);

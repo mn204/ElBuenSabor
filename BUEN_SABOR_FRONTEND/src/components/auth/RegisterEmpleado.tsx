@@ -14,6 +14,7 @@ import {registrarEmpleado, obtenerEmpleadoPorDni} from "../../services/EmpleadoS
 import { useAuth } from "../../context/AuthContext";
 import type Sucursal from "../../models/Sucursal.ts";
 import { obtenerSucursales } from "../../services/SucursalService";
+import ModalMensaje from "../empleados/modales/ModalMensaje";
 
 
 
@@ -64,6 +65,17 @@ const RegisterEmpleado = () => {
     const [piso, setPiso] = useState("");
     const [departamento, setDepartamento] = useState("");
     const [detalles, setDetalles] = useState("");
+
+    const [modalMensaje, setModalMensaje] = useState({
+        show: false,
+        mensaje: "",
+        titulo: "Mensaje",
+        variante: "success" as "primary" | "success" | "danger" | "warning" | "info" | "secondary"
+    });
+
+    const mostrarModalMensaje = (mensaje: string, variante: typeof modalMensaje.variante = "success", titulo = "Mensaje") => {
+        setModalMensaje({ show: true, mensaje, variante, titulo });
+    };
 
     useEffect(() => {
         const cargarDatos = async () => {
@@ -227,14 +239,16 @@ const RegisterEmpleado = () => {
         try {
             const usuarioPorEmail = await obtenerUsuarioPorEmail(email);
             if (usuarioPorEmail) {
-                setFormError("El email ya está registrado.");
+                setFormError(null);
+                mostrarModalMensaje("El email ya está registrado.", "danger", "Error");
                 setLoading(false);
                 return;
             }
 
             const empleadoPorDni = await obtenerEmpleadoPorDni(dni.toString());
             if (empleadoPorDni) {
-                setFormError("El DNI ya está registrado.");
+                setFormError(null);
+                mostrarModalMensaje("El DNI ya está registrado.", "danger", "Error");
                 setLoading(false);
                 return;
             }
@@ -251,7 +265,6 @@ const RegisterEmpleado = () => {
             console.log(JSON.stringify(userCredential.user, null, 2));
 
             let fotoUrl = "";
-
             if (imagenEmpleado) {
                 const data = new FormData();
                 data.append("file", imagenEmpleado);
@@ -266,7 +279,8 @@ const RegisterEmpleado = () => {
                     fotoUrl = file.secure_url;
                 } catch (error) {
                     console.error("Error al subir imagen a Cloudinary:", error);
-                    setFormError("Error al subir la imagen del empleado.");
+                    setFormError(null);
+                    mostrarModalMensaje("Error al subir la imagen del empleado.", "danger", "Error");
                     setLoading(false);
                     return;
                 }
@@ -325,16 +339,24 @@ const RegisterEmpleado = () => {
                     if (adminEmail) {
                         await signInWithEmailAndPassword(auth, adminEmail, adminPassword);
                         console.log("Sesión de administrador restaurada")
+                        mostrarModalMensaje(
+                            "¡Empleado registrado exitosamente!",
+                            "success",
+                            "Éxito"
+                        );
                         window.location.href = "/admin/nuevo-empleado";
                     }
                 } catch (error) {
                     console.error("Error al restaurar sesión del admin:", error);
-                    alert("Empleado creado exitosamente, pero hubo un problema al restaurar tu sesión. Por favor, inicia sesión nuevamente.");
+                    mostrarModalMensaje(
+                        "Empleado creado exitosamente, pero hubo un problema al restaurar tu sesión. Por favor, inicia sesión nuevamente.",
+                        "warning",
+                        "Atención"
+                    );
                 }
             }, 500);
 
 
-            alert("¡Empleado registrado exitosamente!");
             setNombre("");
             setApellido("");
             setEmail("");
@@ -353,11 +375,8 @@ const RegisterEmpleado = () => {
             setPiso("");
             setDepartamento("");
             setDetalles("");
-
         } catch (error: any) {
             console.error("Error al registrar:", error);
-
-            // Eliminar usuario si ya fue creado pero el backend no estaba corriendo
             const currentUser = auth.currentUser;
             if (currentUser && currentUser.email !== adminEmail) {
                 try {
@@ -367,8 +386,6 @@ const RegisterEmpleado = () => {
                     console.error("Error al eliminar usuario de Firebase:", deleteError);
                 }
             }
-
-            // Intentar restaurar sesión del admin en caso de error
             if (adminEmail && adminPassword) {
                 try {
                     await signInWithEmailAndPassword(auth, adminEmail, adminPassword);
@@ -376,8 +393,8 @@ const RegisterEmpleado = () => {
                     console.error("Error al restaurar sesión:", restoreError);
                 }
             }
-
-            setFormError(error.message || "Error desconocido durante el registro.");
+            setFormError(null);
+            mostrarModalMensaje(error.message || "Error desconocido durante el registro.", "danger", "Error");
         } finally {
             setLoading(false);
         }
@@ -754,6 +771,14 @@ const RegisterEmpleado = () => {
                     </div>
                 </div>
             </div>
+
+            <ModalMensaje
+                show={modalMensaje.show}
+                onHide={() => setModalMensaje({ ...modalMensaje, show: false })}
+                mensaje={modalMensaje.mensaje}
+                titulo={modalMensaje.titulo}
+                variante={modalMensaje.variante}
+            />
         </div>
     );
 };

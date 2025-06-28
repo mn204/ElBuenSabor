@@ -4,6 +4,7 @@ import com.lab4.buen_sabor_backend.dto.ImagenPromocionDTO;
 import com.lab4.buen_sabor_backend.mapper.ImagenPromocionMapper;
 import com.lab4.buen_sabor_backend.model.ImagenPromocion;
 import com.lab4.buen_sabor_backend.service.ImagenPromocionService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/imagen-promocion")
 @CrossOrigin(origins = "*")
+@Tag(name = "Imagen Promoción", description = "Operaciones relacionadas con imágenes de promociones")
 public class ImagenPromocionController extends MasterControllerImpl<ImagenPromocion, ImagenPromocionDTO, Long> implements MasterController<ImagenPromocionDTO, Long> {
 
     private static final Logger logger = LoggerFactory.getLogger(ImagenPromocionController.class);

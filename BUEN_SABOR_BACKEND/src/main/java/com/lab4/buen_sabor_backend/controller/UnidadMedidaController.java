@@ -5,6 +5,7 @@ import com.lab4.buen_sabor_backend.dto.UnidadMedidaDTO;
 import com.lab4.buen_sabor_backend.mapper.UnidadMedidaMapper;
 import com.lab4.buen_sabor_backend.model.UnidadMedida;
 import com.lab4.buen_sabor_backend.service.UnidadMedidaService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/unidadmedida")
 @CrossOrigin(origins = "*")
+@Tag(name = "Unidad de Medida", description = "Operaciones sobre unidades de medida")
 public class UnidadMedidaController extends MasterControllerImpl<UnidadMedida, UnidadMedidaDTO, Long> implements MasterController<UnidadMedidaDTO, Long> {
 
     private static final Logger logger = LoggerFactory.getLogger(UnidadMedidaController.class);

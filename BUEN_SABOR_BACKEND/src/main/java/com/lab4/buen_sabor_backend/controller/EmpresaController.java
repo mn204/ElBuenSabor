@@ -4,6 +4,7 @@ import com.lab4.buen_sabor_backend.dto.EmpresaDTO;
 import com.lab4.buen_sabor_backend.mapper.EmpresaMapper;
 import com.lab4.buen_sabor_backend.model.Empresa;
 import com.lab4.buen_sabor_backend.service.EmpresaService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/empresa")
 @CrossOrigin(origins = "*")
+@Tag(name = "Empresa", description = "Operaciones relacionadas con empresas")
 public class EmpresaController extends MasterControllerImpl<Empresa, EmpresaDTO, Long> implements MasterController<EmpresaDTO, Long> {
 
     private static final Logger logger = LoggerFactory.getLogger(EmpresaController.class);
