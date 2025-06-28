@@ -15,6 +15,8 @@ import { es } from 'date-fns/locale';
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+import ModalMensaje from "../empleados/modales/ModalMensaje";
+
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -45,6 +47,17 @@ const PedidoCliente: React.FC = () => {
     const [page, setPage] = useState(0);
     const [size] = useState(10);
     const [totalPages, setTotalPages] = useState(0);
+
+    const [modalMensaje, setModalMensaje] = useState({
+        show: false,
+        mensaje: "",
+        titulo: "Mensaje",
+        variante: "danger" as "primary" | "success" | "danger" | "warning" | "info" | "secondary"
+    });
+
+    const mostrarModalMensaje = (mensaje: string, variante: typeof modalMensaje.variante = "danger", titulo = "Error") => {
+        setModalMensaje({ show: true, mensaje, variante, titulo });
+    };
 
     const fetchPedidos = async () => {
         try {
@@ -107,7 +120,7 @@ const PedidoCliente: React.FC = () => {
             setDetallePedido(detalle);
             setShowModal(true);
         } catch {
-            alert("Error al obtener detalle del pedido");
+            mostrarModalMensaje("Error al obtener detalle del pedido", "danger", "Error");
         }
     };
 
@@ -120,7 +133,7 @@ const PedidoCliente: React.FC = () => {
             a.download = `factura_pedido_${pedidoId}.pdf`;
             a.click();
         } catch {
-            alert("Error al descargar la factura");
+            mostrarModalMensaje("Error al descargar la factura", "danger", "Error");
         }
     };
 
@@ -309,6 +322,13 @@ const PedidoCliente: React.FC = () => {
             {detallePedido && (
                 <PedidoDetalleModal show={showModal} onHide={() => setShowModal(false)} pedido={detallePedido} />
             )}
+            <ModalMensaje
+                show={modalMensaje.show}
+                onHide={() => setModalMensaje({ ...modalMensaje, show: false })}
+                mensaje={modalMensaje.mensaje}
+                titulo={modalMensaje.titulo}
+                variante={modalMensaje.variante}
+            />
         </div>
     );
 };

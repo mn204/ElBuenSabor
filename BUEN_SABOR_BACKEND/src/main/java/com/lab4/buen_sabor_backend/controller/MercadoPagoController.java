@@ -9,6 +9,10 @@ import com.mercadopago.exceptions.MPException;
 import com.mercadopago.net.HttpStatus;
 import com.mercadopago.resources.merchantorder.MerchantOrder;
 import com.mercadopago.resources.payment.Payment;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,6 +21,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("api/webhook")
 @CrossOrigin(origins = "*")
+@Tag(name = "MercadoPago", description = "Webhook de MercadoPago")
 public class MercadoPagoController {
     private final PedidoService pedidoService;
 
@@ -24,6 +29,11 @@ public class MercadoPagoController {
         this.pedidoService = pedidoService;
     }
 
+    @Operation(summary = "Recibir notificaciones de pagos desde MercadoPago")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Notificación recibida correctamente"),
+            @ApiResponse(responseCode = "500", description = "Error al procesar la notificación")
+    })
     @PostMapping
     public ResponseEntity<String> recibirNotificacion(@RequestBody Map<String, Object> body) {
         System.out.println("Webhook recibido: " + body);

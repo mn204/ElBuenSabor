@@ -17,6 +17,7 @@ import { useSucursal } from "../../../context/SucursalContextEmpleado.tsx";
 import type Sucursal from "../../../models/Sucursal.ts";
 import DetalleArticulosTable from "../grillas/DetalleArticulosTable.tsx";
 import { obtenerSucursales } from "../../../services/SucursalService.ts";
+import ModalMensaje from "../modales/ModalMensaje";
 
 function FormPromocion() {
     const { sucursalActual } = useSucursal();
@@ -109,6 +110,20 @@ function FormPromocion() {
         setPrecio(precioConDescuento);
     }, [precioConDescuento]);
 
+    // Estados para el modal de mensaje
+    const [showModalMensaje, setShowModalMensaje] = useState(false);
+    const [mensajeModal, setMensajeModal] = useState("");
+    const [tituloModal, setTituloModal] = useState("Mensaje");
+    const [varianteModal, setVarianteModal] = useState<"primary" | "success" | "danger" | "warning" | "info" | "secondary">("primary");
+
+    // Función para mostrar el modal de mensaje
+    const mostrarMensaje = (mensaje: string, titulo = "Mensaje", variante: typeof varianteModal = "primary") => {
+        setMensajeModal(mensaje);
+        setTituloModal(titulo);
+        setVarianteModal(variante);
+        setShowModalMensaje(true);
+    };
+
     // Handlers
     const handleImagenesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
@@ -120,7 +135,7 @@ function FormPromocion() {
             );
 
             if (archivosFiltrados.length < nuevosArchivos.length) {
-                alert("Algunas imágenes ya fueron seleccionadas y no se agregarán de nuevo.");
+                mostrarMensaje("Algunas imágenes ya fueron seleccionadas y no se agregarán de nuevo.", "Atención", "warning");
             }
 
             setImagenes(prev => [...prev, ...archivosFiltrados]);
@@ -264,16 +279,18 @@ function FormPromocion() {
             console.log(promocion.detalles)
             if (idFromUrl) {
                 await PromocionService.update(Number(idFromUrl), promocion);
-                alert("Promocion actualizada correctamente");
+                mostrarMensaje("Promoción actualizada correctamente", "Éxito", "success");
             } else {
                 await PromocionService.create(promocion);
-                alert("Promocion creada correctamente");
+                mostrarMensaje("Promoción creada correctamente", "Éxito", "success");
             }
             limpiarFormulario();
-            window.location.href = "/empleado/promociones";
+            setTimeout(() => {
+                window.location.href = "/empleado/promociones";
+            }, 1200);
         } catch (error) {
             console.error(error);
-            alert("Error al guardar o actualizar la promocion");
+            mostrarMensaje("Error al guardar o actualizar la promoción", "Error", "danger");
         }
     };
 
@@ -671,6 +688,13 @@ function FormPromocion() {
                 </div>
             </div>
             <ModalAgregarArticulo {...modalProps} />
+            <ModalMensaje
+                show={showModalMensaje}
+                onHide={() => setShowModalMensaje(false)}
+                mensaje={mensajeModal}
+                titulo={tituloModal}
+                variante={varianteModal}
+            />
         </div >
     );
 }

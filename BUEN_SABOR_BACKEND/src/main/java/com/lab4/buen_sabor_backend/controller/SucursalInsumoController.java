@@ -4,6 +4,9 @@ import com.lab4.buen_sabor_backend.dto.SucursalInsumoDTO;
 import com.lab4.buen_sabor_backend.mapper.SucursalInsumoMapper;
 import com.lab4.buen_sabor_backend.model.SucursalInsumo;
 import com.lab4.buen_sabor_backend.service.SucursalInsumoService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +22,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/sucursal-insumo")
 @CrossOrigin(origins = "*")
+@Tag(name = "Sucursal-Insumo", description = "Gestión de stock e insumos por sucursal")
 public class SucursalInsumoController extends MasterControllerImpl<SucursalInsumo, SucursalInsumoDTO, Long> implements MasterController<SucursalInsumoDTO, Long> {
 
     private static final Logger logger = LoggerFactory.getLogger(SucursalInsumoController.class);
@@ -43,6 +47,8 @@ public class SucursalInsumoController extends MasterControllerImpl<SucursalInsum
         return sucursalInsumoMapper.toDTO(entity);
     }
 
+    @Operation(summary = "Obtener insumos con stock bajo", description = "Filtra por sucursal opcionalmente")
+    @ApiResponse(responseCode = "200", description = "Listado de insumos con stock bajo")
     @GetMapping("/stock-bajo")
     public ResponseEntity<List<SucursalInsumoDTO>> getStockBajo(@RequestParam(required = false) Long idSucursal) {
         List<SucursalInsumo> sucursalInsumos = sucursalInsumoService.obtenerConStockBajo(idSucursal);
@@ -50,6 +56,8 @@ public class SucursalInsumoController extends MasterControllerImpl<SucursalInsum
         return ResponseEntity.ok(sucursalInsumosDTO);
     }
 
+    @Operation(summary = "Buscar insumos por sucursal")
+    @ApiResponse(responseCode = "200", description = "Listado de insumos encontrados")
     @GetMapping("/sucursal/{idSucursal}")
     public ResponseEntity<List<SucursalInsumoDTO>> findBySucursalId(@PathVariable Long idSucursal) {
         List<SucursalInsumo> sucursalInsumos = sucursalInsumoService.findBySucursalId(idSucursal);
@@ -57,11 +65,15 @@ public class SucursalInsumoController extends MasterControllerImpl<SucursalInsum
         return ResponseEntity.ok(sucursalInsumosDTO);
     }
 
+    @Operation(summary = "Agregar stock a insumo")
+    @ApiResponse(responseCode = "200", description = "Stock actualizado correctamente")
     @PutMapping("/agregarStock")
     public void agregarStock(@RequestBody SucursalInsumo surcursalInsumo) {
         sucursalInsumoService.agregarStock(surcursalInsumo);
     }
 
+    @Operation(summary = "Filtrar insumos por múltiples criterios")
+    @ApiResponse(responseCode = "200", description = "Página de insumos filtrados")
     @GetMapping("/filtrados")
     public ResponseEntity<Page<SucursalInsumoDTO>> obtenerStockFiltrado(
             @RequestParam(required = false) Long idSucursal,

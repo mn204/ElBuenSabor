@@ -4,12 +4,17 @@ import com.lab4.buen_sabor_backend.dto.ClienteDTO;
 import com.lab4.buen_sabor_backend.mapper.ClienteMapper;
 import com.lab4.buen_sabor_backend.model.Cliente;
 import com.lab4.buen_sabor_backend.service.ClienteService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/cliente")
 @CrossOrigin(origins = "*")
+@Tag(name = "Clientes", description = "Gestión de clientes y operaciones relacionadas")
 public class ClienteController extends MasterControllerImpl<Cliente, ClienteDTO, Long> implements MasterController<ClienteDTO, Long> {
 
     private static final Logger logger = LoggerFactory.getLogger(ClienteController.class);
@@ -41,19 +47,29 @@ public class ClienteController extends MasterControllerImpl<Cliente, ClienteDTO,
         return clienteMapper.toDTO(entity);
     }
 
+    @Operation(summary = "Obtener cliente por ID de usuario")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Cliente encontrado"),
+            @ApiResponse(responseCode = "404", description = "Cliente no encontrado")
+    })
     @GetMapping("/usuario/{usuarioId}")
-    public ResponseEntity<ClienteDTO> getByUsuarioId(@PathVariable Long usuarioId) {
+    public ResponseEntity<ClienteDTO> getByUsuarioId(
+            @Parameter(description = "ID del usuario asociado") @PathVariable Long usuarioId) {
         return clienteService.findByUsuarioId(usuarioId)
                 .map(cliente -> ResponseEntity.ok(clienteMapper.toDTO(cliente)))
                 .orElse(ResponseEntity.notFound().build());
     }
 
-
-    // Nuevo endpoint para desasociar domicilio
+    @Operation(summary = "Desasociar un domicilio de un cliente")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Domicilio desasociado exitosamente"),
+            @ApiResponse(responseCode = "404", description = "Cliente o domicilio no encontrado"),
+            @ApiResponse(responseCode = "500", description = "Error interno al desasociar domicilio")
+    })
     @DeleteMapping("/{clienteId}/domicilio/{domicilioId}")
     public ResponseEntity<Void> removeDomicilioFromCliente(
-            @PathVariable Long clienteId,
-            @PathVariable Long domicilioId) {
+            @Parameter(description = "ID del cliente") @PathVariable Long clienteId,
+            @Parameter(description = "ID del domicilio a desasociar") @PathVariable Long domicilioId) {
 
         logger.info("Desasociando domicilio {} del cliente {}", domicilioId, clienteId);
 
@@ -73,17 +89,16 @@ public class ClienteController extends MasterControllerImpl<Cliente, ClienteDTO,
         }
     }
 
-
+    @Operation(summary = "Obtener clientes filtrados con opción de ordenamiento")
     @GetMapping("/filtrados")
     public ResponseEntity<Page<ClienteDTO>> obtenerClientesFiltrados(
-            @RequestParam(required = false) String busqueda, // Busca en nombre, apellido y email
-            @RequestParam(required = false) String email,    // Parámetro adicional para email específico
-            @RequestParam(required = false) String ordenar,  // "asc", "desc" para nombre
-            @RequestParam(required = false) String ordenarPorPedidos, // "asc", "desc", "mas_pedidos", "menos_pedidos"
-            @RequestParam(required = false) Boolean eliminado,
-            Pageable pageable
+            @Parameter(description = "Texto de búsqueda en nombre, apellido o email") @RequestParam(required = false) String busqueda,
+            @Parameter(description = "Email específico para filtrar") @RequestParam(required = false) String email,
+            @Parameter(description = "Orden ascendente o descendente por nombre (asc/desc)") @RequestParam(required = false) String ordenar,
+            @Parameter(description = "Orden por pedidos (asc, desc, mas_pedidos, menos_pedidos)") @RequestParam(required = false) String ordenarPorPedidos,
+            @Parameter(description = "Filtro por estado eliminado") @RequestParam(required = false) Boolean eliminado,
+            @Parameter(description = "Parámetros de paginación") Pageable pageable
     ) {
-        // Si se especifica ordenamiento por pedidos, usar el nuevo método
         if (ordenarPorPedidos != null && !ordenarPorPedidos.isBlank()) {
             Page<Cliente> clientes = clienteService.buscarClientesFiltradosConOrdenPedidos(
                     busqueda, email, eliminado, ordenarPorPedidos, pageable
@@ -92,7 +107,6 @@ public class ClienteController extends MasterControllerImpl<Cliente, ClienteDTO,
             return ResponseEntity.ok(result);
         }
 
-        // Ordenamiento tradicional por nombre
         Sort sort = Sort.unsorted();
         if (ordenar != null) {
             if ("desc".equalsIgnoreCase(ordenar) || "z-a".equalsIgnoreCase(ordenar)) {
@@ -100,7 +114,6 @@ public class ClienteController extends MasterControllerImpl<Cliente, ClienteDTO,
             } else if ("asc".equalsIgnoreCase(ordenar) || "a-z".equalsIgnoreCase(ordenar)) {
                 sort = Sort.by(Sort.Direction.ASC, "nombre");
             }
-            // Crear nuevo Pageable con el ordenamiento
             pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
         }
 
@@ -112,20 +125,21 @@ public class ClienteController extends MasterControllerImpl<Cliente, ClienteDTO,
         return ResponseEntity.ok(result);
     }
 
-    // Nuevos endpoints para eliminación y alta completa
+    @Operation(summary = "Eliminar cliente y usuario lógicamente")
     @DeleteMapping("/eliminar/{id}")
-    public ResponseEntity<Void> eliminarCliente(@PathVariable Long id) {
+    public ResponseEntity<Void> eliminarCliente(
+            @Parameter(description = "ID del cliente a eliminar") @PathVariable Long id) {
         clienteService.eliminarCliente(id);
         logger.info("Cliente y usuario con id {} eliminados lógicamente.", id);
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(summary = "Dar de alta cliente y usuario lógicamente")
     @PutMapping("/darAltaCliente/{id}")
-    public ResponseEntity<Void> darDeAltaCliente(@PathVariable Long id) {
+    public ResponseEntity<Void> darDeAltaCliente(
+            @Parameter(description = "ID del cliente a dar de alta") @PathVariable Long id) {
         clienteService.darDeAltaCliente(id);
         logger.info("Cliente y usuario con id {} dados de alta lógicamente.", id);
         return ResponseEntity.noContent().build();
     }
-
-
 }

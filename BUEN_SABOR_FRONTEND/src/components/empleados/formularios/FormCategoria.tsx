@@ -5,6 +5,7 @@ import categoriaService from "../../../services/CategoriaService";
 import { Button } from "react-bootstrap";
 import "../../../styles/Categoria.css";
 import { subirACloudinary } from "../../../funciones/funciones";
+import ModalMensaje from "../modales/ModalMensaje";
 
 function FormCategoria() {
     const [denominacion, setDenominacion] = useState("");
@@ -18,6 +19,20 @@ function FormCategoria() {
     const [imagenExistente, setImagenExistente] = useState<string>("");
     const [eliminarImagenExistente, setEliminarImagenExistente] = useState(false);
     const [nuevaImagen, setNuevaImagen] = useState<File | null>(null);
+
+    // Estados para el modal de mensaje
+    const [showModalMensaje, setShowModalMensaje] = useState(false);
+    const [mensajeModal, setMensajeModal] = useState("");
+    const [tituloModal, setTituloModal] = useState("Mensaje");
+    const [varianteModal, setVarianteModal] = useState<"primary" | "success" | "danger" | "warning" | "info" | "secondary">("primary");
+
+    // Función para mostrar el modal de mensaje
+    const mostrarMensaje = (mensaje: string, titulo = "Mensaje", variante: typeof varianteModal = "primary") => {
+        setMensajeModal(mensaje);
+        setTituloModal(titulo);
+        setVarianteModal(variante);
+        setShowModalMensaje(true);
+    };
 
     useEffect(() => {
         if (idFromUrl) {
@@ -100,11 +115,13 @@ function FormCategoria() {
             } else {
                 await categoriaService.create(categoria);
             }
-            alert("Categoría guardada exitosamente");
-            window.location.href = "/empleado/categorias";
+            mostrarMensaje("Categoría guardada exitosamente", "Éxito", "success");
+            setTimeout(() => {
+                window.location.href = "/empleado/categorias";
+            }, 1200);
         } catch (error) {
             console.error("Error al guardar la categoría:", error);
-            alert("Error al guardar la categoría");
+            mostrarMensaje("Error al guardar la categoría", "Error", "danger");
         }
     }
 
@@ -246,6 +263,14 @@ function FormCategoria() {
                     {idFromUrl ? "Actualizar" : "Crear"}
                 </Button>
             </form>
+
+            <ModalMensaje
+                show={showModalMensaje}
+                onHide={() => setShowModalMensaje(false)}
+                mensaje={mensajeModal}
+                titulo={tituloModal}
+                variante={varianteModal}
+            />
         </>
     );
 }

@@ -17,6 +17,7 @@ import ImagenArticulo from "../../../models/ImagenArticulo.ts";
 import TipoArticulo from "../../../models/enums/TipoArticulo.ts";
 import { subirACloudinary } from "../../../funciones/funciones.tsx";
 import { useNavigate } from "react-router-dom";
+import ModalMensaje from "../modales/ModalMensaje";
 
 function FormArticuloManufacturado() {
   const {
@@ -54,6 +55,19 @@ function FormArticuloManufacturado() {
   const [cantidadInsumo, setCantidadInsumo] = useState<number>(1);
   const [showModalCategoria, setShowModalCategoria] = useState(false);
 
+  // Estado para el modal de mensaje
+  const [showModalMensaje, setShowModalMensaje] = useState(false);
+  const [mensajeModal, setMensajeModal] = useState("");
+  const [tituloModal, setTituloModal] = useState("Mensaje");
+  const [varianteModal, setVarianteModal] = useState<"primary" | "success" | "danger" | "warning" | "info" | "secondary">("primary");
+
+  // Función para mostrar el modal de mensaje
+  const mostrarMensaje = (mensaje: string, titulo = "Mensaje", variante: typeof varianteModal = "primary") => {
+    setMensajeModal(mensaje);
+    setTituloModal(titulo);
+    setVarianteModal(variante);
+    setShowModalMensaje(true);
+  };
 
   // Utilidades
   const totalInsumos = detalles.reduce((acc, det) => {
@@ -73,7 +87,7 @@ function FormArticuloManufacturado() {
       );
 
       if (archivosFiltrados.length < nuevosArchivos.length) {
-        alert("Algunas imágenes ya fueron seleccionadas y no se agregarán de nuevo.");
+        mostrarMensaje("Algunas imágenes ya fueron seleccionadas y no se agregarán de nuevo.", "Atención", "warning");
       }
 
       setImagenes(prev => [...prev, ...archivosFiltrados]);
@@ -123,13 +137,13 @@ function FormArticuloManufacturado() {
   const buildManufacturado = async (): Promise<ArticuloManufacturado | null> => {
     const unidadMedidaSeleccionada = unidadesMedida.find(um => um.id === Number(unidad));
     if (!unidadMedidaSeleccionada) {
-      alert("Unidad de medida inválida");
+      mostrarMensaje("Unidad de medida inválida", "Error", "danger");
       return null;
     }
 
     const categoriaSeleccionada = categorias.find(cat => cat.id === Number(categoria));
     if (!categoriaSeleccionada) {
-      alert("Categoría inválida");
+      mostrarMensaje("Categoría inválida", "Error", "danger");
       return null;
     }
 
@@ -184,16 +198,18 @@ function FormArticuloManufacturado() {
       if (idFromUrl) {
         manufacturado.id = Number(idFromUrl);
         await ArticuloManufacturadoService.update(Number(idFromUrl), manufacturado);
-        alert("Artículo manufacturado actualizado correctamente");
+        mostrarMensaje("Artículo manufacturado actualizado correctamente", "Éxito", "success");
       } else {
         await ArticuloManufacturadoService.create(manufacturado);
-        alert("Artículo manufacturado guardado correctamente");
+        mostrarMensaje("Artículo manufacturado guardado correctamente", "Éxito", "success");
       }
       limpiarFormulario();
-      window.location.href = "/empleado/productos";
+      setTimeout(() => {
+        window.location.href = "/empleado/productos";
+      }, 1200);
     } catch (error) {
       console.error(error);
-      alert("Error al guardar o actualizar el artículo manufacturado");
+      mostrarMensaje("Error al guardar o actualizar el artículo manufacturado", "Error", "danger");
     }
   };
 
@@ -338,6 +354,13 @@ function FormArticuloManufacturado() {
       )}
 
       <ModalAgregarInsumo {...modalProps} />
+      <ModalMensaje
+        show={showModalMensaje}
+        onHide={() => setShowModalMensaje(false)}
+        mensaje={mensajeModal}
+        titulo={tituloModal}
+        variante={varianteModal}
+      />
     </div>
   );
 }

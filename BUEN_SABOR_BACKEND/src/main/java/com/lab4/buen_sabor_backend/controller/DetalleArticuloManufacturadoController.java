@@ -5,6 +5,7 @@ import com.lab4.buen_sabor_backend.dto.DetalleArticuloManufacturadoDTO;
 import com.lab4.buen_sabor_backend.mapper.DetalleArticuloManufacturadoMapper;
 import com.lab4.buen_sabor_backend.model.DetalleArticuloManufacturado;
 import com.lab4.buen_sabor_backend.service.DetalleArticuloManufacturadoService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/detalleArticulo")
 @CrossOrigin(origins = "*")
+@Tag(name = "Detalle Articulo Manufacturado", description = "Operaciones sobre detalle de artículos manufacturados")
 public class DetalleArticuloManufacturadoController extends MasterControllerImpl<DetalleArticuloManufacturado, DetalleArticuloManufacturadoDTO, Long> implements MasterController<DetalleArticuloManufacturadoDTO, Long> {
 
     private static final Logger logger = LoggerFactory.getLogger(DetalleArticuloManufacturadoController.class);

@@ -4,6 +4,7 @@ import com.lab4.buen_sabor_backend.dto.LocalidadDTO;
 import com.lab4.buen_sabor_backend.mapper.LocalidadMapper;
 import com.lab4.buen_sabor_backend.model.Localidad;
 import com.lab4.buen_sabor_backend.service.LocalidadService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/localidad")
 @CrossOrigin(origins = "*")
+@Tag(name = "Localidad", description = "Operaciones relacionadas con localidades")
 public class LocalidadController extends MasterControllerImpl<Localidad, LocalidadDTO, Long> implements MasterController<LocalidadDTO, Long> {
 
     private static final Logger logger = LoggerFactory.getLogger(LocalidadController.class);

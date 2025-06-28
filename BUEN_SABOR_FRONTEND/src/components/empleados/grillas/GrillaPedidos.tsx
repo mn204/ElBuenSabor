@@ -20,6 +20,8 @@ import { es } from 'date-fns/locale';
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+import ModalMensaje from "../modales/ModalMensaje";
+
 dayjs.extend(utc);
 dayjs.extend(timezone);
 interface Props {
@@ -120,7 +122,7 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
             setTotalPages(result.totalPages);
         } catch (error) {
             console.error("Error al obtener pedidos:", error);
-            alert("Error al obtener pedidos");
+            mostrarModalMensaje("Error al obtener pedidos", "danger", "Error");
         } finally {
             setLoading(false);
         }
@@ -166,7 +168,7 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
             setShowDetalleModal(true);
         } catch (error) {
             console.error("Error al obtener detalle:", error);
-            alert("Error al obtener detalle del pedido");
+            mostrarModalMensaje("Error al obtener detalle del pedido", "danger", "Error");
         }
     };
 
@@ -176,12 +178,12 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
 
         // Validación frontend: no permitir EN_DELIVERY si es TAKEAWAY
         if (nuevoEstado === Estado.EN_DELIVERY && pedido.tipoEnvio === "TAKEAWAY") {
-            alert("No se puede cambiar a EN_DELIVERY un pedido con tipo de envío TAKEAWAY.");
+            mostrarModalMensaje("No se puede cambiar a EN_DELIVERY un pedido con tipo de envío TAKEAWAY.", "warning", "Advertencia");
             return;
         }
         // Validación frontend: no permitir ENTREGADO si no está pagado
         if (nuevoEstado === Estado.ENTREGADO && !pedido.pagado) {
-            alert("No se puede marcar como ENTREGADO un pedido que no está pagado.");
+            mostrarModalMensaje("No se puede marcar como ENTREGADO un pedido que no está pagado.", "warning", "Advertencia");
             return;
         }
         // Verificar si el cambio es a EN_DELIVERY
@@ -214,12 +216,12 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
                     } else if (error?.message) {
                         mensaje = error.message;
                     }
-                    alert(mensaje);
+                    mostrarModalMensaje(mensaje, "danger", "Error");
                     console.error('Error al cambiar estado:', error);
                 }
                 return;
             } else {
-                alert('No tienes permisos para cambiar a estado EN_DELIVERY desde este estado');
+                mostrarModalMensaje('No tienes permisos para cambiar a estado EN_DELIVERY desde este estado', "warning", "Advertencia");
                 return;
             }
         }
@@ -245,7 +247,7 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
 
         } catch (error) {
             console.error('Error al cambiar estado:', error);
-            alert('Error al cambiar el estado del pedido');
+            mostrarModalMensaje('Error al cambiar el estado del pedido', "danger", "Error");
         } finally {
             setLoadingEstados(prev => ({
                 ...prev,
@@ -289,7 +291,7 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
             } else if (error?.message) {
                 mensaje = error.message;
             }
-            alert(mensaje);
+            mostrarModalMensaje(mensaje, "danger", "Error");
             console.error('Error al cambiar estado:', error);
         } finally {
             setLoadingEstados(prev => ({
@@ -312,7 +314,7 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
             );
         } catch (error) {
             console.error("Error al marcar como pagado:", error);
-            alert("Error al marcar el pedido como pagado");
+            mostrarModalMensaje("Error al marcar el pedido como pagado", "danger", "Error");
         }
     };
 
@@ -339,7 +341,7 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
             window.URL.revokeObjectURL(url);
         } catch (error) {
             console.error("Error al descargar factura:", error);
-            alert("Error al descargar la factura");
+            mostrarModalMensaje("Error al descargar la factura", "danger", "Error");
         }
     };
 
@@ -405,10 +407,10 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
             a.download = "pedidos.xlsx";
             a.click();
             window.URL.revokeObjectURL(url);
-            alert("Exportando pedidos filtrados a Excel...");
+            mostrarModalMensaje("Exportando pedidos filtrados a Excel...", "success", "Éxito");
         } catch (error) {
             console.error("Error al exportar Excel:", error);
-            alert("Error al exportar a Excel");
+            mostrarModalMensaje("Error al exportar a Excel", "danger", "Error");
         } finally {
             setLoading(false);
         }
@@ -551,6 +553,16 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
             }
         }
     ];
+
+    const [modalMensaje, setModalMensaje] = useState({
+        show: false,
+        mensaje: "",
+        titulo: "Mensaje",
+        variante: "danger" as "primary" | "success" | "danger" | "warning" | "info" | "secondary"
+    });
+    const mostrarModalMensaje = (mensaje: string, variante: typeof modalMensaje.variante = "danger", titulo = "Error") => {
+        setModalMensaje({ show: true, mensaje, variante, titulo });
+    };
 
     return (
         <>
@@ -757,6 +769,13 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
                 onConfirm={handleConfirmarDelivery}
                 pedido={pedidoEnProceso!}
                 empleadosDelivery={empleadosDelivery}
+            />
+            <ModalMensaje
+                show={modalMensaje.show}
+                onHide={() => setModalMensaje({ ...modalMensaje, show: false })}
+                mensaje={modalMensaje.mensaje}
+                titulo={modalMensaje.titulo}
+                variante={modalMensaje.variante}
             />
         </>
     );
