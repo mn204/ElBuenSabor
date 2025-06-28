@@ -92,8 +92,15 @@ function Busqueda() {
 
         // Procesar artículos con stock
         const articulosConStock = await procesarArticulosConStock(articulos);
-        setResultados(articulosConStock);
-        console.log("Artículos procesados con stock:", articulosConStock);
+        const isCategoriaEliminada = (categoria: any): boolean => {
+          if (!categoria) return false;
+          if (categoria.eliminado) return true;
+          return isCategoriaEliminada(categoria.categoriaPadre);
+        };
+        // Filtrar artículos que no tienen categoría eliminada
+        const articulosFiltrados = articulosConStock.filter(articulo => !isCategoriaEliminada(articulo.articulo.categoria));
+        setResultados(articulosFiltrados);
+        console.log("Artículos procesados con stock:", articulosFiltrados);
 
       } catch (error) {
         console.error('Error general:', error);

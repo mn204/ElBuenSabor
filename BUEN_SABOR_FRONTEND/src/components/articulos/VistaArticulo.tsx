@@ -123,7 +123,14 @@ const VistaArticulo: React.FC = () => {
     );
   }
 
-  if (!articulo || articulo.eliminado) {
+  // Función recursiva para verificar si alguna categoría en la jerarquía está eliminada
+  const isCategoriaEliminada = (categoria: any): boolean => {
+    if (!categoria) return false;
+    if (categoria.eliminado) return true;
+    return isCategoriaEliminada(categoria.categoriaPadre);
+  };
+
+  if (!articulo || articulo.eliminado || isCategoriaEliminada(articulo.categoria)) {
     return (
       <div className="container mt-5">
         <div className="alert alert-warning text-center" role="alert">

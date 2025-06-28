@@ -11,22 +11,30 @@ import { Form } from 'react-bootstrap';
 import PromocionService from '../../services/PromocionService';
 
 function Home() {
-    const [promocion, setPromocion] = useState<Promocion[]>([]);
     const [promocionConStock, setPromocionConStock] = useState<Promocion[]>([]);
     const { sucursalActualUsuario, sucursalesUsuario, cambiarSucursalUsuario } = useSucursalUsuario();
 
     useEffect(() => {
         const fetchPromocion = async () => {
-            setPromocion([]);
             setPromocionConStock([]);
             if (!sucursalActualUsuario) return;
             try {
                 const promos = await SucursalService.getAllBySucursalId(sucursalActualUsuario.id!);
-                setPromocion(promos);
+                const isCategoriaEliminada = (categoria: any): boolean => {
+                    if (!categoria) return false;
+                    if (categoria.eliminado) return true;
+                    return isCategoriaEliminada(categoria.categoriaPadre);
+                };
 
-                // Filtrar promociones que tienen stock
+                // Filtrar promociones que tienen stock y cuyos artículos no tienen categoría eliminada
                 const promosConStock = await Promise.all(
                     promos.map(async (promo) => {
+                        // Verificar si algún detalle tiene artículo con categoría eliminada
+                        const tieneCategoriaEliminada = promo.detalles?.some(
+                            (detalle: any) => isCategoriaEliminada(detalle.articulo?.categoria)
+                        );
+                        if (tieneCategoriaEliminada) return null;
+
                         const tieneStock = await PromocionService.consultarStockPromocion(promo, 1, sucursalActualUsuario);
                         return tieneStock ? promo : null;
                     })

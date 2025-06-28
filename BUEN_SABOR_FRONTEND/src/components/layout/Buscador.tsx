@@ -57,9 +57,15 @@ function Buscador({ onBuscar, valorInicial = "", setValor }: BuscadorProps) {
 
         // Usar el BuscadorService para obtener sugerencias (limitadas a 3)
         const articulos = await buscadorService.buscarArticulosParaSugerencias(query, 3, sucursalActualUsuario!.id!);
-
+        const isCategoriaEliminada = (categoria: any): boolean => {
+          if (!categoria) return false;
+          if (categoria.eliminado) return true;
+          return isCategoriaEliminada(categoria.categoriaPadre);
+        };
+        // Filtrar artículos que no tienen categoría eliminada
+        const articulosFiltrados = articulos.filter(articulo => !isCategoriaEliminada(articulo.categoria));
         console.log("Sugerencias encontradas:", articulos.length);
-        setResults(articulos);
+        setResults(articulosFiltrados);
 
       } catch (error) {
         console.error('Error al buscar sugerencias:', error);
@@ -101,83 +107,82 @@ function Buscador({ onBuscar, valorInicial = "", setValor }: BuscadorProps) {
   };
 
   return (
-      <section className="buscador d-flex flex-column">
-        <form
-            className={`search-bar ${
-                results.length > 0 && query.trim() !== ""
-                    ? "rounded-bottom"
-                    : "rounded-pill"
-            }`}
-            onSubmit={handleSubmit}
+    <section className="buscador d-flex flex-column">
+      <form
+        className={`search-bar ${results.length > 0 && query.trim() !== ""
+            ? "rounded-bottom"
+            : "rounded-pill"
+          }`}
+        onSubmit={handleSubmit}
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="black"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="feather feather-search"
         >
-          <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="black"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="feather feather-search"
-          >
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-          </svg>
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
 
-          <input
-              ref={inputRef}
-              type="text"
-              placeholder="¿Qué estás buscando?"
-              value={query}
-              onChange={handleInputChange}
-              autoComplete="off"
-          />
+        <input
+          ref={inputRef}
+          type="text"
+          placeholder="¿Qué estás buscando?"
+          value={query}
+          onChange={handleInputChange}
+          autoComplete="off"
+        />
 
-          {loading && (
-              <div className="spinner-border spinner-border-sm ms-2" role="status" aria-label="Cargando">
-                <span className="visually-hidden">Cargando...</span>
-              </div>
-          )}
-        </form>
+        {loading && (
+          <div className="spinner-border spinner-border-sm ms-2" role="status" aria-label="Cargando">
+            <span className="visually-hidden">Cargando...</span>
+          </div>
+        )}
+      </form>
 
-        {(results.length > 0) && query.trim().length >= 2 && (
-            <div
-                className="search-results position-absolute overflow-hidden align-items-start justify-content-center flex-column"
-                style={{ padding: '15px', zIndex: 1000 }}
-            >
-              {results.length > 0 && (
-                  <ul className='listaProductoBuscado overflow-hidden list-unstyled d-flex flex-column gap-2 w-100'>
-                    {results.map((producto) => (
-                        <li key={producto.id}>
-                          <Link
-                              className='linkProductoBsucado text-black d-flex text-start'
-                              to={`/articulo/${producto.id}`}
-                              onClick={handleResultClick}
-                          >
-                            <img
-                                className='imgProductoBuscado'
-                                src={producto.imagenes?.[0]?.denominacion || '/placeholder-image.jpg'}
-                                alt={producto.denominacion}
-                                onError={(e) => {
-                                  e.currentTarget.src = '/placeholder-image.jpg';
-                                }}
-                            />
-                            <div className='d-flex flex-column'>
-                              <span>{producto.denominacion}</span>
-                              <span className='precioProductoBuscado'>
+      {(results.length > 0) && query.trim().length >= 2 && (
+        <div
+          className="search-results position-absolute overflow-hidden align-items-start justify-content-center flex-column"
+          style={{ padding: '15px', zIndex: 1000 }}
+        >
+          {results.length > 0 && (
+            <ul className='listaProductoBuscado overflow-hidden list-unstyled d-flex flex-column gap-2 w-100'>
+              {results.map((producto) => (
+                <li key={producto.id}>
+                  <Link
+                    className='linkProductoBsucado text-black d-flex text-start'
+                    to={`/articulo/${producto.id}`}
+                    onClick={handleResultClick}
+                  >
+                    <img
+                      className='imgProductoBuscado'
+                      src={producto.imagenes?.[0]?.denominacion || '/placeholder-image.jpg'}
+                      alt={producto.denominacion}
+                      onError={(e) => {
+                        e.currentTarget.src = '/placeholder-image.jpg';
+                      }}
+                    />
+                    <div className='d-flex flex-column'>
+                      <span>{producto.denominacion}</span>
+                      <span className='precioProductoBuscado'>
                         ${producto.precioVenta?.toLocaleString() || 'N/A'}
                       </span>
-                            </div>
-                          </Link>
-                        </li>
-                    ))}
-                  </ul>
-              )}
-            </div>
-        )}
-      </section>
+                    </div>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+    </section>
   );
 }
 

@@ -687,6 +687,13 @@ export function Carrito() {
                   </div>
                 ))}
 
+                {tipoEnvio === 'DELIVERY' && (
+                  <div key="7000" className="d-flex justify-content-between mb-2">
+                    <span className="text-muted">Envío:</span>
+                    <span className="text-muted">$7000</span>
+                  </div>
+                )}
+
                 {/* Mostrar mensaje si no hay items en ninguno */}
                 {(!carrito || carrito.length === 0) && (!pedidoGuardado?.detalles || pedidoGuardado.detalles.length === 0) && (
                   <div className="text-center py-3">
@@ -700,9 +707,13 @@ export function Carrito() {
                   <strong>
                     ${(() => {
                       const items = carrito && carrito.length > 0 ? carrito : pedidoGuardado?.detalles || [];
-                      return items.reduce((acc, item) => {
+                      const subtotal = items.reduce((acc, item) => {
                         return acc + (item.subTotal || (item.cantidad * item.articulo!.precioVenta!));
-                      }, 0).toFixed(2);
+                      }, 0);
+
+                      return tipoEnvio === 'DELIVERY'
+                        ? (subtotal + 7000).toFixed(2)  // Con envío
+                        : subtotal.toFixed(2);          // Sin envío
                     })()}
                   </strong>
                 </div>
@@ -940,11 +951,11 @@ export function Carrito() {
         </div>
       )}
       <ModalCambioSucursal
-          show={showModalCambioSucursal}
-          onHide={cerrarModalCambioSucursal}
-          promocionesEliminadas={datosModalCambioSucursal.promocionesEliminadas}
-          promocionesRestauradas={datosModalCambioSucursal.promocionesRestauradas}
-          mensaje={datosModalCambioSucursal.mensaje}
+        show={showModalCambioSucursal}
+        onHide={cerrarModalCambioSucursal}
+        promocionesEliminadas={datosModalCambioSucursal.promocionesEliminadas}
+        promocionesRestauradas={datosModalCambioSucursal.promocionesRestauradas}
+        mensaje={datosModalCambioSucursal.mensaje}
       />
     </>
   );

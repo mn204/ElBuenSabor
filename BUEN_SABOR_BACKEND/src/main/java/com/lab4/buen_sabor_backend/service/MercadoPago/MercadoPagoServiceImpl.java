@@ -2,6 +2,7 @@ package com.lab4.buen_sabor_backend.service.MercadoPago;
 
 import com.lab4.buen_sabor_backend.model.MercadoPago.PreferenceMP;
 import com.lab4.buen_sabor_backend.model.Pedido;
+import com.lab4.buen_sabor_backend.model.enums.TipoEnvio;
 import com.mercadopago.MercadoPagoConfig;
 import com.mercadopago.client.preference.PreferenceBackUrlsRequest;
 import com.mercadopago.client.preference.PreferenceClient;
@@ -25,14 +26,22 @@ public class MercadoPagoServiceImpl implements MercadoPagoService { // ⚠️ AQ
     public PreferenceMP getPreferenciaIdMercadoPago(Pedido pedido) {
         try {
             MercadoPagoConfig.setAccessToken("APP_USR-7115001971388140-050722-baace1bc7839f6490b933b2685a0a38d-2430217802");
+            PreferenceItemRequest itemRequest;
+            double costoFinal;
 
-            PreferenceItemRequest itemRequest = PreferenceItemRequest.builder()
+            if (pedido.getTipoEnvio() == TipoEnvio.DELIVERY) {
+                costoFinal = pedido.getTotal() + 7000; // Solo sumar envío para delivery
+            } else {
+                costoFinal = pedido.getTotal(); // Sin costo de envío para takeaway
+            }
+
+            itemRequest = PreferenceItemRequest.builder()
                     .id(String.valueOf(pedido.getId()))
                     .title("Articulos")
                     .description("Pedido realizado desde el carrito de compras")
                     .quantity(1)
                     .currencyId("ARS")
-                    .unitPrice(BigDecimal.valueOf(pedido.getTotal()))
+                    .unitPrice(BigDecimal.valueOf(costoFinal))
                     .build();
 
             List<PreferenceItemRequest> items = new ArrayList<>();
