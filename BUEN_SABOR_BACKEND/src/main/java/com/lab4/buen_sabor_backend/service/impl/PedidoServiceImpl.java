@@ -306,7 +306,9 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
                 si = sucursalInsumoService.getById(si.getId());
 
                 if (si.getStockActual() < requerido) {
-                    throw new RuntimeException("No hay stock del insumo: " + si.getArticuloInsumo().getDenominacion() + " en la sucursal: " + sucursal.getNombre());
+                    throw new RuntimeException(
+                            "Para continuar elimine: " + si.getArticuloInsumo().getDenominacion()
+                    );
                 }
             }
 

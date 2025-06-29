@@ -113,7 +113,9 @@ export function Carrito() {
       // 🔥 Esta parte es la importante: capturás el mensaje del backend
       const parsed = JSON.parse(error.message);
       if (parsed.errorMsg) {
-        setStockError(parsed.errorMsg);
+        setStockError(
+          `<span>Stock insuficiente en la sucursal: ${sucursalActualUsuario?.nombre}</span><span>${parsed.errorMsg}</span>`
+        );
       } else {
         setStockError("Error al verificar el stock.");
       }
@@ -245,13 +247,16 @@ export function Carrito() {
           <div className="container-fluid px-4 py-3">
             {stockError && (
               <div className="alert alert-danger mx-auto mb-4" role="alert" style={{ maxWidth: "800px" }}>
-                <div className="d-flex align-items-center">
+                <div className="d-flex align-items-center gap-3">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="me-2">
                     <circle cx="12" cy="12" r="10"></circle>
                     <line x1="15" y1="9" x2="9" y2="15"></line>
                     <line x1="9" y1="9" x2="15" y2="15"></line>
                   </svg>
-                  {stockError}
+                  <div
+                    className="d-flex flex-column justify-content-center align-items-start"
+                    dangerouslySetInnerHTML={{ __html: stockError }}
+                  />
                 </div>
               </div>
             )}
