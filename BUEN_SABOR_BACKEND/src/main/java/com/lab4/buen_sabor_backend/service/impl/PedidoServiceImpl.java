@@ -7,6 +7,7 @@ import com.lab4.buen_sabor_backend.model.enums.Rol;
 import com.lab4.buen_sabor_backend.model.enums.TipoEnvio;
 import com.lab4.buen_sabor_backend.repository.ClienteRepository;
 import com.lab4.buen_sabor_backend.repository.EmpleadoRepository;
+import com.lab4.buen_sabor_backend.repository.SucursalInsumoRepository;
 import com.lab4.buen_sabor_backend.service.*;
 import com.lab4.buen_sabor_backend.service.impl.specification.PedidoSpecification;
 
@@ -46,11 +47,14 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
     private final SucursalInsumoService sucursalInsumoService;
     private final ArticuloManufacturadoService articuloManufacturadoService;
     private final ClienteRepository clienteRepository;
+    private final SucursalInsumoRepository sucursalInsumoRepository;
 
     @Autowired
     public PedidoServiceImpl(PedidoRepository pedidoRepository, PdfService pdfService, ArticuloInsumoService articuloInsumoService,
                              SucursalInsumoService sucursalInsumoService, ArticuloManufacturadoService articuloManufacturadoService,
-                             EmpleadoRepository empleadoRepository, ExcelService excelService, EmailService emailService, PromocionService promocionService, DetallePedidoService detallePedidoService, ArticuloService articuloService, ClienteRepository clienteRepository) {
+                             EmpleadoRepository empleadoRepository, ExcelService excelService, EmailService emailService,
+                             PromocionService promocionService, DetallePedidoService detallePedidoService, ArticuloService articuloService,
+                             ClienteRepository clienteRepository, SucursalInsumoRepository sucursalInsumoRepository) {
         super(pedidoRepository);
         this.pedidoRepository = pedidoRepository;
         this.articuloInsumoService = articuloInsumoService;
@@ -64,6 +68,7 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
         this.detallePedidoService = detallePedidoService;
         this.articuloService = articuloService;
         this.clienteRepository = clienteRepository;
+        this.sucursalInsumoRepository = sucursalInsumoRepository;
     }
 
     @Override
@@ -418,6 +423,11 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
         pedido.setEstado(nuevoEstado);
         pedidoRepository.save(pedido);
 
+        // Si el pedido fue cancelado, devolver stock
+        if (estadoActual != Estado.CANCELADO && nuevoEstado == Estado.CANCELADO) {
+            devolverStockPedido(pedido);
+        }
+
         // Envío de emails
         try {
             if (nuevoEstado == Estado.CANCELADO) {
@@ -715,5 +725,46 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
         );
 
         return excelService.exportarPedidosAExcel(pedidosFiltrados);
+    }
+
+    // --- Agregar método para devolución de stock ---
+    private void devolverStockPedido(Pedido pedido) {
+        if (pedido.getDetalles() == null) return;
+        for (DetallePedido detalle : pedido.getDetalles()) {
+            // Si es artículo simple
+            if (detalle.getArticulo() != null) {
+                devolverStockArticulo(detalle.getArticulo(), detalle.getCantidad(), pedido.getSucursal());
+            }
+            // Si es promoción, devolver stock de cada artículo de la promo
+            if (detalle.getPromocion() != null && detalle.getPromocion().getDetalles() != null) {
+                for (DetallePromocion detPromo : detalle.getPromocion().getDetalles()) {
+                    devolverStockArticulo(detPromo.getArticulo(), detPromo.getCantidad() * detalle.getCantidad(), pedido.getSucursal());
+                }
+            }
+        }
+    }
+
+    private void devolverStockArticulo(Articulo articulo, int cantidad, Sucursal sucursal) {
+        // Si es insumo, sumar stock en SucursalInsumo
+        if (articulo instanceof ArticuloInsumo) {
+            ArticuloInsumo insumo = (ArticuloInsumo) articulo;
+            SucursalInsumo sucInsumo = sucursalInsumoRepository.findBySucursalIdAndArticuloInsumoId(sucursal.getId(), insumo.getId());
+            if (sucInsumo != null) {
+                sucInsumo.setStockActual(sucInsumo.getStockActual() + cantidad);
+                sucursalInsumoRepository.save(sucInsumo);
+            }
+        } else if (articulo instanceof ArticuloManufacturado) {
+            // Si es manufacturado, devolver stock de insumos según receta
+            ArticuloManufacturado man = (ArticuloManufacturado) articulo;
+            for (DetalleArticuloManufacturado det : man.getDetalles()) {
+                ArticuloInsumo insumo = det.getArticuloInsumo();
+                double cantidadTotal = det.getCantidad() * cantidad;
+                SucursalInsumo sucInsumo = sucursalInsumoRepository.findBySucursalIdAndArticuloInsumoId(sucursal.getId(), insumo.getId());
+                if (sucInsumo != null) {
+                    sucInsumo.setStockActual(sucInsumo.getStockActual() + cantidadTotal);
+                    sucursalInsumoRepository.save(sucInsumo);
+                }
+            }
+        }
     }
 }
