@@ -15,7 +15,6 @@ import PedidoClienteModal from "../modales/PedidoClienteModal.tsx";
 import { ChevronLeft, ChevronRight } from "react-bootstrap-icons";
 import pedidoService from "../../../services/PedidoService";
 
-//TODO corregir filtros en los pedidos del cliente que sean automaticos
 
 const GrillaCliente = () => {
     const [clientes, setClientes] = useState<Cliente[]>([]);
@@ -52,8 +51,8 @@ const GrillaCliente = () => {
     const [procesando, setProcesando] = useState(false);
 
     const cargarPedidosPorCliente = async (clientes: Cliente[]) => {
-        // Solo cargar si no estamos ordenando por pedidos (ya que el backend ya los ordena)
-        if (tipoOrden === "pedidos") return;
+        // REMOVIDO: if (tipoOrden === "pedidos") return;
+        // Siempre cargar los contadores de pedidos independientemente del tipo de orden
 
         const nuevosContadores: { [clienteId: number]: number } = {};
         await Promise.all(
@@ -62,6 +61,7 @@ const GrillaCliente = () => {
                     const count = await pedidoService.getPedidosClienteCount(cliente.id!);
                     nuevosContadores[cliente.id!] = count;
                 } catch (error) {
+                    console.error(`Error al cargar pedidos para cliente ${cliente.id}:`, error);
                     nuevosContadores[cliente.id!] = 0;
                 }
             })
@@ -119,13 +119,16 @@ const GrillaCliente = () => {
             );
 
             setClientes(result.content);
+
+            // CAMBIO IMPORTANTE: Esperar a que se carguen los pedidos antes de quitar el loading
             await cargarPedidosPorCliente(result.content);
+
             setTotalPages(result.totalPages);
         } catch (error) {
             console.error("Error al cargar clientes:", error);
-            mostrarResultado("Error al cargar clientes", 'error'); // ACTUALIZADO
+            mostrarResultado("Error al cargar clientes", 'error');
         } finally {
-            setLoading(false);
+            setLoading(false); // Solo se quita el loading cuando TODO esté cargado
         }
     };
 
@@ -254,11 +257,8 @@ const GrillaCliente = () => {
             key: "pedidos",
             label: "Pedidos",
             render: (_: any, row: Cliente) => {
-                // Si estamos ordenando por pedidos, no necesitamos cargar individualmente
-                if (tipoOrden === "pedidos") {
-                    return pedidosPorCliente[row.id!] !== undefined ? pedidosPorCliente[row.id!] : "...";
-                }
-                return pedidosPorCliente[row.id!] !== undefined ? pedidosPorCliente[row.id!] : "Cargando...";
+                const count = pedidosPorCliente[row.id!];
+                return count !== undefined ? count : "Cargando...";
             },
         },
         {
