@@ -67,11 +67,11 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
       const json = JSON.parse(pedidoGuardado);
       const pedido = Object.assign(new Pedido(), json);
       pedido.detalles = (json.detalles || []).map((detalle: any) =>
-          Object.assign(new PedidoDetalle(), {
-            ...detalle,
-            articulo: detalle.articulo ? Object.assign(new Articulo(), detalle.articulo) : null,
-            promocion: detalle.promocion ? Object.assign(new Promocion(), detalle.promocion) : null,
-          })
+        Object.assign(new PedidoDetalle(), {
+          ...detalle,
+          articulo: detalle.articulo ? Object.assign(new Articulo(), detalle.articulo) : null,
+          promocion: detalle.promocion ? Object.assign(new Promocion(), detalle.promocion) : null,
+        })
       );
       return pedido;
     }
@@ -144,7 +144,7 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
     // Eliminar promociones no disponibles en la nueva sucursal
     promocionesEnCarrito.forEach(detalle => {
       const promocionDisponible = promocionesDisponibles.find(
-          promo => promo.id === detalle.promocion?.id
+        promo => promo.id === detalle.promocion?.id
       );
 
       if (!promocionDisponible) {
@@ -155,7 +155,7 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
 
     // Buscar promociones guardadas de la nueva sucursal
     const promocionesGuardadas = promocionesPorSucursal.find(
-        p => p.sucursalId === nuevaSucursalId
+      p => p.sucursalId === nuevaSucursalId
     );
 
     const promocionesRestauradas: Promocion[] = [];
@@ -166,13 +166,13 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
 
       for (const promoGuardada of promocionesGuardadas.promociones) {
         const promocionDisponible = promocionesDisponibles.find(
-            promo => promo.id === promoGuardada.promocion.id
+          promo => promo.id === promoGuardada.promocion.id
         );
 
         if (promocionDisponible) {
           // Verificar que la promoción no esté ya en el carrito
           const yaEnCarrito = pedido.detalles.find(
-              detalle => detalle.promocion?.id === promocionDisponible.id
+            detalle => detalle.promocion?.id === promocionDisponible.id
           );
 
           if (!yaEnCarrito) {
@@ -229,7 +229,7 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
 
     setPedido((prevPedido) => {
       const detallesExistente = prevPedido.detalles.find(
-          (d) => d.articulo && d.articulo.id === articulo.id
+        (d) => d.articulo && d.articulo.id === articulo.id
       );
 
       let nuevosdetalles: PedidoDetalle[];
@@ -265,7 +265,7 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
     }
     setPedido((prevPedido) => {
       const detallesExistente = prevPedido.detalles.find(
-          (d) => d.promocion?.id === promocion.id
+        (d) => d.promocion?.id === promocion.id
       );
 
       let nuevosdetalles: PedidoDetalle[];
@@ -301,7 +301,7 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
     }
     setPedido((prevPedido) => {
       const nuevosdetalles = prevPedido.detalles.filter(
-          (d) => !(d.promocion?.id === promocionId)
+        (d) => !(d.promocion?.id === promocionId)
       );
       const nuevoTotal = nuevosdetalles.reduce((acc, d) => acc + d.subTotal, 0);
       return { ...prevPedido, detalles: nuevosdetalles, total: nuevoTotal };
@@ -380,7 +380,7 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
     }
     setPedido((prevPedido) => {
       const nuevosdetalles = prevPedido.detalles.filter(
-          (d) => !(d.articulo && d.articulo.id && d.articulo.id === idArticulo && !d.promocion)
+        (d) => !(d.articulo && d.articulo.id && d.articulo.id === idArticulo && !d.promocion)
       );
       const nuevoTotal = nuevosdetalles.reduce((acc, d) => acc + d.subTotal, 0);
       return { ...prevPedido, detalles: nuevosdetalles, total: nuevoTotal };
@@ -427,32 +427,43 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
     try {
       const calcularTiempoPreparacion = async (pedido: Pedido): Promise<number> => {
         let tiempoTotalMinutos = 0;
-        if (pedido.tipoEnvio == TipoEnvio.DELIVERY) {
-          tiempoTotalMinutos += 15
+        if (pedido.tipoEnvio === TipoEnvio.DELIVERY) {
+          tiempoTotalMinutos += 15;
         }
-        console.log(pedido.tipoEnvio)
+
+        // Mapa para acumular cantidades por artículo manufacturado
+        const articulosCantidad: Record<number, number> = {};
+
         if (pedido.detalles) {
           for (const det of pedido.detalles) {
             if (det.articulo) {
-              try {
-                const prod = await ArticuloManufacturadoService.getById(det.articulo.id!);
-                tiempoTotalMinutos += prod.tiempoEstimadoMinutos ?? 0;
-              } catch (error) {
-                console.error("Error al obtener artículo manufacturado:", error);
-              }
+              const id = det.articulo.id!;
+              articulosCantidad[id] = (articulosCantidad[id] || 0) + det.cantidad;
             }
             if (det.promocion) {
               for (const deta of det.promocion.detalles) {
-                try {
-                  const prod = await ArticuloManufacturadoService.getById(deta.articulo!.id!);
-                  tiempoTotalMinutos += prod.tiempoEstimadoMinutos ?? 0;
-                } catch (error) {
-                  console.error("Error al obtener artículo manufacturado:", error);
+                if (deta.articulo) {
+                  const id = deta.articulo.id!;
+                  // Multiplica por la cantidad de la promoción
+                  articulosCantidad[id] = (articulosCantidad[id] || 0) + (det.cantidad * (deta.cantidad || 1));
                 }
               }
             }
           }
         }
+
+        // Sumar tiempos estimados de preparación por artículo, sumando la cantidad
+        for (const idStr in articulosCantidad) {
+          const id = Number(idStr);
+          try {
+            const prod = await ArticuloManufacturadoService.getById(id);
+            const tiempo = (prod.tiempoEstimadoMinutos ?? 0) + articulosCantidad[id];
+            tiempoTotalMinutos += tiempo;
+          } catch (error) {
+            console.error("Error al obtener artículo manufacturado:", error);
+          }
+        }
+
         return tiempoTotalMinutos;
       };
 
@@ -460,9 +471,9 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
         const tiempoPreparacionMinutos = await calcularTiempoPreparacion(pedido);
         const ahora = new Date();
         const horaArgentina = new Date(
-            ahora.toLocaleString("en-US", {
-              timeZone: "America/Argentina/Buenos_Aires",
-            })
+          ahora.toLocaleString("en-US", {
+            timeZone: "America/Argentina/Buenos_Aires",
+          })
         );
         horaArgentina.setMinutes(horaArgentina.getMinutes() + tiempoPreparacionMinutos);
         return horaArgentina.toTimeString().split(" ")[0];
@@ -473,7 +484,6 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
       pedido.estado = Estado.PENDIENTE;
       const exito = await PedidoService.create(pedido);
       if (exito) {
-        alert("Pedido guardado exitosamente");
         return exito;
       } else {
         console.log("❌ Entrando en rama FAILURE - Stock insuficiente");
@@ -488,27 +498,27 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-      <carritoContext.Provider
-          value={{
-            pedido,
-            preferenceId,
-            limpiarPreferenceId,
-            agregarAlCarrito,
-            agregarPromocionAlCarrito,
-            quitarPromocionCompleta,
-            restarDelCarrito,
-            quitarDelCarrito,
-            limpiarCarrito,
-            enviarPedido,
-            AgregarPreferenceId,
-            guardarPedidoYObtener,
-            cambiarSucursal,
-            showModalCambioSucursal,
-            datosModalCambioSucursal,
-            cerrarModalCambioSucursal,
-          }}
-      >
-        {children}
-      </carritoContext.Provider>
+    <carritoContext.Provider
+      value={{
+        pedido,
+        preferenceId,
+        limpiarPreferenceId,
+        agregarAlCarrito,
+        agregarPromocionAlCarrito,
+        quitarPromocionCompleta,
+        restarDelCarrito,
+        quitarDelCarrito,
+        limpiarCarrito,
+        enviarPedido,
+        AgregarPreferenceId,
+        guardarPedidoYObtener,
+        cambiarSucursal,
+        showModalCambioSucursal,
+        datosModalCambioSucursal,
+        cerrarModalCambioSucursal,
+      }}
+    >
+      {children}
+    </carritoContext.Provider>
   );
 }

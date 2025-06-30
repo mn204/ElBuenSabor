@@ -15,6 +15,7 @@ import ModalDomicilio from "../clientes/ModalDomicilio";
 import SucursalService from "../../services/SucursalService";
 import { useNavigate } from "react-router-dom";
 import ModalCambioSucursal from './ModalCambioSucursal';
+import ModalMensaje from "../empleados/modales/ModalMensaje";
 
 export function Carrito() {
   const { cliente, setCliente } = useAuth();
@@ -31,7 +32,7 @@ export function Carrito() {
   const { sucursalActualUsuario } = useSucursalUsuario();
   const [modalVisible, setModalVisible] = useState(false);
   const [mensajeCambioSucursal, setMensajeCambioSucursal] = useState<string>("");
-
+  const [mostrarModalPedido, setMostrarModalPedido] = useState(false);
   if (!carritoCtx) return null;
 
   const handleModalSubmit = (clienteActualizado: any) => {
@@ -167,6 +168,7 @@ export function Carrito() {
     pedido.total = pedido.total * 0.9;
     const pedidoFinal = await guardarPedidoYObtener();
     if (pedidoFinal) {
+      setMostrarModalPedido(true);
       limpiarCarrito()
     }
     window.location.href = `/pedidoConfirmado/${pedidoFinal!.id}`;
@@ -179,13 +181,16 @@ export function Carrito() {
     if (!stockOk) {
       return;
     }
-    if(tipoEnvio === 'TAKEAWAY') {
+    if (tipoEnvio === 'TAKEAWAY') {
       pedido.total = pedido.total * 0.9; // Aplicar descuento del 10% para Takeaway
+    }else if (tipoEnvio === 'DELIVERY' && domicilioSeleccionado) {
+      pedido.total = pedido.total + 2000; // Agregar costo de envío
     }
+
     const pedidoFinal = await guardarPedidoYObtener();
     if (pedidoFinal) {
       setPedidoGuardado(pedidoFinal);
-      console.log(pedidoFinal)
+      setMostrarModalPedido(true);
       limpiarCarrito()
     }
   };
@@ -589,25 +594,25 @@ export function Carrito() {
                       </button>
                     </div>
                   </div>
-                    <div className="col-md-6">
+                  <div className="col-md-6">
                     <div className="d-grid gap-2">
                       <button
-                      className={`btn py-3 ${tipoEnvio === 'TAKEAWAY'
-                        ? 'btn-success'
-                        : 'btn-outline-success'
-                        }`}
-                      onClick={() => handleTipoEnvioChange('TAKEAWAY')}
+                        className={`btn py-3 ${tipoEnvio === 'TAKEAWAY'
+                          ? 'btn-success'
+                          : 'btn-outline-success'
+                          }`}
+                        onClick={() => handleTipoEnvioChange('TAKEAWAY')}
                       >
-                      <div>
-                        <strong>🏪 Retiro en Local</strong>
-                        <br />
-                        <small>
-                        Retirá tu pedido en nuestro local
-                        <span className="ms-2 badge bg-warning text-dark" style={{ fontSize: '0.9em', marginLeft: '8px' }}>
-                          10% OFF
-                        </span>
-                        </small>
-                      </div>
+                        <div>
+                          <strong>🏪 Retiro en Local</strong>
+                          <br />
+                          <small>
+                            Retirá tu pedido en nuestro local
+                            <span className="ms-2 badge bg-warning text-dark" style={{ fontSize: '0.9em', marginLeft: '8px' }}>
+                              10% OFF
+                            </span>
+                          </small>
+                        </div>
                       </button>
                     </div>
                   </div>
@@ -976,6 +981,11 @@ export function Carrito() {
         promocionesEliminadas={datosModalCambioSucursal.promocionesEliminadas}
         promocionesRestauradas={datosModalCambioSucursal.promocionesRestauradas}
         mensaje={datosModalCambioSucursal.mensaje}
+      />
+      <ModalMensaje
+        mensaje="Pedido Guardado"
+        show={mostrarModalPedido}
+        onHide={() => setMostrarModalPedido(false)}
       />
     </>
   );

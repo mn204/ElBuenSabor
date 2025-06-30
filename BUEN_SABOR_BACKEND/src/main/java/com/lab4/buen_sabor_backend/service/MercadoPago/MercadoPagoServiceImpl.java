@@ -27,13 +27,7 @@ public class MercadoPagoServiceImpl implements MercadoPagoService { // ⚠️ AQ
         try {
             MercadoPagoConfig.setAccessToken("APP_USR-7115001971388140-050722-baace1bc7839f6490b933b2685a0a38d-2430217802");
             PreferenceItemRequest itemRequest;
-            double costoFinal;
-
-            if (pedido.getTipoEnvio() == TipoEnvio.DELIVERY) {
-                costoFinal = pedido.getTotal() + 7000; // Solo sumar envío para delivery
-            } else {
-                costoFinal = pedido.getTotal(); // Sin costo de envío para takeaway
-            }
+            double costoFinal = pedido.getTotal();
 
             itemRequest = PreferenceItemRequest.builder()
                     .id(String.valueOf(pedido.getId()))

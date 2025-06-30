@@ -122,9 +122,7 @@ class PedidoService {
                     }
 
                     const ultimoPedido: Pedido = await ultimoPedidoRes.json();
-                    console.log(ultimoPedido)
                     if (ultimoPedido && ultimoPedido.id) {
-                        alert(`Pedido guardado exitosamente con ID: ${ultimoPedido.id}`);
                         return ultimoPedido;
                     } else {
                         alert("Pedido procesado pero no se pudo obtener la información completa.");
