@@ -718,9 +718,44 @@ export function GrillaPromocion() {
                                             ))}
                                         </tbody>
                                         <tfoot>
+                                            {/* Precio total de los artículos */}
+                                            <tr className="table-warning">
+                                                <td colSpan={3} className="text-center fw-bold">
+                                                    {(() => {
+                                                        const precioOriginal = promocionSeleccionada.detalles.reduce(
+                                                            (acc, detalle) => acc + (detalle.articulo.precioVenta || 0) * detalle.cantidad,
+                                                            0
+                                                        );
+                                                        return (
+                                                            <span>
+                                                                <strong>🧾 Precio total de los artículos: ${precioOriginal.toFixed(2)}</strong>
+                                                            </span>
+                                                        );
+                                                    })()}
+                                                </td>
+                                            </tr>
+                                            {/* Precio promocional */}
                                             <tr className="table-success">
                                                 <td colSpan={3} className="text-center fw-bold">
                                                     <strong>💰 Precio promocional: ${promocionSeleccionada.precioPromocional.toFixed(2)}</strong>
+                                                </td>
+                                            </tr>
+                                            {/* Fila de descuento */}
+                                            <tr className="table-info">
+                                                <td colSpan={3} className="text-center">
+                                                    {(() => {
+                                                        const precioOriginal = promocionSeleccionada.detalles.reduce(
+                                                            (acc, detalle) => acc + (detalle.articulo.precioVenta || 0) * detalle.cantidad,
+                                                            0
+                                                        );
+                                                        const descuento = precioOriginal - promocionSeleccionada.precioPromocional;
+                                                        const porcentaje = precioOriginal > 0 ? (descuento / precioOriginal) * 100 : 0;
+                                                        return (
+                                                            <span>
+                                                                <strong>🔻 Descuento aplicado:</strong> ${descuento.toFixed(2)} ({porcentaje.toFixed(1)}%)
+                                                            </span>
+                                                        );
+                                                    })()}
                                                 </td>
                                             </tr>
                                         </tfoot>
@@ -731,6 +766,12 @@ export function GrillaPromocion() {
                             {(!promocionSeleccionada.detalles || promocionSeleccionada.detalles.length === 0) && (
                                 <div className="text-center mt-3">
                                     <h5 className="text-success">💰 Precio promocional: ${promocionSeleccionada.precioPromocional.toFixed(2)}</h5>
+                                    {/* Descuento cuando no hay detalles */}
+                                    {promocionSeleccionada.descuento > 0 && (
+                                        <div className="mt-2 text-info fw-bold">
+                                            <span>🔻 Descuento aplicado: {promocionSeleccionada.descuento}%</span>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>

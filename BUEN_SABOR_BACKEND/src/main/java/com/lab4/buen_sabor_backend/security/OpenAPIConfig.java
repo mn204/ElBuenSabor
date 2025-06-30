@@ -11,7 +11,7 @@ public class OpenAPIConfig {
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("API de Tienda de Ropa")
+                        .title("API de Buen Sabor")
                         .version("1.0")
                         .description("API para la gestión de productos, pedidos, promociones, etc.")
                         .contact(new Contact().name("Buen Sabor").email("buensaborprueba@gmail.com")));
