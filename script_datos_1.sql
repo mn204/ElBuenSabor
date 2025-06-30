@@ -26,7 +26,7 @@ insert  into `empresa`(`id`,`eliminado`,`cuil`,`nombre`,`razon_social`) values (
 
 /*Data for the table `sucursal` */
 
-insert  into `sucursal`(`id`,`eliminado`,`casa_matriz`,`horario_apertura`,`horario_cierre`,`nombre`,`domicilio_id`,`empresa_id`) values (1,'\0','','00:01:00.000000','00:00:00.000000','Casa Central',9,1),(2,'\0','\0','10:00:00.000000','18:00:00.000000','Sucursal Este',11,1);
+insert  into `sucursal`(`id`,`eliminado`,`casa_matriz`,`horario_apertura`,`horario_cierre`,`nombre`,`domicilio_id`,`empresa_id`) values (1,'\0','','00:01:00.000000','00:00:00.000000','Casa Central',9,1),(2,'\0','\0','10:00:00.000000','20:00:00.000000','Sucursal Este',11,1);
 
 /*Data for the table `empleado` */
 
