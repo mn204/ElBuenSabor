@@ -580,7 +580,7 @@ export function Carrito() {
                   <div className="col-md-6">
                     <div className="d-grid gap-2">
                       <button
-                        className={`btn py-3 ${tipoEnvio === 'DELIVERY'
+                        className={`btn py-3 ${tipoEnvio === 'DELIVERY' && domicilioSeleccionado
                           ? 'btn-success'
                           : 'btn-outline-success'
                           }`}
@@ -709,7 +709,7 @@ export function Carrito() {
                 {tipoEnvio === 'DELIVERY' && (
                   <div key="7000" className="d-flex justify-content-between mb-2">
                     <span className="text-muted">Envío:</span>
-                    <span className="text-muted">$7000</span>
+                    <span className="text-muted">$2000</span>
                   </div>
                 )}
                 {tipoEnvio === 'TAKEAWAY' && (
@@ -736,9 +736,13 @@ export function Carrito() {
                         return acc + (item.subTotal || (item.cantidad * item.articulo!.precioVenta!));
                       }, 0);
 
-                      return tipoEnvio === 'DELIVERY'
-                        ? (subtotal + 7000).toFixed(2)  // Con envío
-                        : (subtotal * 0.9).toFixed(2);          // Sin envío
+                        if (tipoEnvio === 'TAKEAWAY') {
+                        return (subtotal * 0.9).toFixed(2); // 10% descuento
+                        } else if (tipoEnvio === 'DELIVERY') {
+                        return (subtotal + 2000).toFixed(2); // Envío $2000
+                        } else {
+                        return subtotal.toFixed(2); // Solo subtotal
+                        }
                     })()}
                   </strong>
                 </div>

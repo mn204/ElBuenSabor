@@ -4,6 +4,7 @@ import '../../styles/PedidoConfimrado.css';
 import { useParams } from "react-router-dom";
 import PedidoService from '../../services/PedidoService';
 import Pedido from '../../models/Pedido';
+import TipoEnvio from '../../models/enums/TipoEnvio';
 
 
 interface Props {
@@ -116,23 +117,51 @@ const PedidoConfirmado: React.FC<Props> = ({
                                     <React.Fragment key={index}>
                                         {det.articulo && (
                                             <div className="producto-item">
-                                                <div className="producto-info">
+                                                <div className="producto-info d-flex flex-row">
                                                     <span className="producto-nombre">{det.articulo.denominacion}</span>
                                                     <span className="producto-cantidad">x{det.cantidad}</span>
                                                 </div>
                                                 <span className="producto-precio">
-                                                    ${(det.articulo.precioVenta! * det.cantidad).toLocaleString()}
+                                                    {pedido?.tipoEnvio === TipoEnvio.TAKEAWAY ? (
+                                                        <>
+                                                            <span style={{ textDecoration: 'line-through', color: '#888', marginRight: 4 }}>
+                                                                ${(det.articulo.precioVenta! * det.cantidad).toLocaleString()}
+                                                            </span>
+                                                            <span style={{ color: '#4CAF50', fontWeight: 600 }}>
+                                                                ${(det.articulo.precioVenta! * det.cantidad * 0.9).toLocaleString()}
+                                                            </span>
+                                                            <span className="descuento-label" style={{ color: '#4CAF50', marginLeft: 6, fontSize: 12 }}>
+                                                                10% OFF Takeaway
+                                                            </span>
+                                                        </>
+                                                    ) : (
+                                                        <>${(det.articulo.precioVenta! * det.cantidad).toLocaleString()}</>
+                                                    )}
                                                 </span>
                                             </div>
                                         )}
                                         {det.promocion && (
                                             <div className="producto-item">
-                                                <div className="producto-info">
+                                                <div className="producto-info d-flex flex-row">
                                                     <span className="producto-nombre">{det.promocion.denominacion}</span>
                                                     <span className="producto-cantidad">x{det.cantidad}</span>
                                                 </div>
                                                 <span className="producto-precio">
-                                                    ${(det.promocion.precioPromocional * det.cantidad).toLocaleString()}
+                                                    {pedido?.tipoEnvio === TipoEnvio.TAKEAWAY ? (
+                                                        <>
+                                                            <span style={{ textDecoration: 'line-through', color: '#888', marginRight: 4 }}>
+                                                                ${(det.promocion.precioPromocional * det.cantidad).toLocaleString()}
+                                                            </span>
+                                                            <span style={{ color: '#4CAF50', fontWeight: 600 }}>
+                                                                ${(det.promocion.precioPromocional * det.cantidad * 0.9).toLocaleString()}
+                                                            </span>
+                                                            <span className="descuento-label" style={{ color: '#4CAF50', marginLeft: 6, fontSize: 12 }}>
+                                                                10% OFF Takeaway
+                                                            </span>
+                                                        </>
+                                                    ) : (
+                                                        <>${(det.promocion.precioPromocional * det.cantidad).toLocaleString()}</>
+                                                    )}
                                                 </span>
                                             </div>
                                         )}
