@@ -164,6 +164,7 @@ export function Carrito() {
     if (!stockOk) {
       return;
     }
+    pedido.total = pedido.total * 0.9;
     const pedidoFinal = await guardarPedidoYObtener();
     if (pedidoFinal) {
       limpiarCarrito()
@@ -177,6 +178,9 @@ export function Carrito() {
     const stockOk = await verificarStock();
     if (!stockOk) {
       return;
+    }
+    if(tipoEnvio === 'TAKEAWAY') {
+      pedido.total = pedido.total * 0.9; // Aplicar descuento del 10% para Takeaway
     }
     const pedidoFinal = await guardarPedidoYObtener();
     if (pedidoFinal) {
@@ -585,20 +589,25 @@ export function Carrito() {
                       </button>
                     </div>
                   </div>
-                  <div className="col-md-6">
+                    <div className="col-md-6">
                     <div className="d-grid gap-2">
                       <button
-                        className={`btn py-3 ${tipoEnvio === 'TAKEAWAY'
-                          ? 'btn-success'
-                          : 'btn-outline-success'
-                          }`}
-                        onClick={() => handleTipoEnvioChange('TAKEAWAY')}
+                      className={`btn py-3 ${tipoEnvio === 'TAKEAWAY'
+                        ? 'btn-success'
+                        : 'btn-outline-success'
+                        }`}
+                      onClick={() => handleTipoEnvioChange('TAKEAWAY')}
                       >
-                        <div>
-                          <strong>🏪 Retiro en Local</strong>
-                          <br />
-                          <small>Retirá tu pedido en nuestro local</small>
-                        </div>
+                      <div>
+                        <strong>🏪 Retiro en Local</strong>
+                        <br />
+                        <small>
+                        Retirá tu pedido en nuestro local
+                        <span className="ms-2 badge bg-warning text-dark" style={{ fontSize: '0.9em', marginLeft: '8px' }}>
+                          10% OFF
+                        </span>
+                        </small>
+                      </div>
                       </button>
                     </div>
                   </div>
@@ -698,6 +707,12 @@ export function Carrito() {
                     <span className="text-muted">$7000</span>
                   </div>
                 )}
+                {tipoEnvio === 'TAKEAWAY' && (
+                  <div key="7000" className="d-flex justify-content-between mb-2">
+                    <span className="text-muted">Descuento:</span>
+                    <span className="text-muted">10%</span>
+                  </div>
+                )}
 
                 {/* Mostrar mensaje si no hay items en ninguno */}
                 {(!carrito || carrito.length === 0) && (!pedidoGuardado?.detalles || pedidoGuardado.detalles.length === 0) && (
@@ -718,7 +733,7 @@ export function Carrito() {
 
                       return tipoEnvio === 'DELIVERY'
                         ? (subtotal + 7000).toFixed(2)  // Con envío
-                        : subtotal.toFixed(2);          // Sin envío
+                        : (subtotal * 0.9).toFixed(2);          // Sin envío
                     })()}
                   </strong>
                 </div>
