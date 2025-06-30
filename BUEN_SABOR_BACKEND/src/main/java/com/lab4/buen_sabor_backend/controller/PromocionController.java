@@ -59,6 +59,8 @@ public class PromocionController extends MasterControllerImpl<Promocion, Promoci
             @RequestParam(required = false) String denominacion,
             @RequestParam(required = false) TipoPromocion tipoPromocion,
             @RequestParam(required = false) Boolean activa,
+            @RequestParam(required = false) Boolean eliminado,
+            @RequestParam(required = false) Long idSucursal,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime fechaHoraDesde,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime fechaHoraHasta,
             @RequestParam(required = false) Double precioMin,
@@ -66,7 +68,7 @@ public class PromocionController extends MasterControllerImpl<Promocion, Promoci
             @PageableDefault(sort = "denominacion", direction = Sort.Direction.ASC) Pageable pageable
     ) {
         Page<Promocion> promociones = promocionService.buscarPromocionesFiltradas(
-                denominacion, tipoPromocion, activa, fechaHoraDesde, fechaHoraHasta, precioMin, precioMax, pageable
+                denominacion, tipoPromocion, activa, eliminado, idSucursal, fechaHoraDesde, fechaHoraHasta, precioMin, precioMax, pageable
         );
 
         Page<PromocionDTO> result = promociones.map(promocionMapper::toDTO);
