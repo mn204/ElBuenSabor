@@ -180,12 +180,6 @@ const BusquedaCategoria: React.FC = () => {
                         {categoria.denominacion}
                     </h1>
 
-                    {categoria?.categoriaPadre && (
-                        <p className="busqueda-categoria__parent">
-                            Subcategoría de: <span>{categoria.categoriaPadre.denominacion}</span>
-                        </p>
-                    )}
-
                     <p className="busqueda-categoria__count">
                         {articulos.length} {articulos.length === 1 ? 'producto encontrado' : 'productos encontrados'}
                     </p>
