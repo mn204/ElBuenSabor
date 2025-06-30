@@ -353,7 +353,52 @@ const PedidoDetalleModal: React.FC<Props> = ({ show, onHide, pedido, onEstadoCha
 
           </Table>
 
-          <p><strong>Total:</strong> ${pedido.total.toFixed(2)}</p>
+          {/* Calcular total bruto (sin descuento ni recargo) */}
+          {(() => {
+            const totalBruto = pedido.detalles.reduce((acc, d) => acc + d.subTotal, 0);
+            let diferencia = 0;
+            let mensaje = null;
+            if (pedido.tipoEnvio === "TAKEAWAY") {
+              diferencia = totalBruto - pedido.total;
+              mensaje = (
+                <div className="alert alert-success py-2 mb-2 d-flex align-items-center" style={{fontSize: '1.05rem'}}>
+                  <i className="bi bi-cash-coin me-2"></i>
+                  <span>
+                    <strong>Descuento TAKEAWAY (10%):</strong> -${diferencia.toFixed(2)}
+                  </span>
+                </div>
+              );
+            } else if (pedido.tipoEnvio === "DELIVERY") {
+              diferencia = pedido.total - totalBruto;
+              mensaje = (
+                <div className="alert alert-info py-2 mb-2 d-flex align-items-center" style={{fontSize: '1.05rem'}}>
+                  <i className="bi bi-truck me-2"></i>
+                  <span>
+                    <strong>Recargo DELIVERY (+$2000):</strong> +${diferencia.toFixed(2)}
+                  </span>
+                </div>
+              );
+            }
+            return (
+              <>
+                <p><strong>Total de productos:</strong> ${totalBruto.toFixed(2)}</p>
+                {mensaje}
+                {/* Total final destacado y aclarativo */}
+                <div className="alert alert-dark py-2 mb-2 d-flex align-items-center justify-content-center" style={{fontSize: '1.15rem', border: '2px solid #222', fontWeight: 600}}>
+                  <i className="bi bi-receipt me-2" style={{fontSize: '1.4rem'}}></i>
+                  <span>
+                    <strong>Total final:</strong> <span style={{color: '#198754', fontSize: '1.25rem'}}>${pedido.total.toFixed(2)}</span>
+                    {pedido.tipoEnvio === "TAKEAWAY" && (
+                      <span className="ms-2 text-success" style={{fontSize: '1rem'}}>(con descuento TAKEAWAY aplicado)</span>
+                    )}
+                    {pedido.tipoEnvio === "DELIVERY" && (
+                      <span className="ms-2 text-info" style={{fontSize: '1rem'}}>(con recargo DELIVERY aplicado)</span>
+                    )}
+                  </span>
+                </div>
+              </>
+            );
+          })()}
         </Modal.Body>
 
         <Modal.Footer className="d-flex justify-content-between align-items-center">
