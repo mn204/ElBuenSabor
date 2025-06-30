@@ -13,7 +13,7 @@ insert  into `promocion`(`id`,`eliminado`,`activa`,`denominacion`,`descripcion_d
 
 insert  into `imagen_promocion`(`id`,`eliminado`,`denominacion`,`promocion_id`) values (1,'\0','https://res.cloudinary.com/dvyjtb1ns/image/upload/v1750118525/coca_cola_bvrczz.jpg',1),(2,'\0','https://res.cloudinary.com/dvyjtb1ns/image/upload/v1750200039/promo_quilmes_or3kdt.jpg',2),(3,'\0','https://res.cloudinary.com/dvyjtb1ns/image/upload/v1750200039/promo_empanadas_uorjbh.jpg',3),(4,'\0','https://res.cloudinary.com/dvyjtb1ns/image/upload/v1750200039/promo_pizza_jyc97f.jpg',4),(5,'\0','https://res.cloudinary.com/dvyjtb1ns/image/upload/v1750200039/promo_papas_sfkvt4.jpg',5),(6,'\0','https://res.cloudinary.com/dvyjtb1ns/image/upload/v1750200039/promo_lomo_cn90bq.jpg',6),(7,'\0','https://res.cloudinary.com/dvyjtb1ns/image/upload/v1750193511/lomo_completo_s0d5ez.jpg',6),(8,'\0','https://res.cloudinary.com/dvyjtb1ns/image/upload/v1750118902/hamburguesa_clasica_fnrxol.jpg',1),(9,'\0','https://res.cloudinary.com/dvyjtb1ns/image/upload/v1750200039/promo_hamburguesa_kz8dhq.jpg',1);
 
-/*Data for the table `detalle_promocion` */add *
+/*Data for the table `detalle_promocion` */
 
 insert  into `detalle_promocion`(`id`,`eliminado`,`cantidad`,`articulo_id`,`promocion_id`) values (1,'\0',2,23,1),(2,'\0',1,30,1),(3,'\0',1,19,1),(4,'\0',1,21,2),(5,'\0',12,28,3),(6,'\0',1,19,3),(7,'\0',1,25,4),(8,'\0',1,20,4),(9,'\0',1,31,5),(10,'\0',1,68,6),(11,'\0',1,31,6),(12,'\0',1,22,6);
 
