@@ -96,13 +96,14 @@ class PromocionService {
             throw error;
         }
     }
-    
+
     async getPromocionesFiltradas(
         filtros: {
             denominacion?: string;
             tipoPromocion?: "PROMOCION" | "HAPPYHOUR";
             activa?: boolean;
-            fechaHoraDesde?: string; // formato ISO: "2025-06-25T10:00:00-03:00"
+            eliminado?: boolean; // <-- agregado
+            fechaHoraDesde?: string; // formato ISO
             fechaHoraHasta?: string;
             precioMin?: number;
             precioMax?: number;
@@ -110,13 +111,14 @@ class PromocionService {
         },
         page: number = 0,
         size: number = 10,
-        sort: string = "denominacion,asc" // orden A-Z por defecto
+        sort: string = "denominacion,asc"
     ): Promise<{ content: Promocion[]; totalPages: number }> {
         const params = new URLSearchParams();
 
         if (filtros.denominacion) params.append("denominacion", filtros.denominacion);
         if (filtros.tipoPromocion) params.append("tipoPromocion", filtros.tipoPromocion);
         if (filtros.activa !== undefined) params.append("activa", filtros.activa.toString());
+        if (filtros.eliminado !== undefined) params.append("eliminado", filtros.eliminado.toString()); // <-- agregado
         if (filtros.fechaHoraDesde) params.append("fechaHoraDesde", filtros.fechaHoraDesde);
         if (filtros.fechaHoraHasta) params.append("fechaHoraHasta", filtros.fechaHoraHasta);
         if (filtros.precioMin !== undefined) params.append("precioMin", filtros.precioMin.toString());

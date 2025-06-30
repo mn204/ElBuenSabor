@@ -137,7 +137,6 @@ export function GrillaPromocion() {
         setSucursalesSeleccionadas(checked ? todasLasSucursales.map(s => s.id) : []);
     };
 
-    // Función para construir filtros para el backend
     const construirFiltros = () => {
         const filtros: any = {};
 
@@ -151,23 +150,24 @@ export function GrillaPromocion() {
             filtros.tipoPromocion = filtroTipoPromocion;
         }
 
-        // Filtro por estado (activa/inactiva)
-        if (filtroEstado) {
-            if (filtroEstado === "activa") {
-                filtros.activa = true;
-            } else if (filtroEstado === "inactiva") {
-                filtros.activa = false;
-            }
-            // Para "eliminado" no enviamos el filtro activa ya que el backend maneja esto diferente
+        // Filtro por estado (activa/inactiva/eliminada)
+        if (filtroEstado === "activa") {
+            filtros.activa = true;
+            filtros.eliminado = false;
+        } else if (filtroEstado === "inactiva") {
+            filtros.activa = false;
+            filtros.eliminado = false;
+        } else if (filtroEstado === "eliminado") {
+            filtros.eliminado = true;
         }
+        // Si es "Todos", no agregues nada
 
         // Filtros por fecha (convertir a formato ISO con zona horaria)
         if (filtroFechaDesde) {
             filtros.fechaHoraDesde = dayjs(filtroFechaDesde)
                 .tz("America/Argentina/Buenos_Aires")
-                .format(); // ISO string en horario argentino
+                .format();
         }
-
         if (filtroFechaHasta) {
             const fechaHastaFinal = new Date(filtroFechaHasta);
             fechaHastaFinal.setHours(23, 59, 59, 999);
@@ -177,11 +177,10 @@ export function GrillaPromocion() {
         }
 
         // Filtros por precio
-        if (filtroPrecioMin && !isNaN(Number(filtroPrecioMin))) {
+        if (filtroPrecioMin !== "" && !isNaN(Number(filtroPrecioMin))) {
             filtros.precioMin = Number(filtroPrecioMin);
         }
-
-        if (filtroPrecioMax && !isNaN(Number(filtroPrecioMax))) {
+        if (filtroPrecioMax !== "" && !isNaN(Number(filtroPrecioMax))) {
             filtros.precioMax = Number(filtroPrecioMax);
         }
 

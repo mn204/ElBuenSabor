@@ -18,11 +18,12 @@ public class PromocionSpecification {
             String denominacion,
             TipoPromocion tipoPromocion,
             Boolean activa,
+            Boolean eliminado,
+            Long idSucursal,
             OffsetDateTime fechaHoraDesde,
             OffsetDateTime fechaHoraHasta,
             Double precioMin,
-            Double precioMax,
-            Long idSucursal
+            Double precioMax
     ) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -39,16 +40,21 @@ public class PromocionSpecification {
                 predicates.add(cb.equal(root.get("activa"), activa));
             }
 
+            if (eliminado != null) {
+                predicates.add(cb.equal(root.get("eliminado"), eliminado));
+            }
+
+            if (idSucursal != null) {
+                // Join con sucursales y filtra por id
+                predicates.add(cb.equal(root.join("sucursales").get("id"), idSucursal));
+            }
+
             if (precioMin != null) {
                 predicates.add(cb.greaterThanOrEqualTo(root.get("precioPromocional"), precioMin));
             }
 
             if (precioMax != null) {
                 predicates.add(cb.lessThanOrEqualTo(root.get("precioPromocional"), precioMax));
-            }
-
-            if (idSucursal != null) {
-                predicates.add(cb.equal(root.join("sucursales").get("id"), idSucursal));
             }
 
             // Fecha + hora combinadas
