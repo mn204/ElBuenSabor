@@ -230,23 +230,28 @@ public class PromocionServiceImpl extends MasterServiceImpl<Promocion, Long> imp
     }
 
     @Override
-    public Page<Promocion> buscarPromocionesFiltradas(String denominacion,
-                                                      TipoPromocion tipoPromocion,
-                                                      Boolean activa,
-                                                      OffsetDateTime fechaHoraDesde,
-                                                      OffsetDateTime fechaHoraHasta,
-                                                      Double precioMin,
-                                                      Double precioMax,
-                                                      Pageable pageable) {
+    public Page<Promocion> buscarPromocionesFiltradas(
+            String denominacion,
+            TipoPromocion tipoPromocion,
+            Boolean activa,
+            Boolean eliminado,
+            Long idSucursal,
+            OffsetDateTime fechaHoraDesde,
+            OffsetDateTime fechaHoraHasta,
+            Double precioMin,
+            Double precioMax,
+            Pageable pageable) {
+
         Specification<Promocion> spec = PromocionSpecification.filtrar(
                 denominacion,
                 tipoPromocion,
                 activa,
+                eliminado,
+                idSucursal,
                 fechaHoraDesde,
                 fechaHoraHasta,
                 precioMin,
-                precioMax,
-                null // o pasá el ID de sucursal si querés filtrar también por eso
+                precioMax
         );
         return promocionRepository.findAll(spec, pageable);
     }

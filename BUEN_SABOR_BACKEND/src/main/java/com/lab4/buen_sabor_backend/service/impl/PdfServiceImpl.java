@@ -2,6 +2,7 @@
 package com.lab4.buen_sabor_backend.service.impl;
 
 import com.lab4.buen_sabor_backend.model.*;
+import com.lab4.buen_sabor_backend.model.enums.TipoEnvio;
 import com.lab4.buen_sabor_backend.service.PdfService;
 import com.lowagie.text.*;
 import com.lowagie.text.Font;
@@ -383,28 +384,69 @@ public class PdfServiceImpl implements PdfService {
     }
 
     private void crearSeccionTotales(Document document, Pedido pedido, Font fuenteTotal, Font fuenteNormal, Font fuenteAcento) throws DocumentException {
-        // Tabla de totales (solo TOTAL, sin subtotal)
+        // Tabla de totales (Subtotal, descuento/recargo, total)
         PdfPTable tablaTotales = new PdfPTable(2);
-        tablaTotales.setWidthPercentage(40);
+        tablaTotales.setWidthPercentage(50);
         tablaTotales.setHorizontalAlignment(Element.ALIGN_RIGHT);
         tablaTotales.setWidths(new float[]{60, 40});
         tablaTotales.setSpacingBefore(10);
 
-        // Calcular total (suma de subtotales de los detalles)
-        double total = 0.0;
+        // Calcular subtotal bruto
+        double subtotal = 0.0;
         if (pedido.getDetalles() != null) {
             for (DetallePedido detalle : pedido.getDetalles()) {
-                total += detalle.getSubTotal() != null ? detalle.getSubTotal() : 0.0;
+                subtotal += detalle.getSubTotal() != null ? detalle.getSubTotal() : 0.0;
             }
         }
 
-        // Solo fila de TOTAL
+        // Fila Subtotal
+        PdfPCell celdaLabelSubtotal = new PdfPCell(new Phrase("Subtotal:", fuenteNormal));
+        celdaLabelSubtotal.setBorder(Rectangle.NO_BORDER);
+        celdaLabelSubtotal.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        celdaLabelSubtotal.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        tablaTotales.addCell(celdaLabelSubtotal);
+        PdfPCell celdaSubtotal = new PdfPCell(new Phrase(formatCurrencySinDecimales(subtotal), fuenteNormal));
+        celdaSubtotal.setBorder(Rectangle.NO_BORDER);
+        celdaSubtotal.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        celdaSubtotal.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        tablaTotales.addCell(celdaSubtotal);
+
+        // Fila descuento o recargo
+        double diferencia = 0.0;
+        TipoEnvio tipoEnvio = pedido.getTipoEnvio();
+        if (tipoEnvio == TipoEnvio.TAKEAWAY) {
+            diferencia = subtotal - pedido.getTotal();
+            PdfPCell celdaLabelDesc = new PdfPCell(new Phrase("Descuento TAKEAWAY (10%):", fuenteAcento));
+            celdaLabelDesc.setBorder(Rectangle.NO_BORDER);
+            celdaLabelDesc.setHorizontalAlignment(Element.ALIGN_RIGHT);
+            celdaLabelDesc.setVerticalAlignment(Element.ALIGN_MIDDLE);
+            tablaTotales.addCell(celdaLabelDesc);
+            PdfPCell celdaDesc = new PdfPCell(new Phrase("-" + formatCurrencySinDecimales(diferencia), fuenteAcento));
+            celdaDesc.setBorder(Rectangle.NO_BORDER);
+            celdaDesc.setHorizontalAlignment(Element.ALIGN_RIGHT);
+            celdaDesc.setVerticalAlignment(Element.ALIGN_MIDDLE);
+            tablaTotales.addCell(celdaDesc);
+        } else if (tipoEnvio == TipoEnvio.DELIVERY) {
+            diferencia = pedido.getTotal() - subtotal;
+            PdfPCell celdaLabelRec = new PdfPCell(new Phrase("Recargo DELIVERY (+$2000):", fuenteAcento));
+            celdaLabelRec.setBorder(Rectangle.NO_BORDER);
+            celdaLabelRec.setHorizontalAlignment(Element.ALIGN_RIGHT);
+            celdaLabelRec.setVerticalAlignment(Element.ALIGN_MIDDLE);
+            tablaTotales.addCell(celdaLabelRec);
+            PdfPCell celdaRec = new PdfPCell(new Phrase("+" + formatCurrencySinDecimales(diferencia), fuenteAcento));
+            celdaRec.setBorder(Rectangle.NO_BORDER);
+            celdaRec.setHorizontalAlignment(Element.ALIGN_RIGHT);
+            celdaRec.setVerticalAlignment(Element.ALIGN_MIDDLE);
+            tablaTotales.addCell(celdaRec);
+        }
+
+        // Fila Total Final
         PdfPCell celdaLabelTotal = new PdfPCell(new Phrase("TOTAL:", fuenteAcento));
         celdaLabelTotal.setBorder(Rectangle.NO_BORDER);
         celdaLabelTotal.setHorizontalAlignment(Element.ALIGN_RIGHT);
         celdaLabelTotal.setVerticalAlignment(Element.ALIGN_MIDDLE);
         tablaTotales.addCell(celdaLabelTotal);
-        PdfPCell celdaTotal = new PdfPCell(new Phrase(formatCurrencySinDecimales(total), fuenteTotal));
+        PdfPCell celdaTotal = new PdfPCell(new Phrase(formatCurrencySinDecimales(pedido.getTotal()), fuenteTotal));
         celdaTotal.setBorder(Rectangle.NO_BORDER);
         celdaTotal.setHorizontalAlignment(Element.ALIGN_RIGHT);
         celdaTotal.setVerticalAlignment(Element.ALIGN_MIDDLE);
@@ -412,9 +454,14 @@ public class PdfServiceImpl implements PdfService {
 
         document.add(tablaTotales);
 
-        // Total en letras con estilo
-        Paragraph totalLetras = new Paragraph("Son: " + convertirNumeroALetras((int) total) + " pesos",
-                new Font(Font.HELVETICA, 9, Font.ITALIC, COLOR_TEXTO_SECUNDARIO));
+        // Total en letras con estilo y aclaración
+        String aclaracion = "";
+        if (tipoEnvio == TipoEnvio.TAKEAWAY) aclaracion = " (incluye descuento TAKEAWAY)";
+        if (tipoEnvio == TipoEnvio.DELIVERY) aclaracion = " (incluye recargo DELIVERY)";
+        Paragraph totalLetras = new Paragraph(
+                "Son: " + convertirNumeroALetras(pedido.getTotal().intValue()) + " pesos" + aclaracion,
+                new Font(Font.HELVETICA, 9, Font.ITALIC, COLOR_TEXTO_SECUNDARIO)
+        );
         totalLetras.setAlignment(Element.ALIGN_RIGHT);
         totalLetras.setSpacingAfter(10);
         document.add(totalLetras);
@@ -484,7 +531,7 @@ public class PdfServiceImpl implements PdfService {
             Font fuenteNormal = FontFactory.getFont(FontFactory.HELVETICA, 11, COLOR_PRIMARIO);
             Font fuentePequena = FontFactory.getFont(FontFactory.HELVETICA, 9, COLOR_TEXTO_SECUNDARIO);
 
-            // Header simple
+            // Header simples
             Paragraph titulo = new Paragraph("AVISO DE CANCELACIÓN DE PEDIDO", fuenteTitulo);
             titulo.setAlignment(Element.ALIGN_CENTER);
             titulo.setSpacingAfter(20);

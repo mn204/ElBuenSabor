@@ -54,21 +54,6 @@ const CategoriaCard: React.FC<Props> = ({ categoria }) => {
           {categoria.denominacion}
         </h3>
 
-        {/* Mostrar categoría padre si existe */}
-        {categoria.categoriaPadre && (
-          <div className="card-articulo__parent-category">
-            <span className="card-articulo__parent-text">
-              Subcategoría de: {categoria.categoriaPadre.denominacion}
-            </span>
-          </div>
-        )}
-
-        {/* Indicador visual de que es una categoría */}
-        <div className="card-articulo__category-indicator">
-          <span className="card-articulo__category-badge">
-            Categoría
-          </span>
-        </div>
       </div>
     </div>
   );
