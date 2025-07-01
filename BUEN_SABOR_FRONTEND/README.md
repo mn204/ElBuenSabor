@@ -6,7 +6,7 @@ Frontend del sistema integral para la gestión de un emprendimiento gastronómic
 
 ## 🧪 Cuentas de prueba
 
-Consultar el [README del backend](https://github.com/tu-usuario/buen-sabor-backend) para acceder a los usuarios por rol (cliente, cajero, cocinero, delivery, admin).
+Consultar el [README del backend](https://github.com/mn204/BUEN_SABOR_BACKEND) para acceder a los usuarios por rol (cliente, cajero, cocinero, delivery, admin).
 
 ---
 
@@ -86,7 +86,6 @@ npm run lint        # Linting
 - Seguimiento de estado del pedido
 - Administración de productos, insumos, usuarios y promociones
 - Responsive design para experiencia móvil
-- Notificaciones en tiempo real (en desarrollo con WebSockets)
 
 ---
 
@@ -104,10 +103,10 @@ http://localhost:8080
 
 ## 👥 Autores
 
-- Lucas Gonzalez  
-- Juan Cruz Gonzalez  
-- Manuel Rodríguez  
-- Sebatian Luna  
+- Lucas Gonzalez
+- Juan Cruz Gonzalez
+- Manuel Rodríguez
+- Sebatian Luna
 - Juan Cruz Vargas
 
 ---
