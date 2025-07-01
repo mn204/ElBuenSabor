@@ -477,18 +477,19 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
         Sucursal sucursal = pedido.getSucursal();
         double totalCosto = 0.0;
         Articulo art;
+
         for (DetallePedido detPed : pedido.getDetalles()) {
+            // Procesar promociones
             if (detPed.getPromocion() != null) {
                 for (DetallePromocion deta : detPed.getPromocion().getDetalles()) {
                     art = deta.getArticulo();
-                    int cantidadPed = deta.getCantidad();
+                    int cantidadTotalRequerida = deta.getCantidad() * detPed.getCantidad(); // CORREGIDO: usar deta.getCantidad()
 
                     try {
                         // Intentar como insumo directo
                         ArticuloInsumo insumo = articuloInsumoService.getById(art.getId());
 
                         if (!insumo.getEsParaElaborar()) {
-
                             SucursalInsumo si = sucursalInsumoService.findBySucursalIdAndArticuloInsumoId(sucursal.getId(), insumo.getId());
                             if (si == null) {
                                 throw new RuntimeException("El articulo no tiene stock");
@@ -496,8 +497,9 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
 
                             // Consolidar requerimientos por ID de SucursalInsumo
                             Long siId = si.getId();
+                            double costoComponente = insumo.getPrecioCompra() * cantidadTotalRequerida; // CORREGIDO
                             requerimientos.merge(siId,
-                                    new RequerimientoInfo(si, (double) cantidadPed, insumo.getPrecioCompra() * cantidadPed),
+                                    new RequerimientoInfo(si, (double) cantidadTotalRequerida, costoComponente), // CORREGIDO
                                     (existing, nuevo) -> new RequerimientoInfo(
                                             existing.getSucursalInsumo(),
                                             existing.getCantidadRequerida() + nuevo.getCantidadRequerida(),
@@ -518,7 +520,7 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
                                     throw new RuntimeException("El articulo no tiene stock");
                                 }
 
-                                double cantidadRequerida = dam.getCantidad() * cantidadPed;
+                                double cantidadRequerida = dam.getCantidad() * cantidadTotalRequerida; // CORREGIDO: usar cantidadTotalRequerida
                                 double costoComponente = ai.getPrecioCompra() * cantidadRequerida;
 
                                 // Consolidar requerimientos por ID de SucursalInsumo
@@ -539,6 +541,8 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
                     }
                 }
             }
+
+            // Procesar artículos individuales
             if (detPed.getArticulo() != null && detPed.getArticulo().getId() != null) {
                 art = detPed.getArticulo();
                 int cantidadPed = detPed.getCantidad();
@@ -548,7 +552,6 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
                     ArticuloInsumo insumo = articuloInsumoService.getById(art.getId());
 
                     if (!insumo.getEsParaElaborar()) {
-
                         SucursalInsumo si = sucursalInsumoService.findBySucursalIdAndArticuloInsumoId(sucursal.getId(), insumo.getId());
                         if (si == null) {
                             throw new RuntimeException("El articulo no tiene stock");
@@ -556,8 +559,9 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
 
                         // Consolidar requerimientos por ID de SucursalInsumo
                         Long siId = si.getId();
+                        double costoComponente = insumo.getPrecioCompra() * cantidadPed;
                         requerimientos.merge(siId,
-                                new RequerimientoInfo(si, (double) cantidadPed, insumo.getPrecioCompra() * cantidadPed),
+                                new RequerimientoInfo(si, (double) cantidadPed, costoComponente),
                                 (existing, nuevo) -> new RequerimientoInfo(
                                         existing.getSucursalInsumo(),
                                         existing.getCantidadRequerida() + nuevo.getCantidadRequerida(),
@@ -629,7 +633,6 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
             throw new RuntimeException("Error al procesar el pedido: " + e.getMessage(), e);
         }
     }
-
 
     @Transactional
     protected boolean guardarPedidoConTransaccion(Pedido pedido, Map<Long, RequerimientoInfo> requerimientos) {
