@@ -278,7 +278,7 @@ function GrillaInsumos() {
   };
 
   const handleActualizar = (ins: Insumo) => {
-    window.location.href = `/FormularioInsumo?id=${ins.id}`;
+    window.location.href = `/empleado/FormularioInsumo?id=${ins.id}`;
   };
 
   // Funciones para manejar cambios de página
@@ -386,7 +386,7 @@ function GrillaInsumos() {
             <div className="d-flex align-items-center gap-3">
               <Card.Title className="mb-0">Gestión de Insumos</Card.Title>
             </div>
-            <Button variant="success" size="sm" onClick={() => navigate('/FormularioInsumo')}>
+            <Button variant="success" size="sm" onClick={() => navigate('/empleado/FormularioInsumo')}>
               ➕ Crear Insumo
             </Button>
           </div>

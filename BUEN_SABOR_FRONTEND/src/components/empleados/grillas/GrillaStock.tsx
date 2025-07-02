@@ -168,7 +168,7 @@ function GrillaStock() {
 
     const handleActualizarStock = (fila: StockTableRow) => {
         if (sucursalActual && sucursalActual.id) {
-            navigate(`/FormularioStock?id=${fila.sucursalInsumo.id}`);
+            navigate(`/empleado/FormularioStock?id=${fila.sucursalInsumo.id}`);
         } else {
             mostrarModalMensaje("Debes seleccionar una sucursal antes de actualizar el stock.", "warning", "Advertencia");
         }
@@ -388,7 +388,7 @@ function GrillaStock() {
                                 </span>
                             </div>
                         </div>
-                        <Button variant="success" size="sm" onClick={() => navigate('/FormularioStock')}>
+                        <Button variant="success" size="sm" onClick={() => navigate('/empleado/FormularioStock')}>
                             ➕ Nuevo Stock
                         </Button>
                     </div>

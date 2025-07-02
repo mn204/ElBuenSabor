@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext.tsx';
+import { useAuth } from './AuthContext.tsx';
 
 const Redireccion = () => {
     const { isAuthenticated, usuario } = useAuth();

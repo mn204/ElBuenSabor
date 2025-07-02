@@ -81,7 +81,7 @@ function GrillaCategorias() {
   };
 
   const handleActualizar = (cat: Categoria) => {
-    window.location.href = `/FormularioCategoria?id=${cat.id}`;
+    window.location.href = `/empleado/FormularioCategoria?id=${cat.id}`;
   };
 
   const handleVer = (cat: Categoria) => {
@@ -123,7 +123,7 @@ function GrillaCategorias() {
   return (
     <div className="position-relative">
       <h2 className="mb-4">Categorías</h2>
-      <Link to="/FormularioCategoria" className="btn border-success position-absolute" style={{right: 0, top: 0}}>
+      <Link to="/empleado/FormularioCategoria" className="btn border-success position-absolute" style={{right: 0, top: 0}}>
         Crear Categoria
       </Link>
       <ul style={{ listStyleType: "none", paddingLeft: 0 }}>

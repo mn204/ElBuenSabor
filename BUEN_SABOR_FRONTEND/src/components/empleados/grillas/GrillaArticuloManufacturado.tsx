@@ -185,7 +185,7 @@ function GrillaArticuloManufacturado() {
     };
 
     const handleActualizar = (row: ArticuloManufacturado) => {
-        window.location.href = `/FormularioManufacturado?id=${row.id}`;
+        window.location.href = `/empleado/FormularioManufacturado?id=${row.id}`;
     };
 
     const confirmarAccion = (titulo: string, mensaje: string, accion: () => void) => {
@@ -329,7 +329,7 @@ function GrillaArticuloManufacturado() {
                         <div className="d-flex align-items-center gap-3">
                             <Card.Title className="mb-0">Gestión de Artículos Manufacturados</Card.Title>
                         </div>
-                        <Link to="/FormularioManufacturado" style={{ textDecoration: "none" }}>
+                        <Link to="/empleado/FormularioManufacturado" style={{ textDecoration: "none" }}>
                             <Button variant="success" size="sm">
                                 ➕ Crear Producto
                             </Button>

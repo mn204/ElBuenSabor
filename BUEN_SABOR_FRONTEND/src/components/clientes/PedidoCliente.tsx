@@ -159,8 +159,8 @@ const PedidoCliente: React.FC = () => {
             <h2 className="text-center fw-bold mb-4 perfilTitle">Mis Pedidos</h2>
             {/* Filtros responsive */}
             <Form className="mb-3">
-                <Row className="gy-2 gx-2">
-                    <Col xs={12} sm={6} md={3}>
+                <Row className="gy-2 gx-2 align-items-center">
+                    <Col xs={12} sm={6} md={2}>
                         <Form.Select
                             size="sm"
                             value={filtros.sucursal}
@@ -232,7 +232,7 @@ const PedidoCliente: React.FC = () => {
                             onChange={(e) => handleFiltroChange({ ...filtros, articulo: e.target.value })}
                         />
                     </Col>
-                    <Col xs={12} sm={6} md={1} className="d-flex flex-column gap-2">
+                    <Col xs={12} sm={6} md={2} className="d-flex align-items-center gap-2">
                         <Button
                             variant="outline-secondary"
                             size="sm"

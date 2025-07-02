@@ -15,7 +15,7 @@ import ProtectedRoute from './context/ProtectedRoute.tsx'
 import Rol from './models/enums/Rol.ts'
 import { Modal } from "react-bootstrap";
 import 'bootstrap-icons/font/bootstrap-icons.css';
-import Redireccion from './components/auth/Redireccion.tsx';
+import Redireccion from './context/Redireccion.tsx';
 import RegisterGoogle from "./components/auth/RegisterGoogle.tsx";
 import PanelAdmin from "./components/empleados/PanelAdmin.tsx";
 import DomiciliosCliente from "./components/clientes/DomiciliosCliente.tsx";
@@ -103,31 +103,31 @@ function AppContent() {
           </ProtectedRoute>
         } />
 
-        <Route path="/FormularioManufacturado" element={
-          <ProtectedRoute requiredRoles={[Rol.ADMIN, Rol.COCINERO]}>
+        <Route path="/empleado/FormularioManufacturado" element={
+          <ProtectedRoute requiredRoles={[Rol.ADMIN]}>
             <FormArticuloManufacturado />
           </ProtectedRoute>
         } />
 
-        <Route path="/FormularioCategoria" element={
+        <Route path="/empleado/FormularioCategoria" element={
           <ProtectedRoute requiredRoles={[Rol.ADMIN]}>
             <FormCategoria />
           </ProtectedRoute>
         } />
 
-        <Route path="/FormularioInsumo" element={
+        <Route path="/empleado/FormularioInsumo" element={
           <ProtectedRoute requiredRoles={[Rol.ADMIN]}>
             <FormInsumos />
           </ProtectedRoute>
         } />
 
-        <Route path="/FormularioStock" element={
+        <Route path="/empleado/FormularioStock" element={
           <ProtectedRoute requiredRoles={[Rol.ADMIN]}>
             <FormStock />
           </ProtectedRoute>
         } />
 
-        <Route path="/FormularioPromocion" element={
+        <Route path="/empleado/FormularioPromocion" element={
           <ProtectedRoute requiredRoles={[Rol.ADMIN]}>
             <FormPromocion />
           </ProtectedRoute>

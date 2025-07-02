@@ -299,7 +299,7 @@ export function GrillaPromocion() {
     };
 
     const handleActualizar = (promo: Promocion) => {
-        window.location.href = `/FormularioPromocion?id=${promo.id}`;
+        window.location.href = `/empleado/FormularioPromocion?id=${promo.id}`;
     };
 
     // Función para manejar el cambio de filtros con debounce (opcional)
@@ -442,7 +442,7 @@ export function GrillaPromocion() {
                         <div className="d-flex align-items-center gap-3">
                             <Card.Title className="mb-0">Gestión de Promociones</Card.Title>
                         </div>
-                        <Button variant="success" size="sm" onClick={() => navigate('/FormularioPromocion')}>
+                        <Button variant="success" size="sm" onClick={() => navigate('/empleado/FormularioPromocion')}>
                             ➕ Crear Promoción
                         </Button>
                     </div>
