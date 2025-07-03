@@ -1,4 +1,4 @@
-package com.lab4.buen_sabor_backend.config;
+package com.lab4.buen_sabor_backend.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
