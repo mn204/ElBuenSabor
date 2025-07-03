@@ -15,6 +15,7 @@ import static com.lab4.buen_sabor_backend.service.impl.specification.PedidoSpeci
 
 import com.lab4.buen_sabor_backend.model.enums.Estado;
 import com.lab4.buen_sabor_backend.repository.PedidoRepository;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.transaction.annotation.Transactional; // CAMBIO AQUÍ
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,6 +71,9 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
         this.clienteRepository = clienteRepository;
         this.sucursalInsumoRepository = sucursalInsumoRepository;
     }
+
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
 
     @Override
     @Transactional
@@ -434,6 +438,16 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
         // Actualizar estado
         pedido.setEstado(nuevoEstado);
         pedidoRepository.save(pedido);
+        messagingTemplate.convertAndSend("/topic/admin", pedido);
+        switch (pedido.getEstado()) {
+            case PREPARACION -> messagingTemplate.convertAndSend("/topic/cocina", pedido);
+            case LISTO -> {
+                messagingTemplate.convertAndSend("/topic/cocina", pedido);
+                messagingTemplate.convertAndSend("/topic/cajero", pedido);
+            }
+            case EN_DELIVERY, ENTREGADO -> messagingTemplate.convertAndSend("/topic/delivery", pedido);
+            case CANCELADO, PENDIENTE -> messagingTemplate.convertAndSend("/topic/cajero", pedido);
+        }
 
         // Si el pedido fue cancelado, devolver stock
         if (estadoActual != Estado.CANCELADO && nuevoEstado == Estado.CANCELADO) {
@@ -677,6 +691,8 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
                 detallePedidoService.save(detalle);
             }
 
+            messagingTemplate.convertAndSend("/topic/admin", pedidoGuardado);
+            messagingTemplate.convertAndSend("/topic/cajero", pedidoGuardado);
             return true;
 
         } catch (Exception e) {
