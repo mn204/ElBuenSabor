@@ -6,6 +6,7 @@ import Pedido from "../../../models/Pedido.ts";
 import Estado from "../../../models/enums/Estado.ts";
 import PedidoDetalleModal from "../modales/PedidoDetalleModal.tsx";
 import pedidoService from "../../../services/PedidoService.ts";
+import { connectWebSocket } from "../../../services/WebSocketService.ts";
 import { ReusableTable } from "../../Tabla";
 import { ChevronLeft, ChevronRight } from "react-bootstrap-icons";
 import Cliente from "../../../models/Cliente.ts";
@@ -478,6 +479,61 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
 
         return true; // Por defecto, deshabilitado para otros roles
     };
+
+    useEffect(() => {
+        if (!usuario) return;
+
+        const topic =
+            usuario.rol === 'ADMINISTRADOR'
+                ? '/topic/admin'
+                : usuario.rol === 'CAJERO'
+                    ? '/topic/cajero'
+                    : null;
+
+        if (!topic) return;
+
+        const client = connectWebSocket(topic, (pedidoActualizado) => {
+            setPedidos((prevPedidos) => {
+                const index = prevPedidos.findIndex((p) => p.id === pedidoActualizado.id);
+
+                const estadosInteres = [
+                    "PENDIENTE",
+                    "PREPARACION",
+                    "LISTO",
+                    "EN_DELIVERY",
+                    "ENTREGADO",
+                    "CANCELADO"
+                ];
+
+                if (!estadosInteres.includes(pedidoActualizado.estado)) {
+                    return prevPedidos;
+                }
+
+                let nuevaLista: Pedido[];
+
+                if (index !== -1) {
+                    // Reemplaza el existente
+                    nuevaLista = [...prevPedidos];
+                    nuevaLista[index] = pedidoActualizado;
+                } else {
+                    // Inserta nuevo pedido
+                    nuevaLista = [...prevPedidos, pedidoActualizado];
+                }
+
+                // Ordena según sortDesc
+                return nuevaLista.sort((a, b) => {
+                    const fechaA = new Date(a.fechaPedido).getTime();
+                    const fechaB = new Date(b.fechaPedido).getTime();
+                    return sortDesc ? fechaB - fechaA : fechaA - fechaB;
+                });
+            });
+
+        });
+
+        return () => {
+            client.deactivate(); // ✅ Ahora es una función de limpieza síncrona
+        };
+    }, [usuario]);
 
     const columns = [
         // Columna de selección solo para admin en modo selección

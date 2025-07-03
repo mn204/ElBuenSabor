@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from "react";
-import {Button, Form, Spinner, Card, Modal} from "react-bootstrap";
+import { Button, Form, Spinner, Card, Modal } from "react-bootstrap";
 import { Eye, CheckCircle, ChevronLeft, ChevronRight } from "react-bootstrap-icons";
 import Pedido from "../../../models/Pedido.ts";
 import Estado from "../../../models/enums/Estado.ts";
 import pedidoService from "../../../services/PedidoService.ts";
+import { connectWebSocket } from "../../../services/WebSocketService.ts";
 import { ReusableTable } from "../../Tabla";
 import { useAuth } from "../../../context/AuthContext.tsx";
 import { useSucursal } from "../../../context/SucursalContextEmpleado.tsx";
 import { obtenerSucursales } from "../../../services/SucursalService.ts";
 import type Sucursal from "../../../models/Sucursal.ts";
-import CocinaModal  from "../modales/CocinaModal.tsx";
+import CocinaModal from "../modales/CocinaModal.tsx";
 import ModalMensaje from "../modales/ModalMensaje";
 
 const GrillaCocina: React.FC = () => {
@@ -123,6 +124,36 @@ const GrillaCocina: React.FC = () => {
             setLoading(false);
         }
     };
+    
+    useEffect(() => {
+        if (!usuario || !isCocinero) return;
+
+        const client = connectWebSocket('/topic/cocina', (pedidoActualizado) => {
+            setPedidos(prevPedidos => {
+                const index = prevPedidos.findIndex(p => p.id === pedidoActualizado.id);
+
+                if (index !== -1) {
+                    const copia = [...prevPedidos];
+                    copia[index] = pedidoActualizado;
+                    return copia;
+                }
+
+                if (
+                    pedidoActualizado.estado === "PREPARACION" ||
+                    pedidoActualizado.estado === "LISTO"
+                ) {
+                    return [...prevPedidos, pedidoActualizado];
+                }
+
+                return prevPedidos;
+            });
+        });
+
+        // 🔧 ¡IMPORTANTE! El cleanup debe ser sincrónico:
+        return () => {
+            client.deactivate(); // ✅ Esto ya es síncrono y está OK
+        };
+    }, [usuario, isCocinero]);
 
     // Cargar sucursales para admin cuando está en modo "todas las sucursales"
     useEffect(() => {
@@ -162,7 +193,7 @@ const GrillaCocina: React.FC = () => {
     const handleAgregar5Min = async (pedido: Pedido) => {
         try {
             await pedidoService.agregarCincoMinutos(pedido);
-           fetchPedidos();
+            fetchPedidos();
             console.log("Hora estimada actualizada correctamente.");
         } catch (error) {
             console.error("Error al agregar 5 minutos:", error);

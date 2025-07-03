@@ -2,6 +2,7 @@ package com.lab4.buen_sabor_backend.service.impl;
 
 import com.lab4.buen_sabor_backend.dto.PedidoDTO;
 import com.lab4.buen_sabor_backend.exceptions.EntityNotFoundException;
+import com.lab4.buen_sabor_backend.mapper.PedidoMapper;
 import com.lab4.buen_sabor_backend.model.*;
 import com.lab4.buen_sabor_backend.model.enums.Rol;
 import com.lab4.buen_sabor_backend.model.enums.TipoEnvio;
@@ -15,6 +16,7 @@ import static com.lab4.buen_sabor_backend.service.impl.specification.PedidoSpeci
 
 import com.lab4.buen_sabor_backend.model.enums.Estado;
 import com.lab4.buen_sabor_backend.repository.PedidoRepository;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.transaction.annotation.Transactional; // CAMBIO AQUÍ
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,6 +50,8 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
     private final ArticuloManufacturadoService articuloManufacturadoService;
     private final ClienteRepository clienteRepository;
     private final SucursalInsumoRepository sucursalInsumoRepository;
+    @Autowired
+    private PedidoMapper pedidoMapper;
 
     @Autowired
     public PedidoServiceImpl(PedidoRepository pedidoRepository, PdfService pdfService, ArticuloInsumoService articuloInsumoService,
@@ -71,6 +75,9 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
         this.sucursalInsumoRepository = sucursalInsumoRepository;
     }
 
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
+
     @Override
     @Transactional
     public Pedido save(Pedido entity) {
@@ -78,8 +85,18 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
         for (DetallePedido detalle : entity.getDetalles()) {
             detalle.setPedido(entity);
         }
+
         logger.info("Guardando Pedido: {}", entity.getId());
-        return super.save(entity);
+        Pedido savedPedido = super.save(entity);
+
+        // Convertir a DTO
+        PedidoDTO pedidoDTO = pedidoMapper.toDTO(savedPedido);
+
+        // Enviar por WebSocket a los roles
+        messagingTemplate.convertAndSend("/topic/admin", pedidoDTO);
+        messagingTemplate.convertAndSend("/topic/cajero", pedidoDTO);
+
+        return savedPedido;
     }
 
     //Buscar pedidos con filtros para Cliente
@@ -434,6 +451,17 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
         // Actualizar estado
         pedido.setEstado(nuevoEstado);
         pedidoRepository.save(pedido);
+        PedidoDTO pedidoDTO = pedidoMapper.toDTO(pedido);
+        messagingTemplate.convertAndSend("/topic/admin", pedidoDTO);
+        switch (pedido.getEstado()) {
+            case PREPARACION -> messagingTemplate.convertAndSend("/topic/cocina", pedidoDTO);
+            case LISTO -> {
+                messagingTemplate.convertAndSend("/topic/cocina", pedidoDTO);
+                messagingTemplate.convertAndSend("/topic/cajero", pedidoDTO);
+            }
+            case EN_DELIVERY, ENTREGADO -> messagingTemplate.convertAndSend("/topic/delivery", pedidoDTO);
+            case CANCELADO, PENDIENTE -> messagingTemplate.convertAndSend("/topic/cajero", pedidoDTO);
+        }
 
         // Si el pedido fue cancelado, devolver stock
         if (estadoActual != Estado.CANCELADO && nuevoEstado == Estado.CANCELADO) {
@@ -651,6 +679,7 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
             pedido.getDetalles().clear();
 
             Pedido pedidoGuardado = save(pedido);
+            PedidoDTO pedidoDTO = pedidoMapper.toDTO(pedidoGuardado);
 
             // 2. Luego guardar los detalles uno por uno
             for (DetallePedido detalle : detallesOriginales) {
@@ -680,6 +709,8 @@ public class PedidoServiceImpl extends MasterServiceImpl<Pedido, Long> implement
                 detallePedidoService.save(detalle);
             }
 
+            messagingTemplate.convertAndSend("/topic/admin", pedidoDTO);
+            messagingTemplate.convertAndSend("/topic/cajero", pedidoDTO);
             return true;
 
         } catch (Exception e) {

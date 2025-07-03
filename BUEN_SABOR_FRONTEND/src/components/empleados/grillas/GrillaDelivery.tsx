@@ -3,6 +3,7 @@ import { Button, Form, Spinner, Card } from "react-bootstrap";
 import Pedido from "../../../models/Pedido.ts";
 import Estado from "../../../models/enums/Estado.ts";
 import pedidoService from "../../../services/PedidoService.ts";
+import { connectWebSocket } from "../../../services/WebSocketService.ts";
 import { ReusableTable } from "../../Tabla";
 import { ChevronLeft, ChevronRight } from "react-bootstrap-icons";
 import { useAuth } from "../../../context/AuthContext.tsx";
@@ -115,6 +116,34 @@ const GrillaDelivery: React.FC = () => {
         }
     };
 
+    useEffect(() => {
+        if (!usuario || !isDelivery) return;
+
+        const client = connectWebSocket('/topic/delivery', (pedidoActualizado) => {
+            setPedidos(prevPedidos => {
+                const index = prevPedidos.findIndex(p => p.id === pedidoActualizado.id);
+
+                // Si el pedido ya está en la lista, actualizarlo
+                if (index !== -1) {
+                    const copia = [...prevPedidos];
+                    copia[index] = pedidoActualizado;
+                    return copia;
+                }
+
+                // Si es nuevo, agregarlo
+                if (pedidoActualizado.estado === "EN_DELIVERY" || pedidoActualizado.estado === "ENTREGADO") {
+                    return [...prevPedidos, pedidoActualizado];
+                }
+
+                return prevPedidos;
+            });
+        });
+
+        return () => {
+            client.deactivate();
+        };
+    }, [usuario, isDelivery]);
+    
     // Cargar sucursales para admin cuando está en modo "todas las sucursales"
     useEffect(() => {
         const fetchSucursales = async () => {
@@ -207,21 +236,21 @@ const GrillaDelivery: React.FC = () => {
             label: "Acciones",
             render: (_: any, row: Pedido) => (
                 <div className="d-flex gap-2 justify-content-center align-items-center">
-                <Button
-                    variant="primary"
-                    size="sm"
-                    onClick={() => handleVerDetalle(row.id!)}
-                >
-                    Ver Detalle
-                </Button>
-                <Button
-                    variant="danger"
-                    size="sm"
-                    onClick={() => handleAgregar5Min(row)}
-                    title="Agregar 5 minutos"
-                >
-                    +5 min
-                </Button>
+                    <Button
+                        variant="primary"
+                        size="sm"
+                        onClick={() => handleVerDetalle(row.id!)}
+                    >
+                        Ver Detalle
+                    </Button>
+                    <Button
+                        variant="danger"
+                        size="sm"
+                        onClick={() => handleAgregar5Min(row)}
+                        title="Agregar 5 minutos"
+                    >
+                        +5 min
+                    </Button>
                 </div>
             )
         }
@@ -377,8 +406,8 @@ const GrillaDelivery: React.FC = () => {
                                     <ChevronLeft />
                                 </Button>
                                 <span className="px-2">
-                Página {page + 1} de {totalPages || 1}
-            </span>
+                                    Página {page + 1} de {totalPages || 1}
+                                </span>
                                 <Button
                                     variant="outline-secondary"
                                     size="sm"
