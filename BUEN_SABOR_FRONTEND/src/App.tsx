@@ -32,6 +32,7 @@ import CarritoProtegido from './context/CarritoProtected.tsx';
 import QuienesSomos from './components/layout/QuienesSomos.tsx';
 import NuestraCompania from "./components/layout/NuestraCompañia.tsx";
 import TerminosYCondiciones from "./components/layout/TerminosYCondiciones.tsx";
+import { SelectorSucursal } from './components/layout/SelectorSucursal.tsx';
 
 function AppContent() {
   const { requiresGoogleRegistration, completeGoogleRegistration, isAuthenticated, usuario } = useAuth();
@@ -44,6 +45,7 @@ function AppContent() {
     <>
       <Navbar />
       <Redireccion />
+      <SelectorSucursal/>
       <Routes>
         {/* Rutas públicas */}
         <Route path="/" element={<Home />} />

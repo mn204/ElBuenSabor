@@ -7,12 +7,11 @@ import { useEffect, useState } from 'react';
 import type Promocion from '../../models/Promocion';
 import SucursalService from '../../services/SucursalService';
 import { useSucursalUsuario } from '../../context/SucursalContext';
-import { Form } from 'react-bootstrap';
 import PromocionService from '../../services/PromocionService';
 
 function Home() {
     const [promocionConStock, setPromocionConStock] = useState<Promocion[]>([]);
-    const { sucursalActualUsuario, sucursalesUsuario, cambiarSucursalUsuario } = useSucursalUsuario();
+    const { sucursalActualUsuario } = useSucursalUsuario();
 
     useEffect(() => {
         const fetchPromocion = async () => {
@@ -50,22 +49,6 @@ function Home() {
 
     return (
         <div className="home">
-            <div className="SelectSucursalHome sucursal text-white align-items-center justift-content-center" style={{ width: '100%' }}>
-                <Form.Select
-                    id="selectSucursalUsuario2"
-                    value={sucursalActualUsuario?.id || ""}
-                    onChange={(e) => {
-                        const id = parseInt(e.target.value);
-                        const sucursal = sucursalesUsuario.find(s => s.id === id);
-                        if (sucursal) cambiarSucursalUsuario(sucursal);
-                    }}
-                    style={{ width: '100%', minWidth: '200px', margin: "1px 10px 10px 10px" }}
-                >
-                    {sucursalesUsuario.map(s => (
-                        <option key={s.id} value={s.id}>{s.nombre}</option>
-                    ))}
-                </Form.Select>
-            </div>
             <img className='imagenHome' src={Imagen1} alt="" />
             <img className='imagenHomeResponsive' src={Imagen1Responsive} alt="" />
 

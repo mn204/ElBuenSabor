@@ -286,7 +286,7 @@ function FormStock() {
         if (isEditMode) {
           navigate(-1);
         }
-      }, 2000);
+      }, 1);
 
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || err.message || "Error al procesar la solicitud";
