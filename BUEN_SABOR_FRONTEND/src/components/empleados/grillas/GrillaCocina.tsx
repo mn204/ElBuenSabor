@@ -124,7 +124,7 @@ const GrillaCocina: React.FC = () => {
             setLoading(false);
         }
     };
-
+    
     useEffect(() => {
         if (!usuario || !isCocinero) return;
 
