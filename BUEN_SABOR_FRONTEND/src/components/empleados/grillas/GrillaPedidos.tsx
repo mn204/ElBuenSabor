@@ -241,10 +241,17 @@ const GrillaPedidos: React.FC<Props> = ({ cliente }) => {
 
             await pedidoService.cambiarEstadoPedido(pedidoActualizado);
 
-            // Actualizar estado local
+            // ✅ Actualizar estado local
             setPedidos(prev => prev.map(p =>
                 p.id === pedidoId ? { ...p, estado: nuevoEstado } : p
             ));
+
+            // ✅ Resetear selección
+            setEstadoSeleccionado(prev => {
+                const nuevo = { ...prev };
+                delete nuevo[pedidoId];
+                return nuevo;
+            });
 
         } catch (error) {
             console.error('Error al cambiar estado:', error);
